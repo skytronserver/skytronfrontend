@@ -994,45 +994,24 @@ try {
       </IconButton>
     </Box>
   }
-      
       sx={{
         bgcolor: tokens.pageBg,
         backgroundImage: 'none',
-        minHeight: '100vh',
-        height: { xs: 'auto', md: '100%' },
-        maxHeight: { xs: 'none', md: '100%' }, 
-        overflow: { xs: 'auto', md: 'hidden' }
+        height: 'auto !important', 
+        minHeight: 'calc(100vh - 88px)'
       }}
       titleSx={{ color: tokens.text, fontSize: { xs: '1.5rem', md: '1.75rem' }, mb: 0.5 }}
       descriptionSx={{ color: tokens.muted, fontSize: { xs: '0.85rem', md: '0.875rem' } }}
       headerSx={{ mb: { xs: 2, md: 1.5 } }}
     >
       
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, md: 1 }, height: { xs: 'auto', md: '100%' } }}>
-        {/* <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: { xs: 0, md: -0.5 } }}>
-          <IconButton
-            size="small"
-            onClick={() => setMode((prev) => (prev === 'dark' ? 'light' : 'dark'))}
-            sx={{
-              color: tokens.text,
-              bgcolor: alpha(tokens.text, mode === 'dark' ? 0.08 : 0.06),
-              border: `1px solid ${alpha(tokens.text, 0.12)}`,
-              borderRadius: 1.5,
-              '&:hover': { bgcolor: alpha(tokens.text, mode === 'dark' ? 0.12 : 0.08) }
-            }}
-          >
-            {mode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
-          </IconButton>
-        </Box> */}
-
-
-
+      <Box sx={{ display: 'block', pb: 2 }}>
         <Box
           sx={{
             display: 'flex',
             gap: { xs: 1.5, md: 0.75 },
             flexWrap: 'wrap',
-            flexShrink: 0
+            mb: { xs: 2, md: 2 }
           }}
         >
           {kpis.map((tile) => (
@@ -1040,18 +1019,19 @@ try {
           ))}
         </Box>
 
-
-
-        <Box sx={{ flex: 1, minHeight: { xs: 420, md: 0 }, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'visible' }}>
+        <Box sx={{ 
+          height: 500,
+          mt: 2,
+          width: '100%',
+          display: 'block'
+        }}>
           <DistrictVehicleMap
-          data={mapData}
-          level={level}
-          //  onZoomChange={handleZoomChange}
-          onBack={handleBack}
-  onDistrictClick={handleDistrictClick}
-  onCityClick={handleCityClick}
-  onLocalityClick={handleLocalityClick}
-          
+            data={mapData}
+            level={level}
+            onBack={handleBack}
+            onDistrictClick={handleDistrictClick}
+            onCityClick={handleCityClick}
+            onLocalityClick={handleLocalityClick}
             vehicles={filteredVehicles}
             selectedDistrict={selectedDistrict}
             onSelectDistrict={handleSelectDistrict}

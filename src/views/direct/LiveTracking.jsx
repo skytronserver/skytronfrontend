@@ -30,7 +30,9 @@ import {
   Autocomplete,
   Snackbar,
   Alert,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 import MainCard from "../../ui-component/cards/MainCard";
 import HomePageService from "../../services/HomePage";
@@ -47,6 +49,9 @@ const vehicleIconContext = require.context('../../assets/images', true, /\.png$/
 
 const LiveTracking = () => {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));   // ≤ 600px
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));   // ≤ 960px
   const [load, setLoad] = useState(false);
   const [htmlContent, setHtmlContent] = useState("");
 
@@ -1940,9 +1945,30 @@ useEffect(() => {
         </div>
 
         {/* HTML Content (iframe) */}
-        <div className="live-tracking-map-panel" style={{ width: "80%" }}>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
-            <FormControl size="small" sx={{ minWidth: 220 }}>
+        <div className="live-tracking-map-panel">
+          {/* ── Toolbar Row 1: Marker Label + Switches ── */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: { xs: 0.5, sm: 1 },
+              mb: 1,
+              p: { xs: 1, sm: 0 },
+              bgcolor: { xs: '#f8f9fa', sm: 'transparent' },
+              borderRadius: { xs: 2, sm: 0 },
+              border: { xs: '1px solid #e8e8e8', sm: 'none' },
+            }}
+          >
+            {/* Marker Label – full width on mobile, auto on desktop */}
+            <FormControl
+              size="small"
+              sx={{
+                width: { xs: '100%', sm: 'auto' },
+                minWidth: { xs: 'unset', sm: 220 },
+                flex: { xs: '1 1 100%', sm: '0 0 auto' },
+              }}
+            >
               <InputLabel id="marker-label-mode-label">Marker Label</InputLabel>
               <Select
                 labelId="marker-label-mode-label"
@@ -1955,133 +1981,156 @@ useEffect(() => {
                 <MenuItem value="route">Route Information</MenuItem>
               </Select>
             </FormControl>
-            <FormControlLabel
-              sx={{ ml: 2 }}
-              control={
-                <Switch
-                  color="primary"
-                  checked={showPolice}
-                  onChange={(event) => setShowPolice(event.target.checked)}
-                />
-              }
-              label="Police"
-            />
-            <FormControlLabel
-              sx={{ ml: 2 }}
-              control={
-                <Switch
-                  color="primary"
-                  checked={showAmbulance}
-                  onChange={(event) => setShowAmbulance(event.target.checked)}
-                />
-              }
-              label="Ambulance"
-            />
-            <FormControlLabel
-              sx={{ ml: 2 }}
-              control={
-                <Switch
-                  color="primary"
-                  checked={useOldGeocodingApi}
-                  onChange={(event) => {
-                    const enabled = event.target.checked;
-                    setUseOldGeocodingApi(enabled);
-                    setUseOldGeocodingApiState(enabled);
-                  }}
-                />
-              }
-              label="Old Geocoding API"
-            />
-            <FormControlLabel
-              sx={{ ml: 2 }}
-              control={
-                <Switch
-                  color="primary"
-                  checked={useNmrLocation}
-                  onChange={async (event) => {
-                    const enabled = event.target.checked;
-                    setUseNmrLocation(enabled);
 
-                    // When turning OFF, revert to latest GNSS for selected vehicle
-                    if (!enabled) {
-                      // Clear NMR area so circle disappears
-                      setNmrArea(null);
-                      if (selectedId) {
-                        await refreshSelectedVehicle();
-                      }
-                      return;
-                    }
+            {/* Switches – 2-up on mobile, inline on desktop */}
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, auto)' },
+                gap: { xs: 0, sm: 0 },
+                width: { xs: '100%', sm: 'auto' },
+                ml: { xs: 0, sm: 1 },
+              }}
+            >
+              <FormControlLabel
+                sx={{ m: 0, px: { xs: 0.5, sm: 1 } }}
+                componentsProps={{ typography: { sx: { fontSize: { xs: '0.75rem', sm: '0.875rem' } } } }}
+                control={
+                  <Switch
+                    size={isMobile ? 'small' : 'medium'}
+                    color="primary"
+                    checked={showPolice}
+                    onChange={(event) => setShowPolice(event.target.checked)}
+                  />
+                }
+                label="Police"
+              />
+              <FormControlLabel
+                sx={{ m: 0, px: { xs: 0.5, sm: 1 } }}
+                componentsProps={{ typography: { sx: { fontSize: { xs: '0.75rem', sm: '0.875rem' } } } }}
+                control={
+                  <Switch
+                    size={isMobile ? 'small' : 'medium'}
+                    color="primary"
+                    checked={showAmbulance}
+                    onChange={(event) => setShowAmbulance(event.target.checked)}
+                  />
+                }
+                label="Ambulance"
+              />
+              <FormControlLabel
+                sx={{ m: 0, px: { xs: 0.5, sm: 1 } }}
+                componentsProps={{ typography: { sx: { fontSize: { xs: '0.75rem', sm: '0.875rem' } } } }}
+                control={
+                  <Switch
+                    size={isMobile ? 'small' : 'medium'}
+                    color="primary"
+                    checked={useOldGeocodingApi}
+                    onChange={(event) => {
+                      const enabled = event.target.checked;
+                      setUseOldGeocodingApi(enabled);
+                      setUseOldGeocodingApiState(enabled);
+                    }}
+                  />
+                }
+                label={isMobile ? 'Old Geocoding' : 'Old Geocoding API'}
+              />
+              <FormControlLabel
+                sx={{ m: 0, px: { xs: 0.5, sm: 1 } }}
+                componentsProps={{ typography: { sx: { fontSize: { xs: '0.75rem', sm: '0.875rem' } } } }}
+                control={
+                  <Switch
+                    size={isMobile ? 'small' : 'medium'}
+                    color="primary"
+                    checked={useNmrLocation}
+                    onChange={async (event) => {
+                      const enabled = event.target.checked;
+                      setUseNmrLocation(enabled);
 
-                    // Require a focused entry to apply manual NMR
-                    if (!focusedEntry) {
-                      return;
-                    }
-
-                    const mcc = focusedEntry.mcc;
-                    const mnc = focusedEntry.mnc;
-                    const lac = focusedEntry.lac;
-                    const cellId = focusedEntry.cell_id;
-
-                    if (!mcc || !mnc || !lac || !cellId) {
-                      return;
-                    }
-
-                    try {
-                      const payload = {
-                        mcc: String(mcc),
-                        mnc: String(mnc),
-                        lac: String(lac),
-                        cell_id: String(cellId),
-                      };
-                      const response = await HomePageService.getCellLocation(payload);
-                      const latValue =
-                        response?.data?.average_latitude ??
-                        response?.data?.lat ??
-                        response?.data?.latitude;
-                      const lonValue =
-                        response?.data?.average_longitude ??
-                        response?.data?.lon ??
-                        response?.data?.lng ??
-                        response?.data?.longitude;
-
-                      const lat = Number(latValue);
-                      const lon = Number(lonValue);
-
-                      if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+                      // When turning OFF, revert to latest GNSS for selected vehicle
+                      if (!enabled) {
+                        // Clear NMR area so circle disappears
+                        setNmrArea(null);
+                        if (selectedId) {
+                          await refreshSelectedVehicle();
+                        }
                         return;
                       }
 
-                      // Set NMR circle radius to 0.5 km (~500 meters)
-                      setNmrArea({ latitude: lat, longitude: lon, radiusKm: 0.5 });
-                      const nmrEntry = { ...focusedEntry, latitude: lat, longitude: lon };
-                      setFilteredData([nmrEntry]);
-                      setFocusedEntry(nmrEntry);
-                    } catch (e) {
-                    }
-                  }}
-                />
-              }
-              label="Use NMR Location"
-            />
+                      // Require a focused entry to apply manual NMR
+                      if (!focusedEntry) {
+                        return;
+                      }
 
+                      const mcc = focusedEntry.mcc;
+                      const mnc = focusedEntry.mnc;
+                      const lac = focusedEntry.lac;
+                      const cellId = focusedEntry.cell_id;
+
+                      if (!mcc || !mnc || !lac || !cellId) {
+                        return;
+                      }
+
+                      try {
+                        const payload = {
+                          mcc: String(mcc),
+                          mnc: String(mnc),
+                          lac: String(lac),
+                          cell_id: String(cellId),
+                        };
+                        const response = await HomePageService.getCellLocation(payload);
+                        const latValue =
+                          response?.data?.average_latitude ??
+                          response?.data?.lat ??
+                          response?.data?.latitude;
+                        const lonValue =
+                          response?.data?.average_longitude ??
+                          response?.data?.lon ??
+                          response?.data?.lng ??
+                          response?.data?.longitude;
+
+                        const lat = Number(latValue);
+                        const lon = Number(lonValue);
+
+                        if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+                          return;
+                        }
+
+                        // Set NMR circle radius to 0.5 km (~500 meters)
+                        setNmrArea({ latitude: lat, longitude: lon, radiusKm: 0.5 });
+                        const nmrEntry = { ...focusedEntry, latitude: lat, longitude: lon };
+                        setFilteredData([nmrEntry]);
+                        setFocusedEntry(nmrEntry);
+                      } catch (e) {
+                      }
+                    }}
+                  />
+                }
+                label={isMobile ? 'NMR Loc.' : 'Use NMR Location'}
+              />
+            </Box>
           </Box>
+          {/* ── Toolbar Row 2: Transit Layer + Alert Heatmap ── */}
           <Box
             sx={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 2,
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'flex-start',
+              gap: { xs: 1, sm: 2 },
               mb: 1,
             }}
           >
             <FormControl
               size="small"
-              sx={{ minWidth: 250 }}
+              sx={{ minWidth: { xs: '100%', sm: 250 }, flex: { xs: '1 1 100%', sm: '0 0 auto' } }}
             >
-              <InputLabel>
+              <InputLabel id="transit-layer-label">
                 Transit Layer
               </InputLabel>
 
               <Select
+                labelId="transit-layer-label"
+                label="Transit Layer"
                 multiple
                 value={selectedTransitLayer}
                 onChange={handleTransitLayerChange}
@@ -2151,7 +2200,8 @@ useEffect(() => {
             <Box
               ref={alertDropdownRef}
               sx={{
-                minWidth: 250
+                minWidth: { xs: '100%', sm: 250 },
+                flex: { xs: '1 1 100%', sm: '0 0 auto' },
               }}
             >
               <Paper
@@ -2334,7 +2384,13 @@ useEffect(() => {
             incidentData={incidentData}
             onVehicleClick={handleVehicleMarkerClick}
             width="100%"
-            height={selectedId ? "400px" : "600px"}
+            height={
+              isMobile
+                ? (selectedId ? '260px' : '340px')
+                : isTablet
+                ? (selectedId ? '340px' : '460px')
+                : (selectedId ? '400px' : '600px')
+            }
             //onPolygonComplete={(coords) => setPolygon(JSON.stringify(coords))}
             focusEntry={focusedEntry}
             markerLabelMode={markerLabelMode}

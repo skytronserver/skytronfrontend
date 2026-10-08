@@ -251,10 +251,21 @@ const validateForm = () => {
     <Box>
       <Card>
         <CardHeader
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            '& .MuiCardHeader-action': {
+              margin: 0,
+              mt: { xs: 2, sm: 0 },
+              width: { xs: '100%', sm: 'auto' },
+            },
+          }}
           title="Bus Schedule Management"
+          titleTypographyProps={{ sx: { wordBreak: 'break-word' } }}
           action={
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <FormControl size="small" sx={{ minWidth: 150 }}>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', width: '100%', justifyContent: { xs: 'space-between', sm: 'flex-end' } }}>
+              <FormControl size="small" sx={{ minWidth: { xs: 120, sm: 150 }, flex: { xs: 1, sm: 'none' } }}>
                 <InputLabel>Filter by Status</InputLabel>
                 <Select
                   value={statusFilter}
@@ -277,8 +288,8 @@ const validateForm = () => {
           }
         />
         <CardContent>
-          <TableContainer component={Paper}>
-            <Table>
+          <TableContainer component={Paper} sx={{ overflowX: 'auto', width: '100%' }}>
+            <Table sx={{ minWidth: 650 }}>
               <TableHead>
                 <TableRow>
                   <TableCell>Service Type</TableCell>

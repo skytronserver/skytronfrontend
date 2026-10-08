@@ -22,3 +22,50 @@
   padding: 4px 0px;
   font-style: italic;
 }
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 10mm;
+  }
+  
+  body {
+    zoom: 80%;
+  }
+
+  header, nav, aside { display: none !important; }
+  main { margin: 0 !important; padding: 0 !important; width: 100% !important; max-width: none !important; }
+  [class*="MUIDataTableToolbar-root"], .MuiToolbar-root, .MuiTablePagination-root { display: none !important; }
+  
+  .MuiBox-root, .MuiPaper-root { 
+    margin: 0 !important; 
+    padding: 0 !important; 
+    box-shadow: none !important; 
+    border: none !important; 
+    overflow: visible !important;
+    position: static !important;
+  }
+  
+  .MuiTableContainer-root, div[style*="overflow"] {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  table { 
+    width: 100% !important; 
+    border-collapse: collapse !important; 
+    table-layout: auto !important; 
+  }
+
+  th, td { 
+    border: 1px solid #ccc !important; 
+    padding: 6px !important; 
+    font-size: 10pt !important; 
+    white-space: normal !important; 
+    word-wrap: break-word !important; 
+  }
+
+  .MuiTableRow-root {
+    page-break-inside: avoid !important;
+  }
+}

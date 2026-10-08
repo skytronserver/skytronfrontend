@@ -49,6 +49,7 @@ const ChartCard = ({ title, subtitle, children, color, tokens }) => (
   <Box
     sx={{
       height: '100%',
+      width: '100%',
       borderRadius: 2,
       border: `1px solid ${alpha(color, 0.18)}`,
       bgcolor: tokens?.cardBg || COLORS.cardBg,
@@ -69,7 +70,7 @@ const ChartCard = ({ title, subtitle, children, color, tokens }) => (
       <Typography sx={{ fontWeight: 700, color: tokens?.text || COLORS.ink, fontSize: '0.85rem' }}>{title}</Typography>
       <Typography sx={{ color: tokens?.muted || COLORS.muted, fontSize: '0.7rem', mt: 0.15 }}>{subtitle}</Typography>
     </Box>
-    <Box sx={{ flex: 1, minHeight: 0, p: 1.5 }}>{children}</Box>
+    <Box sx={{ flex: 1, minHeight: 0, p: 1.5, width: '100%' }}>{children}</Box>
   </Box>
 );
 
@@ -101,7 +102,7 @@ const TooltipBox = ({ active, payload, label, tokens }) => {
 };
 
 const TabPanel = ({ children, value, index }) => (
-  <Box role="tabpanel" hidden={value !== index} sx={{ pt: 1.5 }}>
+  <Box role="tabpanel" hidden={value !== index} sx={{ pt: 1.5, width: '100%' }}>
     {value === index ? children : null}
   </Box>
 );
@@ -920,10 +921,8 @@ console.log(data);
       sx={{
         bgcolor: tokens.pageBg,
         backgroundImage: 'none',
-        minHeight: '100vh',
-        height: { xs: 'auto', md: '100vh' },
-        maxHeight: { xs: 'none', md: '100vh' },
-        overflow: { xs: 'auto', md: 'hidden' }
+        height: 'auto !important', 
+        minHeight: 'calc(100vh - 88px)'
       }}
       titleSx={{ color: tokens.text, fontSize: '1.5rem', mb: 0.5 }}
       descriptionSx={{ color: tokens.muted, fontSize: '0.75rem' }}
@@ -946,7 +945,7 @@ console.log(data);
           {mode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
         </IconButton>
       </Box> */}
-<Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+<Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1, maxWidth: '100%', minWidth: 0 }}>
 
       <Paper
         elevation={0}
@@ -954,9 +953,11 @@ console.log(data);
           borderRadius: 3,
           bgcolor: tokens.cardBg,
           border: `1px solid ${tokens.border}`,
-          overflow: 'visible',
-           flex: 1,           // take available space
-      mr: 2,  
+          overflow: 'hidden',
+          maxWidth: '100%',
+          minWidth: 0,
+          flex: 1,
+          mr: 2,
         }}
       >
         <Tabs
@@ -1028,6 +1029,9 @@ console.log(data);
             bgcolor: alpha(tokens.cardBg, 0.5),
             border: `1px solid ${alpha(tokens.border, 0.5)}`,
             mb: 1.5,
+            overflow: 'hidden',
+            maxWidth: '100%',
+            minWidth: 0
           }}
         >
           <Tabs
@@ -1077,7 +1081,7 @@ console.log(data);
                 color={COLORS.primary}
                 tokens={tokens}
               >
-                <ResponsiveContainer width="100%" height={260}>
+                <ResponsiveContainer width="99%" height={260}>
                   <BarChart data={monthwiseData} margin={{ top: 5, right: 15, left: -15, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.18)} />
                     <XAxis dataKey="month" tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} />
@@ -1230,7 +1234,7 @@ console.log(data);
                   color={COLORS.accent}
                   tokens={tokens}
                 >
-                  <ResponsiveContainer width="100%" height={240}>
+                  <ResponsiveContainer width="99%" height={240}>
                     <PieChart>
                       <Pie
                         data={sosByType}
@@ -1261,7 +1265,7 @@ console.log(data);
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <ChartCard title="Panic Alert" subtitle="Breakdown" color={COLORS.primary} tokens={tokens}>
-                  <ResponsiveContainer width="100%" height={240}>
+                  <ResponsiveContainer width="99%" height={240}>
                     <PieChart>
                       <Pie
                         data={panicBreakdown}
@@ -1292,7 +1296,7 @@ console.log(data);
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <ChartCard title="Ambulance" subtitle="Breakdown" color={COLORS.warning} tokens={tokens}>
-                  <ResponsiveContainer width="100%" height={240}>
+                  <ResponsiveContainer width="99%" height={240}>
                     <PieChart>
                       <Pie
                         data={ambulanceBreakdown}
@@ -1328,7 +1332,10 @@ console.log(data);
               borderRadius: 2,
               bgcolor: alpha(tokens.cardBg, 0.5),
               border: `1px solid ${alpha(tokens.border, 0.5)}`,
-              mb: 1.5
+              mb: 1.5,
+              overflow: 'hidden',
+              maxWidth: '100%',
+              minWidth: 0
             }}
           >
             <Tabs
@@ -1419,7 +1426,7 @@ console.log(data);
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <ChartCard title="Top SOS Districts" subtitle="Trend over time" color={COLORS.secondary} tokens={tokens}>
-                  <ResponsiveContainer width="100%" height={240}>
+                  <ResponsiveContainer width="99%" height={240}>
                     <LineChart data={districtsTrend} margin={{ top: 10, right: 15, left: -12, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.secondary, 0.15)} />
                       <XAxis dataKey="t" tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} />
@@ -1441,7 +1448,7 @@ console.log(data);
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <ChartCard title="Top SOS Police Stations" subtitle="Monthly stacked volume" color={COLORS.primary} tokens={tokens}>
-                  <ResponsiveContainer width="100%" height={240}>
+                  <ResponsiveContainer width="99%" height={240}>
                     <BarChart data={topPoliceStations} margin={{ top: 10, right: 15, left: -15, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.18)} />
                       <XAxis dataKey="month" tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} />
@@ -1509,7 +1516,7 @@ console.log(data);
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <ChartCard title="Total SOS Call" subtitle="Monthwise total SOS calls (Jan-Dec)" color={COLORS.primary} tokens={tokens}>
-                <ResponsiveContainer width="100%" height={260}>
+                <ResponsiveContainer width="99%" height={260}>
                   <BarChart data={monthwiseTotals} margin={{ top: 5, right: 15, left: -15, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.18)} />
                     <XAxis dataKey="month" tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} />
@@ -1532,7 +1539,10 @@ console.log(data);
             borderRadius: 2,
             bgcolor: alpha(tokens.cardBg, 0.5),
             border: `1px solid ${alpha(tokens.border, 0.5)}`,
-            mb: 1.5
+            mb: 1.5,
+            overflow: 'hidden',
+            maxWidth: '100%',
+            minWidth: 0
           }}
         >
           <Tabs
@@ -1575,7 +1585,7 @@ console.log(data);
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <ChartCard title="Total SOS Call" subtitle="Hourly analysis (Area chart)" color={COLORS.secondary} tokens={tokens}>
-                <ResponsiveContainer width="100%" height={260}>
+                <ResponsiveContainer width="99%" height={260}>
                   <AreaChart data={hourlyData} margin={{ top: 5, right: 15, left: -15, bottom: 60 }}>
                     <defs>
                       <linearGradient id="hourlyFill" x1="0" y1="0" x2="0" y2="1">
@@ -1607,7 +1617,7 @@ console.log(data);
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <ChartCard title="Total SOS Call" subtitle="Hourly analysis (Line chart)" color={COLORS.accent} tokens={tokens}>
-                <ResponsiveContainer width="100%" height={260}>
+                <ResponsiveContainer width="99%" height={260}>
                   <LineChart data={hourlyData} margin={{ top: 5, right: 15, left: -15, bottom: 60 }}>
                     <CartesianGrid strokeDasharray="4 6" vertical={true} stroke={alpha(COLORS.accent, 0.12)} />
                     <XAxis
@@ -1637,7 +1647,10 @@ console.log(data);
             borderRadius: 2,
             bgcolor: alpha(tokens.cardBg, 0.5),
             border: `1px solid ${alpha(tokens.border, 0.5)}`,
-            mb: 1.5
+            mb: 1.5,
+            overflow: 'hidden',
+            maxWidth: '100%',
+            minWidth: 0
           }}
         >
           <Tabs
@@ -1680,7 +1693,7 @@ console.log(data);
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <ChartCard title="Total SOS Call" subtitle="District-wise (Area chart)" color={COLORS.success} tokens={tokens}>
-                <ResponsiveContainer width="100%" height={260}>
+                <ResponsiveContainer width="99%" height={260}>
                   <AreaChart data={districtSeries} margin={{ top: 5, right: 15, left: -15, bottom: 80 }}>
                     <defs>
                       <linearGradient id="districtFill" x1="0" y1="0" x2="0" y2="1">
@@ -1712,7 +1725,7 @@ console.log(data);
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <ChartCard title="Total SOS Call" subtitle="District-wise (Line chart)" color={COLORS.warning} tokens={tokens}>
-                <ResponsiveContainer width="100%" height={260}>
+                <ResponsiveContainer width="99%" height={260}>
                   <LineChart data={districtSeries} margin={{ top: 5, right: 15, left: -15, bottom: 80 }}>
                     <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.warning, 0.15)} />
                     <XAxis
@@ -1785,7 +1798,7 @@ console.log(data);
           <Grid  style={{ display: "none" }}  container spacing={2}>
             <Grid item xs={12}>
               <ChartCard title="Total SOS Call" subtitle="Police Station-wise (Area chart)" color={COLORS.danger} tokens={tokens}>
-                <ResponsiveContainer width="100%" height={260}>
+                <ResponsiveContainer width="99%" height={260}>
                   <AreaChart data={policeStationSeries} margin={{ top: 5, right: 15, left: -15, bottom: 100 }}>
                     <defs>
                       <linearGradient id="psFill" x1="0" y1="0" x2="0" y2="1">
@@ -1817,7 +1830,7 @@ console.log(data);
           <Grid  style={{ display: "none" }}  container spacing={2}>
             <Grid item xs={12}>
               <ChartCard title="Total SOS Call" subtitle="Police Station-wise (Line chart)" color={COLORS.primary} tokens={tokens}>
-                <ResponsiveContainer width="100%" height={260}>
+                <ResponsiveContainer width="99%" height={260}>
                   <LineChart data={policeStationSeries} margin={{ top: 5, right: 15, left: -15, bottom: 100 }}>
                     <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.15)} />
                     <XAxis

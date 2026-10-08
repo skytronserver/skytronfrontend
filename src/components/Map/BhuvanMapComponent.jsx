@@ -516,7 +516,7 @@ const BhuvanMapComponent = ({
                     }),
                 ];
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Vehicle Icon Styling
@@ -1078,7 +1078,7 @@ ${Number.isFinite(hospitalFallback?.distanceKm)
 
         const withTrailer = entryData?.with_trailer === true || entryData?.with_trailer === "true" || entryData?.device_tag_info?.with_trailer === true || entryData?.device_tag_info?.with_trailer === "true";
         const trailerId = entryData?.trailer_id || entryData?.device_tag_info?.trailer_id || "-";
-        
+
         const trailerHtml = withTrailer ? `
                       <div class="overlay-row"><span class="overlay-label">Trailer</span><span class="overlay-value">Attached</span></div>
                       <div class="overlay-row"><span class="overlay-label">Trailer ID</span><span class="overlay-value">${safeValue(trailerId)}</span></div>
@@ -1397,10 +1397,11 @@ ${trailerHtml}
         setDrawVectorLayer(drawLayer);
         normalMapRef.current = initialMap;
 
-        try {
-            setTimeout(() => initialMap.updateSize(), 0);
-        } catch (e) {
-            // ignore
+        const resizeObserver = new ResizeObserver(() => {
+            if (initialMap) initialMap.updateSize();
+        });
+        if (normalMapContainerRef.current) {
+            resizeObserver.observe(normalMapContainerRef.current);
         }
 
         if (typeof onMapReady === "function") {
@@ -1420,6 +1421,7 @@ ${trailerHtml}
         }
 
         return () => {
+            resizeObserver.disconnect();
             if (normalMapRef.current) {
                 normalMapRef.current.setTarget(null);
                 normalMapRef.current = null;
@@ -2821,9 +2823,9 @@ ${trailerHtml}
                 {/* Map Type Toggle Buttons */}
                 {showMapTypeToggle && (
                     <Box
-                        sx={{ position: "absolute", top: "10px", left: "40px", zIndex: 10000 }}
+                        sx={{ position: "absolute", top: "10px", left: "50px", zIndex: 10000 }}
                     >
-                        <ButtonGroup variant="outlined" size="small">
+                        <ButtonGroup variant="outlined" size="small" sx={{ backgroundColor: "rgba(255, 255, 255, 0.85)", backdropFilter: "blur(4px)" }}>
                             <Tooltip title="Normal Map - Bhuvan Layers">
                                 <Button
                                     onClick={() => setMapType("normal")}
@@ -2933,7 +2935,7 @@ ${trailerHtml}
                                 style={{
                                     position: "absolute",
                                     top: "50px",
-                                    left: "10px",
+                                    left: "50px",
                                     zIndex: 1000,
                                     display: "flex",
                                     gap: "10px",
@@ -2958,9 +2960,9 @@ ${trailerHtml}
                             </div>
                         )}
                         {showLogos && (
-                            <div style={{ position: 'absolute', bottom: '-15px', right: '20px', zIndex: 1000, pointerEvents: 'none', display: 'flex' }}>
-                                <img src={bhugolLogo} style={{ height: '100px' }} alt="Bhugol" />
-                                <div style={{ position: 'absolute', right: '12px', top: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', border: '1.5px solid #F26522', borderRadius: '50%', fontSize: '7px', fontWeight: 'bold', color: '#F26522', transform: 'scale(0.7)' }}>TM</div>
+                            <div className="map-logo-container" style={{ position: 'absolute', bottom: '10px', right: '20px', zIndex: 1000, pointerEvents: 'none', display: 'flex' }}>
+                                <img src={bhugolLogo} className="map-logo-bhugol" style={{ height: '100px' }} alt="Bhugol" />
+                                <div className="map-logo-tm" style={{ position: 'absolute', right: '12px', top: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', border: '1.5px solid #F26522', borderRadius: '50%', fontSize: '7px', fontWeight: 'bold', color: '#F26522', transform: 'scale(0.7)' }}>TM</div>
                             </div>
                         )}
                     </div>
@@ -2977,7 +2979,7 @@ ${trailerHtml}
                                 style={{
                                     position: "absolute",
                                     top: "50px",
-                                    left: "10px",
+                                    left: "50px",
                                     zIndex: 1000,
                                     display: "flex",
                                     gap: "10px",
@@ -3002,9 +3004,9 @@ ${trailerHtml}
                             </div>
                         )}
                         {showLogos && (
-                            <div style={{ position: 'absolute', bottom: '-15px', right: '20px', zIndex: 1000, pointerEvents: 'none', display: 'flex' }}>
-                                <img src={bhugolLogo} style={{ height: '100px' }} alt="Bhugol" />
-                                <div style={{ position: 'absolute', right: '12px', top: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', border: '1.5px solid #F26522', borderRadius: '50%', fontSize: '7px', fontWeight: 'bold', color: '#F26522', transform: 'scale(0.7)' }}>TM</div>
+                            <div className="map-logo-container" style={{ position: 'absolute', bottom: '10px', right: '20px', zIndex: 1000, pointerEvents: 'none', display: 'flex' }}>
+                                <img src={bhugolLogo} className="map-logo-bhugol" style={{ height: '100px' }} alt="Bhugol" />
+                                <div className="map-logo-tm" style={{ position: 'absolute', right: '12px', top: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', border: '1.5px solid #F26522', borderRadius: '50%', fontSize: '7px', fontWeight: 'bold', color: '#F26522', transform: 'scale(0.7)' }}>TM</div>
                             </div>
                         )}
                     </div>
@@ -3021,7 +3023,7 @@ ${trailerHtml}
                                 style={{
                                     position: "absolute",
                                     top: "50px",
-                                    left: "10px",
+                                    left: "50px",
                                     zIndex: 1000,
                                     display: "flex",
                                     gap: "10px",
@@ -3046,13 +3048,13 @@ ${trailerHtml}
                             </div>
                         )}
                         {showLogos && (
-                            <div style={{ position: 'absolute', bottom: '-15px', right: '20px', zIndex: 1000, pointerEvents: 'none', display: 'flex' }}>
-                                <img src={bhugolLogo} style={{ height: '100px' }} alt="Bhugol" />
-                                <div style={{ position: 'absolute', right: '12px', top: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', border: '1.5px solid #F26522', borderRadius: '50%', fontSize: '7px', fontWeight: 'bold', color: '#F26522', transform: 'scale(0.7)' }}>TM</div>
+                            <div className="map-logo-container" style={{ position: 'absolute', bottom: '10px', right: '20px', zIndex: 1000, pointerEvents: 'none', display: 'flex' }}>
+                                <img src={bhugolLogo} className="map-logo-bhugol" style={{ height: '100px' }} alt="Bhugol" />
+                                <div className="map-logo-tm" style={{ position: 'absolute', right: '12px', top: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', border: '1.5px solid #F26522', borderRadius: '50%', fontSize: '7px', fontWeight: 'bold', color: '#F26522', transform: 'scale(0.7)' }}>TM</div>
                             </div>
                         )}
                         {showLogos && (
-                            <img src={isroLogo} style={{ position: 'absolute', bottom: '10px', left: '20px', height: '100px', width: 'auto', objectFit: 'contain', zIndex: 1000, pointerEvents: 'none', backgroundColor: 'transparent' }} alt="ISRO" />
+                            <img src={isroLogo} className="map-logo-isro" style={{ position: 'absolute', bottom: '10px', left: '20px', height: '100px', width: 'auto', objectFit: 'contain', zIndex: 1000, pointerEvents: 'none', backgroundColor: 'transparent' }} alt="ISRO" />
                         )}
                     </div>
                 )}
@@ -3231,6 +3233,27 @@ ${trailerHtml}
           max-width: none;
           line-height: 1.2;
           overflow: visible;
+        }
+
+        /* Responsive logos for mobile to prevent overlapping map controls */
+        @media (max-width: 600px) {
+          .map-logo-bhugol {
+            height: 50px !important;
+          }
+          .map-logo-isro {
+            height: 45px !important;
+            bottom: 25px !important;
+            left: 10px !important;
+          }
+          .map-logo-container {
+            bottom: 0px !important;
+            right: 10px !important;
+          }
+          .map-logo-tm {
+            top: 14px !important;
+            right: 6px !important;
+            transform: scale(0.4) !important;
+          }
         }
       `}</style>
         </div>

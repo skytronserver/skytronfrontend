@@ -646,10 +646,10 @@ total_assigned_calls:
   return (
     <Box
       sx={{
-        height: { xs: 'auto', md: '100%' },
+        height: 'auto !important',
+        minHeight: 'calc(100vh - 88px)',
         bgcolor: tokens.pageBg,
         p: { xs: 2, md: 1.5 },
-        overflow: { xs: 'auto', md: 'hidden' },
         display: 'flex',
         flexDirection: 'column',
         boxSizing: 'border-box'
@@ -754,8 +754,8 @@ total_assigned_calls:
 
       {/* Tab Panel 1: Dashboard Overview */}
       {activeTab === 0 && (
-        <Grid container spacing={1.5} sx={{ flexGrow: 1, overflow: { xs: 'visible', md: 'hidden' }, maxHeight: { md: 'calc(100% - 10px)' } }}>
-          <Grid item xs={12} md={5} sx={{ display: 'flex', flexDirection: 'column', height: { xs: 'auto', md: '100%' } }}>
+        <Grid container spacing={1.5} sx={{ flexGrow: 1 }}>
+          <Grid item xs={12} md={5} sx={{ display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ ...cardSx, display: 'flex', flexDirection: 'column', height: '100%' }}>
               <Box sx={{ px: 2.5, py: 1.5, borderBottom: `1px solid ${tokens.divider}`, bgcolor: tokens.panelHeaderBg, flexShrink: 0 }}>
                 <Typography sx={{ fontWeight: 700, color: tokens.text, fontSize: 14.5 }}>SOS Call Status</Typography>
@@ -767,12 +767,12 @@ total_assigned_calls:
                       <Box key={row.label} sx={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
                         <Box
                           sx={{
-                            width: `${row.width}%`,
-                            height: 42,
+                            width: `max(${row.width}%, 180px)`,
+                            height: 48,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            px: 2,
+                            px: { xs: 1.5, md: 2 },
                             color: '#fff',
                             bgcolor: row.color,
                             position: 'relative',
@@ -795,7 +795,7 @@ total_assigned_calls:
             </Box>
           </Grid>
 
-          <Grid item xs={12} md={7} sx={{ display: 'flex', flexDirection: 'column', height: { xs: 'auto', md: '100%' } }}>
+          <Grid item xs={12} md={7} sx={{ display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ ...cardSx, display: 'flex', flexDirection: 'column', height: '100%' }}>
               <Box
                 sx={{
@@ -817,7 +817,7 @@ total_assigned_calls:
                   <AcUnitIcon sx={{ fontSize: 18, color: alpha('#fff', 0.5) }} />
                 </Stack>
               </Box>
-              <Box sx={{ height: { xs: 320, md: '100%' }, flexGrow: 1 }}>
+              <Box sx={{ height: { xs: 320, md: 600 }, flexGrow: 1 }}>
                 <BhuvanMapComponent 
                   erss={false}
                   data={mapData}

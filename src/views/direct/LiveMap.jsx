@@ -7071,11 +7071,11 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
             <Box
                 sx={{
                     position: "absolute",
-                    top: 6,
-                    left: 30,
+                    top: { xs: 12, sm: 6 },
+                    left: { xs: 45, sm: 45 },
                     zIndex: 1100,
                     width: '320px',
-                    maxWidth: 'calc(100% - 80px)', // Leave room for right controls
+                    maxWidth: 'calc(100% - 100px)', // Leave room for right controls
                 }}
             >
                 <Paper
@@ -7176,8 +7176,8 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
             <Box
                 sx={{
                     position: "absolute",
-                    top: 16,
-                    right: 16,
+                    top: { xs: 50, sm: 16 },
+                    right: { xs: 10, sm: 45 },
                     zIndex: 1100,
                     display: 'flex',
                     flexDirection: 'column',
@@ -7863,11 +7863,11 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
             </div>
 
             {/* --- Attribution Logos --- */}
-            <div style={{ position: 'absolute', bottom: '-15px', right: '20px', zIndex: 1000, pointerEvents: 'none', display: 'flex' }}>
-                <img src={require('../../assets/images/Bhugol_ogo.png')} style={{ height: '100px' }} alt="Bhugol" />
-                <div style={{ position: 'absolute', right: '12px', top: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', border: '1.5px solid #F26522', borderRadius: '50%', fontSize: '7px', fontWeight: 'bold', color: '#F26522', transform: 'scale(0.7)' }}>TM</div>
+            <div className="map-logo-container" style={{ position: 'absolute', bottom: '-15px', right: '20px', zIndex: 1000, pointerEvents: 'none', display: 'flex' }}>
+                <img src={require('../../assets/images/Bhugol_ogo.png')} className="map-logo-bhugol" style={{ height: '100px' }} alt="Bhugol" />
+                <div className="map-logo-tm" style={{ position: 'absolute', right: '12px', top: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', border: '1.5px solid #F26522', borderRadius: '50%', fontSize: '7px', fontWeight: 'bold', color: '#F26522', transform: 'scale(0.7)' }}>TM</div>
             </div>
-            <img src={require('../../assets/images/isrologo.png')} style={{ position: 'absolute', bottom: '40px', left: '20px', height: '100px', width: 'auto', objectFit: 'contain', zIndex: 1000, pointerEvents: 'none', backgroundColor: 'transparent', display: mapType === "satellite" ? 'block' : 'none' }} alt="ISRO" />
+            <img src={require('../../assets/images/isrologo.png')} className="map-logo-isro" style={{ position: 'absolute', bottom: '40px', left: '20px', height: '100px', width: 'auto', objectFit: 'contain', zIndex: 1000, pointerEvents: 'none', backgroundColor: 'transparent', display: mapType === "satellite" ? 'block' : 'none' }} alt="ISRO" />
 
             {/* Overlay for displaying marker details */}
             <div ref={overlayElement} className="dynamic-overlay">
@@ -8214,6 +8214,27 @@ text-align: left;
 max-width: none;
 line-height: 1.2;
 overflow: visible;
+}
+
+/* Responsive logos for mobile to prevent overlapping map controls */
+@media (max-width: 600px) {
+  .map-logo-bhugol {
+    height: 50px !important;
+  }
+  .map-logo-isro {
+    height: 45px !important;
+    bottom: 25px !important;
+    left: 10px !important;
+  }
+  .map-logo-container {
+    bottom: 0px !important;
+    right: 10px !important;
+  }
+  .map-logo-tm {
+    top: 14px !important;
+    right: 6px !important;
+    transform: scale(0.4) !important;
+  }
 }
 `}</style>
 

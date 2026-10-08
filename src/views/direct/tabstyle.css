@@ -1,3 +1,8 @@
+/* ============================================================
+   Live Tracking – Responsive Styles
+   ============================================================ */
+
+/* ---- Icon header cells ---- */
 .tracking-icon {
   padding: 4px;
   text-align: left;
@@ -8,8 +13,8 @@
   border-radius: 8px 8px 0px 0px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   margin: 4px;
-  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
-  /* Space between cells */
+  transition: transform 120ms ease, box-shadow 120ms ease,
+    background-color 120ms ease;
 }
 
 .tracking-icon:hover {
@@ -27,47 +32,74 @@
   box-shadow: 0 6px 16px rgba(25, 118, 210, 0.35);
 }
 
-/* Container */
-.container {
-  display: flex;
-  padding-top: 20px;
-  align-items: flex-start;
-  flex-wrap: nowrap;
+.tracking-icon img {
+  width: 16px;
+  margin-right: 4px;
+  float: left;
 }
 
-/* First div */
+.tracking-icon .icon-text {
+  color: black;
+  font-size: 12px;
+  font-weight: bold;
+  display: block;
+  float: left;
+}
+
+/* ---- Main layout container ---- */
+.container {
+  display: flex;
+  padding-top: 16px;
+  align-items: flex-start;
+  gap: 12px;
+  /* Wrap on small screens so sidebar stacks above map */
+  flex-wrap: wrap;
+}
+
+/* ---- Vehicle list sidebar ---- */
 .first-div {
-  width: 30%;
-  margin-right: 20px;
+  flex: 0 0 300px;
+  /* fixed sidebar width on desktop */
+  min-width: 260px;
+  max-width: 320px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   border: 1px solid #ccc;
+  border-radius: 8px;
   padding: 10px;
+  box-sizing: border-box;
 }
 
 .first-div-large {
-  height: 600px;
+  height: 620px;
 }
 
 .first-div-small {
-  height: 400px;
+  height: 440px;
 }
 
-/* Form grid container */
+/* ---- Map panel ---- */
+.live-tracking-map-panel {
+  flex: 1 1 0 !important;
+  /* fills remaining space, overrides inline width */
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* ---- Form area ---- */
 .form-grid-container {
   padding-top: 10px !important;
   margin-left: 0;
 }
 
-/* Grid item */
 .grid-item {
   padding-top: 10px !important;
   width: 98% !important;
   padding-left: 0px !important;
 }
 
-/* Button styles */
+/* ---- Buttons ---- */
 .submit-button {
   height: 51px;
   min-width: 56px;
@@ -84,7 +116,7 @@
   width: 1.5rem;
 }
 
-/* Table container */
+/* ---- Scrollable vehicle list ---- */
 .table-container {
   margin-top: 16px;
   border-radius: 12px 12px 0px 0px;
@@ -93,26 +125,7 @@
   overflow-y: auto;
 }
 
-/* Tracking icon table cell */
-.tracking-icon {
-  cursor: pointer;
-}
-
-.tracking-icon img {
-  width: 16px;
-  margin-right: 4px;
-  float: left;
-}
-
-.tracking-icon .icon-text {
-  color: black;
-  font-size: 12px;
-  font-weight: bold;
-  display: block;
-  float: left;
-}
-
-/* Table row */
+/* ---- Vehicle rows ---- */
 .table-row {
   border-bottom: none;
 }
@@ -140,75 +153,59 @@
   float: left;
 }
 
-/* Table container */
+/* ---- Bottom details table ---- */
 .skytron-table-container {
   margin-top: 20px;
-  max-height: 500px;
-  /* Set max height for vertical scrolling */
+  max-height: 400px;
   max-width: 100%;
-  /* Set max width for horizontal scrolling */
   overflow-x: auto;
-  /* Enable horizontal scrolling */
   overflow-y: auto;
-  /* Enable vertical scrolling */
   border-radius: 8px;
-  /* Round corners */
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-  /* Subtle shadow for depth */
 }
 
-/* Table */
 .skytron-table {
   border-collapse: collapse;
+  min-width: 600px;
+  /* prevent excessive squishing, keep scrollable */
 }
 
-/* Table header cell */
 .skytron-table-header-cell {
   font-weight: bold;
   padding: 10px;
   text-transform: capitalize;
-  /* Capitalize header labels */
   white-space: nowrap;
-  /* Ensure one-liner headers */
   border: 1px solid #ddd;
   background-color: #eef2f6;
   font-size: 12px;
   color: #090a0a;
 }
 
-/* Table row */
 .skytron-table-row {
   background-color: white;
 }
 
 .skytron-table-row:nth-child(even) {
   background-color: #f5f5f5;
-  /* Zebra striping for rows */
 }
 
-/* Table cell */
 .skytron-table-cell {
   padding: 8px 12px;
-  /* Add consistent padding to cells */
   border: 1px solid #ddd;
-  /* Add border to table cells */
 }
 
-/* No data available cell */
 .skytron-no-data-cell {
   text-align: center;
   padding: 20px;
   color: #888;
-  /* Light gray text for no data message */
   border: 1px solid #ddd;
-  /* Add border for no data message */
 }
 
-/* Custom Scrollbar Styling */
+/* ---- Custom scrollbars ---- */
 .first-div::-webkit-scrollbar,
 .skytron-table-container::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 .first-div::-webkit-scrollbar-track,
@@ -226,4 +223,106 @@
 .first-div::-webkit-scrollbar-thumb:hover,
 .skytron-table-container::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* ============================================================
+   RESPONSIVE BREAKPOINTS
+   ============================================================ */
+
+/* --- Tablet (≤ 960px): sidebar stacks above map --- */
+@media (max-width: 960px) {
+  .container {
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 12px;
+  }
+
+  .first-div {
+    flex: none;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .first-div-large {
+    height: 300px;
+  }
+
+  .first-div-small {
+    height: 240px;
+  }
+
+  /* Override inline style={{ width: "80%" }} */
+  .live-tracking-map-panel {
+    width: 100% !important;
+  }
+}
+
+/* --- Mobile (≤ 600px): premium compact layout --- */
+@media (max-width: 600px) {
+  .container {
+    padding-top: 6px;
+    gap: 10px;
+  }
+
+  /* Sidebar: compact card */
+  .first-div {
+    padding: 8px 6px;
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.10);
+    background: #fff;
+  }
+
+  .first-div-large {
+    height: 248px;
+  }
+
+  .first-div-small {
+    height: 196px;
+  }
+
+  /* Icon filter header: tighter cells */
+  .tracking-icon {
+    padding: 4px 2px;
+    border-radius: 6px 6px 0 0;
+    margin: 2px;
+  }
+
+  .tracking-icon .icon-text {
+    font-size: 9px;
+    line-height: 1.2;
+  }
+
+  .tracking-icon img {
+    width: 14px;
+  }
+
+  /* Vehicle rows: bigger touch target */
+  .table-cell {
+    padding: 8px 6px;
+  }
+
+  /* Bottom details table */
+  .skytron-table-container {
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .skytron-table-header-cell {
+    font-size: 11px;
+    padding: 6px 8px;
+  }
+
+  .skytron-table-cell {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .skytron-no-data-cell {
+    padding: 14px;
+    font-size: 13px;
+  }
 }

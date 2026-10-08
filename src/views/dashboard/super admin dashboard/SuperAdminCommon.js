@@ -955,6 +955,7 @@ const PageWrapper = ({ title, description, children, sx = {}, titleSx = {}, desc
       position: 'relative',
       display: 'flex',
       flexDirection: 'column',
+      width: '100%',
       padding: 0,
       '& .MuiCardContent-root': {
         padding: 0

@@ -1931,11 +1931,13 @@ switch (key) {
                         size="small"
                         sx={{ minWidth: 250 }}
                     >
-                        <InputLabel>
+                        <InputLabel id="transit-layer-label">
                             Transit Layer
                         </InputLabel>
 
                         <Select
+                            labelId="transit-layer-label"
+                            label="Transit Layer"
                             multiple
                             value={selectedTransitLayer}
                             onChange={handleTransitLayerChange}
