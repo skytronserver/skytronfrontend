@@ -62,6 +62,25 @@ const getNestedValue = (path, source) =>
   path
     .split(".")
     .reduce((accumulator, segment) => (accumulator && accumulator[segment] !== undefined ? accumulator[segment] : undefined), source);
+
+const TabPanel = ({ children, value, index, ...other }) => {
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`dashboard-tabpanel-${index}`}
+      aria-labelledby={`dashboard-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+};
+
 const ActiveState = () => {
   const { t } = useTranslation();
   const [userInfo, setUserInfo] = useState(dashboardInitialState.userInfo);
@@ -839,6 +858,14 @@ const ActiveState = () => {
     });
   }, []);
 
+  const labelToFieldMap = useMemo(() => {
+    const map = {};
+    Object.entries(fieldLabelMap).forEach(([key, label]) => {
+      map[label] = key;
+    });
+    return map;
+  }, [fieldLabelMap]);
+
   const evaluateFormulaValue = useCallback(
     (expression) => {
       if (!expression) {
@@ -847,7 +874,9 @@ const ActiveState = () => {
 
       const tokenRegex = /{{\s*([^}]+)\s*}}/g;
       const replaced = expression.replace(tokenRegex, (_, path) => {
-        const value = getNestedValue(path.trim(), aggregatedData);
+        const cleanStr = path.trim();
+        const mappedPath = labelToFieldMap[cleanStr] || cleanStr;
+        const value = getNestedValue(mappedPath, aggregatedData);
         const numericValue = Number(value);
         return Number.isFinite(numericValue) ? numericValue : 0;
       });
@@ -864,7 +893,7 @@ const ActiveState = () => {
         return { value: null, error: "Unable to evaluate expression" };
       }
     },
-    [aggregatedData]
+    [aggregatedData, labelToFieldMap]
   );
 
   const paletteItems = useMemo(
@@ -918,14 +947,14 @@ const ActiveState = () => {
             id,
             type: "formula",
             title: "Computed Metric",
-            expression: defaultField ? `{{${defaultField}}}` : "",
+            expression: defaultField ? `{{${fieldLabelMap[defaultField] || defaultField}}}` : "",
             precision: 2
           };
         default:
           return null;
       }
     },
-    [numericFields]
+    [numericFields, fieldLabelMap]
   );
 
   const handleAddItem = useCallback(
@@ -1170,7 +1199,7 @@ const ActiveState = () => {
                 {(item.suffix || "")}
               </Typography>
               {item.dataField && (
-                <Chip label={item.dataField} size="small" variant="outlined" sx={{ mt: 1 }} />
+                <Chip label={fieldLabelMap[item.dataField] || item.dataField} size="small" variant="outlined" sx={{ mt: 1 }} />
               )}
             </Box>
           );
@@ -1180,7 +1209,7 @@ const ActiveState = () => {
             ? item.dataFields
             : Object.keys(numericFields).slice(0, 5);
           const chartData = dataFields.map((field) => ({
-            name: field.split(".").pop(),
+            name: fieldLabelMap[field] || field.split(".").pop(),
             field,
             value: Number(getNestedValue(field, aggregatedData)) || 0
           }));
@@ -1197,7 +1226,7 @@ const ActiveState = () => {
           const allZeros = chartData.every((entry) => entry.value === 0);
 
           return (
-            <Box sx={{ height: 280 }}>
+            <Box sx={{ minHeight: 280, height: 'auto', pb: 2 }}>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
                 {item.title || "Chart"}
               </Typography>
@@ -1223,7 +1252,7 @@ const ActiveState = () => {
                       line: (
                         <LineChart data={chartData}>
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="name" />
+                          <XAxis dataKey="name" tickFormatter={(tick) => typeof tick === 'string' && tick.length > 12 ? tick.substring(0, 12) + '...' : tick} />
                           <YAxis />
                           <Tooltip />
                           <Legend />
@@ -1244,7 +1273,7 @@ const ActiveState = () => {
                     }[item.chartType || "bar"] || (
                       <BarChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
+                        <XAxis dataKey="name" tickFormatter={(tick) => typeof tick === 'string' && tick.length > 12 ? tick.substring(0, 12) + '...' : tick} />
                         <YAxis />
                         <Tooltip />
                         <Legend />
@@ -1258,7 +1287,7 @@ const ActiveState = () => {
                 {chartData.map((entry, index) => (
                   <Chip
                     key={entry.field}
-                    label={`${entry.field}: ${formatNumber(entry.value)}`}
+                    label={`${fieldLabelMap[entry.field] || entry.field}: ${formatNumber(entry.value)}`}
                     size="small"
                     sx={{ bgcolor: `${palette[index % palette.length]}14` }}
                   />
@@ -1296,7 +1325,7 @@ const ActiveState = () => {
               {referencedFields.length > 0 && (
                 <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                   {referencedFields.map((field) => (
-                    <Chip key={field} label={field} size="small" variant="outlined" />
+                    <Chip key={field} label={fieldLabelMap[field] || field} size="small" variant="outlined" />
                   ))}
                 </Box>
               )}
@@ -1311,7 +1340,7 @@ const ActiveState = () => {
           );
       }
     },
-    [aggregatedData, evaluateFormulaValue, formatNumber, numericFields]
+    [aggregatedData, evaluateFormulaValue, formatNumber, numericFields, fieldLabelMap]
   );
 
   const canvasGridColumns = reportBuilderState.previewMode || !showConfigurationPanel ? 9 : 6;
@@ -2505,24 +2534,6 @@ const ActiveState = () => {
     return charts;
   };
 
-  const TabPanel = ({ children, value, index, ...other }) => {
-    return (
-      <div
-        role="tabpanel"
-        hidden={value !== index}
-        id={`dashboard-tabpanel-${index}`}
-        aria-labelledby={`dashboard-tab-${index}`}
-        {...other}
-      >
-        {value === index && (
-          <Box sx={{ p: 3 }}>
-            {children}
-          </Box>
-        )}
-      </div>
-    );
-  };
-
   const mar = "100px";
 
   const DashboardView = ({ role }) => {
@@ -2953,7 +2964,7 @@ const ActiveState = () => {
                                       </MenuItem>
                                       {Object.keys(numericFields).map((path) => (
                                         <MenuItem key={path} value={path}>
-                                          {path}
+                                          {fieldLabelMap[path] || path}
                                         </MenuItem>
                                       ))}
                                     </TextField>
@@ -3022,13 +3033,16 @@ const ActiveState = () => {
                                       fullWidth
                                       label="Data Fields (Select multiple)"
                                       select
-                                      SelectProps={{ multiple: true }}
+                                      SelectProps={{
+                                        multiple: true,
+                                        renderValue: (selected) => selected.map((val) => fieldLabelMap[val] || val).join(', ')
+                                      }}
                                       value={selectedReportItem.dataFields || []}
                                       onChange={(event) => handleItemChange(selectedReportItem.id, { dataFields: event.target.value })}
                                     >
                                       {Object.keys(numericFields).map((path) => (
                                         <MenuItem key={path} value={path}>
-                                          {path}
+                                          {fieldLabelMap[path] || path}
                                         </MenuItem>
                                       ))}
                                     </TextField>
@@ -3062,8 +3076,8 @@ const ActiveState = () => {
                                       maxRows={6}
                                       value={selectedReportItem.expression || ''}
                                       onChange={(event) => handleItemChange(selectedReportItem.id, { expression: event.target.value })}
-                                      helperText="Use {{metric.path}} placeholders and math operations. Example: {{vehicles.total}} / {{devices.online}} * 100"
-                                      placeholder="e.g., {{metric1}} + {{metric2}} * 2"
+                                      helperText="Use {{Label}} placeholders and math operations. Example: {{State Admin}} + 100"
+                                      placeholder="e.g., {{State Admin}} * 2"
                                     />
                                     <TextField
                                       fullWidth
@@ -3828,7 +3842,7 @@ const ActiveState = () => {
           Total_Assignemnt_thisweek: assignment.Total_Assignemnt_thisweek
         }} />
       ) : (
-        <DashboardView role={userRoles} />
+        DashboardView({ role: userRoles })
       )}
     </>
 
