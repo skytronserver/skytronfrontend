@@ -119,6 +119,8 @@ const SOSAnalyticsDashboard = () => {
   const [topPerformersSubTab, setTopPerformersSubTab] = useState(0);
    const [monthwiseData, setMonthwiseData] = useState([]);
    const [hourlyData, setHourlyData] = useState([{time:1,total:1}]);
+   const [hasData, setHasData] = useState(true);
+   const [isLoading, setIsLoading] = useState(true);
    const [districtSeries, setDistrictSeries] = useState([{  name: 'unknown', total: 1 }]);
    const [policeStationSeries, setPoliceStationSeries] = useState([]);
    const [timeOfDayHeatmap, setTimeOfDayHeatmap] = useState([]);
@@ -186,18 +188,31 @@ useEffect(() => {
       );
       const data = response.data;
 console.log(data);
+      // Check for empty data
+      const hasAnyData = data && Object.values(data).some(val => {
+        if (Array.isArray(val)) return val.length > 0;
+        if (val && typeof val === 'object') return Object.keys(val).length > 0;
+        return val !== undefined && val !== null;
+      });
+
+      if (!data || Object.keys(data).length === 0 || !hasAnyData) {
+        setHasData(false);
+      } else {
+        setHasData(true);
+      }
+
       // Monthwise data
       if (data.month_wise_metrics) {
         setMonthwiseData(
           data.month_wise_metrics.map((item) => ({
-            month: item.month,
-            total: item.total_calls_count,
-            genuine: item.genuine ?? 0,
-            panic: item.panic ?? 0,
-            policeAccepted: item.total_police_accepted_count ?? 0,
-            ambAccepted: item.total_ambulance_accepted_count ?? 0,
-            other: item.other ?? 0,
-            fake: item.total_fake_call_close ?? 0
+            month: item.month || 'Unknown',
+            total: Number(item.total_calls_count) || 0,
+            genuine: Number(item.genuine) || 0,
+            panic: Number(item.panic) || 0,
+            policeAccepted: Number(item.total_police_accepted_count) || 0,
+            ambAccepted: Number(item.total_ambulance_accepted_count) || 0,
+            other: Number(item.other) || 0,
+            fake: Number(item.total_fake_call_close) || 0
           }))
         );
       }
@@ -321,7 +336,10 @@ console.log(data);
 
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
+      setHasData(false);
       // fallback: all states keep their default values
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -927,28 +945,20 @@ console.log(data);
       titleSx={{ color: tokens.text, fontSize: '1.5rem', mb: 0.5 }}
       descriptionSx={{ color: tokens.muted, fontSize: '0.75rem' }}
 
-
-      
     >
-      {/* <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
-        <IconButton
-          size="small"
-          onClick={() => setMode((prev) => (prev === 'dark' ? 'light' : 'dark'))}
-          sx={{
-            color: tokens.text,
-            bgcolor: alpha(tokens.text, mode === 'dark' ? 0.08 : 0.06),
-            border: `1px solid ${alpha(tokens.text, 0.12)}`,
-            borderRadius: 1.5,
-            '&:hover': { bgcolor: alpha(tokens.text, mode === 'dark' ? 0.12 : 0.08) }
-          }}
-        >
-          {mode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
-        </IconButton>
-      </Box> */}
-<Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1, maxWidth: '100%', minWidth: 0 }}>
-
-      <Paper
-        elevation={0}
+      {isLoading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+          <Typography sx={{ color: tokens.text, fontSize: '1.2rem' }}>Loading...</Typography>
+        </Box>
+      ) : !hasData ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh', bgcolor: tokens.cardBg, borderRadius: 3, border: `1px solid ${tokens.border}` }}>
+          <Typography sx={{ color: tokens.muted, fontSize: '1.5rem', fontWeight: 600 }}>No Data Found</Typography>
+        </Box>
+      ) : (
+        <>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1, maxWidth: '100%', minWidth: 0 }}>
+            <Paper
+              elevation={0}
         sx={{
           borderRadius: 3,
           bgcolor: tokens.cardBg,
@@ -1082,19 +1092,30 @@ console.log(data);
                 tokens={tokens}
               >
                 <ResponsiveContainer width="99%" height={260}>
-                  <BarChart data={monthwiseData} margin={{ top: 5, right: 15, left: -15, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.18)} />
-                    <XAxis dataKey="month" tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                    <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
-                    <Legend wrapperStyle={{ fontSize: 10, color: tokens.muted }} />
-                    <Bar dataKey="genuine" name="Genuine Calls" stackId="a" fill={COLORS.success} />
-                    <Bar dataKey="panic" name="Panic Calls" stackId="a" fill={COLORS.primary} />
-                    <Bar dataKey="policeAccepted" name="Police Accepted" stackId="a" fill={COLORS.secondary} />
-                    <Bar dataKey="ambAccepted" name="Amb Accepted" stackId="a" fill={COLORS.warning} />
-                    <Bar dataKey="other" name="Other" stackId="a" fill={alpha(COLORS.ink, 0.22)} />
-                    <Bar dataKey="fake" name="Fake Calls" stackId="a" fill={COLORS.danger} />
-                  </BarChart>
+                  {monthwiseData && monthwiseData.length > 0 && monthwiseData.some(m => m.genuine > 0 || m.panic > 0 || m.policeAccepted > 0 || m.ambAccepted > 0 || m.other > 0 || m.fake > 0) ? (
+                    <BarChart data={monthwiseData} margin={{ top: 5, right: 15, left: -15, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.18)} />
+                      <XAxis dataKey="month" tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis 
+                        tick={{ fill: tokens.muted, fontSize: 10 }} 
+                        axisLine={false} 
+                        tickLine={false} 
+                        allowDecimals={false} 
+                      />
+                      <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                      <Legend wrapperStyle={{ fontSize: 10, color: tokens.muted }} />
+                      <Bar dataKey="genuine" name="Genuine Calls" stackId="a" fill={COLORS.success} />
+                      <Bar dataKey="panic" name="Panic Calls" stackId="a" fill={COLORS.primary} />
+                      <Bar dataKey="policeAccepted" name="Police Accepted" stackId="a" fill={COLORS.secondary} />
+                      <Bar dataKey="ambAccepted" name="Amb Accepted" stackId="a" fill={COLORS.warning} />
+                      <Bar dataKey="other" name="Other" stackId="a" fill="#cbd5e1" />
+                      <Bar dataKey="fake" name="Fake Calls" stackId="a" fill={COLORS.danger} />
+                    </BarChart>
+                  ) : (
+                    <Box sx={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                      <Typography sx={{ color: tokens.muted, fontSize: '0.85rem' }}>No breakdown data available.</Typography>
+                    </Box>
+                  )}
                 </ResponsiveContainer>
               </ChartCard>
             </Grid>
@@ -1145,7 +1166,7 @@ console.log(data);
         tokens={tokens}
               >
                 
-                <Box sx={{ display: 'grid', gridTemplateColumns: '52px repeat(24, 1fr)', gap: 0.75 }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'auto repeat(24, 1fr)', gap: 0.75 }}>
                   <Box />
                   {Array.from({ length: 24 }).map((_, i) => (
                     <Box key={i} sx={{ textAlign: 'center' }}>
@@ -1154,8 +1175,8 @@ console.log(data);
                   ))}
                   {timeOfDayHeatmap.map((row) => (
                     <Box key={row.day} sx={{ display: 'contents' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: tokens.text }}>{row.day}</Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', pr: 1.5 }}>
+                        <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: tokens.text, whiteSpace: 'nowrap' }}>{row.day}</Typography>
                       </Box>
                       {row.values.map((v, idx) => (
                         <Box
@@ -1517,13 +1538,19 @@ console.log(data);
             <Grid item xs={12}>
               <ChartCard title="Total SOS Call" subtitle="Monthwise total SOS calls (Jan-Dec)" color={COLORS.primary} tokens={tokens}>
                 <ResponsiveContainer width="99%" height={260}>
-                  <BarChart data={monthwiseTotals} margin={{ top: 5, right: 15, left: -15, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.18)} />
-                    <XAxis dataKey="month" tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                    <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
-                    <Bar dataKey="total" name="Total SOS call" radius={[6, 6, 0, 0]} fill={COLORS.primary} barSize={36} />
-                  </BarChart>
+                  {monthwiseTotals && monthwiseTotals.length > 0 && monthwiseTotals.some(m => m.total > 0) ? (
+                    <BarChart data={monthwiseTotals} margin={{ top: 5, right: 15, left: -15, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="4 6" vertical={false} stroke={alpha(COLORS.primary, 0.18)} />
+                      <XAxis dataKey="month" tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} domain={[0, dataMax => (dataMax === 0 ? 5 : dataMax)]} />
+                      <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                      <Bar dataKey="total" name="Total SOS call" radius={[6, 6, 0, 0]} fill={COLORS.primary} barSize={36} />
+                    </BarChart>
+                  ) : (
+                    <Box sx={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                      <Typography sx={{ color: tokens.muted, fontSize: '0.85rem' }}>No monthwise data available.</Typography>
+                    </Box>
+                  )}
                 </ResponsiveContainer>
               </ChartCard>
             </Grid>
@@ -1586,26 +1613,32 @@ console.log(data);
             <Grid item xs={12}>
               <ChartCard title="Total SOS Call" subtitle="Hourly analysis (Area chart)" color={COLORS.secondary} tokens={tokens}>
                 <ResponsiveContainer width="99%" height={260}>
-                  <AreaChart data={hourlyData} margin={{ top: 5, right: 15, left: -15, bottom: 60 }}>
-                    <defs>
-                      <linearGradient id="hourlyFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={COLORS.secondary} stopOpacity={0.55} />
-                        <stop offset="100%" stopColor={COLORS.secondary} stopOpacity={0.06} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="4 6" vertical={true} stroke={alpha(COLORS.secondary, 0.12)} />
-                    <XAxis
-                      dataKey="time"
-                      tick={{ fill: tokens.muted, fontSize: 9, angle: -45, textAnchor: 'end' }}
-                      axisLine={false}
-                      tickLine={false}
-                      interval={0}
-                      height={80}
-                    />
-                    <YAxis tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                    <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
-                    <Area type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.secondary} strokeWidth={2} fill="url(#hourlyFill)" />
-                  </AreaChart>
+                  {hourlyData && hourlyData.length > 0 && hourlyData.some(h => h.total > 0) ? (
+                    <AreaChart data={hourlyData} margin={{ top: 5, right: 15, left: -15, bottom: 60 }}>
+                      <defs>
+                        <linearGradient id="hourlyFill" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={COLORS.secondary} stopOpacity={0.55} />
+                          <stop offset="100%" stopColor={COLORS.secondary} stopOpacity={0.06} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="4 6" vertical={true} stroke={alpha(COLORS.secondary, 0.12)} />
+                      <XAxis
+                        dataKey="time"
+                        tick={{ fill: tokens.muted, fontSize: 9, angle: -45, textAnchor: 'end' }}
+                        axisLine={false}
+                        tickLine={false}
+                        interval={0}
+                        height={80}
+                      />
+                      <YAxis tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} domain={[0, dataMax => (dataMax === 0 ? 5 : dataMax)]} />
+                      <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                      <Area type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.secondary} strokeWidth={2} fill="url(#hourlyFill)" />
+                    </AreaChart>
+                  ) : (
+                    <Box sx={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                      <Typography sx={{ color: tokens.muted, fontSize: '0.85rem' }}>No hourly data available.</Typography>
+                    </Box>
+                  )}
                 </ResponsiveContainer>
               </ChartCard>
             </Grid>
@@ -1618,20 +1651,26 @@ console.log(data);
             <Grid item xs={12}>
               <ChartCard title="Total SOS Call" subtitle="Hourly analysis (Line chart)" color={COLORS.accent} tokens={tokens}>
                 <ResponsiveContainer width="99%" height={260}>
-                  <LineChart data={hourlyData} margin={{ top: 5, right: 15, left: -15, bottom: 60 }}>
-                    <CartesianGrid strokeDasharray="4 6" vertical={true} stroke={alpha(COLORS.accent, 0.12)} />
-                    <XAxis
-                      dataKey="time"
-                      tick={{ fill: tokens.muted, fontSize: 9, angle: -45, textAnchor: 'end' }}
-                      axisLine={false}
-                      tickLine={false}
-                      interval={0}
-                      height={80}
-                    />
-                    <YAxis tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                    <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
-                    <Line type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.accent} strokeWidth={2.5} dot={false} />
-                  </LineChart>
+                  {hourlyData && hourlyData.length > 0 && hourlyData.some(h => h.total > 0) ? (
+                    <LineChart data={hourlyData} margin={{ top: 5, right: 15, left: -15, bottom: 60 }}>
+                      <CartesianGrid strokeDasharray="4 6" vertical={true} stroke={alpha(COLORS.accent, 0.12)} />
+                      <XAxis
+                        dataKey="time"
+                        tick={{ fill: tokens.muted, fontSize: 9, angle: -45, textAnchor: 'end' }}
+                        axisLine={false}
+                        tickLine={false}
+                        interval={0}
+                        height={80}
+                      />
+                      <YAxis tick={{ fill: tokens.muted, fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} domain={[0, dataMax => (dataMax === 0 ? 5 : dataMax)]} />
+                      <RechartsTooltip content={<TooltipBox tokens={tokens} />} />
+                      <Line type="monotone" dataKey="total" name="Total SOS call" stroke={COLORS.accent} strokeWidth={2.5} dot={false} />
+                    </LineChart>
+                  ) : (
+                    <Box sx={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                      <Typography sx={{ color: tokens.muted, fontSize: '0.85rem' }}>No hourly data available.</Typography>
+                    </Box>
+                  )}
                 </ResponsiveContainer>
               </ChartCard>
             </Grid>
@@ -1851,6 +1890,8 @@ console.log(data);
           </Grid>
         </TabPanel>
       </TabPanel>
+      </>
+      )}
     </PageWrapper>
   );
 

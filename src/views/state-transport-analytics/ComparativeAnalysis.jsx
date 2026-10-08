@@ -299,15 +299,21 @@ const ComparativeAnalysis = () => {
                                     <Typography variant="h5" sx={{ mb: 2 }}>Performance Matrix by Source Stop (Depot)</Typography>
                                     <Box sx={{ height: 400 }}>
                                         <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart data={data.source_stop_comparison}>
-                                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                                <XAxis dataKey="source_stop_name" />
-                                                <YAxis />
-                                                <RechartsTooltip />
-                                                <Legend />
-                                                <Bar dataKey="completion_rate_pct" name="Completion Rate %" fill={theme.palette.success.main} radius={[4, 4, 0, 0]} />
-                                                <Bar dataKey="on_time_start_rate_pct" name="On-Time Start %" fill={theme.palette.primary.main} radius={[4, 4, 0, 0]} />
-                                            </BarChart>
+                                            {data.source_stop_comparison && data.source_stop_comparison.length > 0 && data.source_stop_comparison.some(d => Number(d.completion_rate_pct) > 0 || Number(d.on_time_start_rate_pct) > 0) ? (
+                                                <BarChart data={data.source_stop_comparison}>
+                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                                    <XAxis dataKey="source_stop_name" />
+                                                    <YAxis domain={[0, dataMax => (dataMax === 0 ? 100 : dataMax)]} />
+                                                    <RechartsTooltip />
+                                                    <Legend />
+                                                    <Bar dataKey="completion_rate_pct" name="Completion Rate %" fill={theme.palette.success.main} radius={[4, 4, 0, 0]} />
+                                                    <Bar dataKey="on_time_start_rate_pct" name="On-Time Start %" fill={theme.palette.primary.main} radius={[4, 4, 0, 0]} />
+                                                </BarChart>
+                                            ) : (
+                                                <Box sx={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <Typography sx={{ color: 'text.secondary' }}>No performance data available.</Typography>
+                                                </Box>
+                                            )}
                                         </ResponsiveContainer>
                                     </Box>
                                 </Grid>

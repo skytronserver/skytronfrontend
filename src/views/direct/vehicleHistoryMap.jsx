@@ -7215,7 +7215,7 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
                                     { id: 'normal', label: 'Normal', icon: <MapIcon /> },
                                     { id: 'satellite', label: 'Satellite', icon: <SatelliteIcon /> },
                                     // { id: 'hd', label: 'LegacyMap HD', icon: <HdIcon /> },
-                                    { id: 'soi', label: 'SOI', icon: <PublicIcon /> }
+                                    // { id: 'soi', label: 'SOI', icon: <PublicIcon /> }
                                 ].map((type) => (
                                     <Tooltip key={type.id} title={type.label} arrow>
                                         <IconButton
