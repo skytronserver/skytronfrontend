@@ -39,6 +39,7 @@ import {
     StepLabel,
     StepContent,
     LinearProgress,
+    MenuItem,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -56,6 +57,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import GavelIcon from "@mui/icons-material/Gavel";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
 import MainCard from "../../ui-component/cards/MainCard";
 import { gridSpacing } from "../../store/constant";
 import DeviceModelServices from "../../services/DeviceModelServices";
@@ -64,6 +66,101 @@ import { openFile, getRole } from "../../helper";
 import DeviceDataHealthService from "../../services/DeviceDataHealth";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import DeviceModelLiveMap from "../direct/DeviceModelLiveMap";
+
+/* ═══════════════════════════════════════════════════
+   DEVICE LOCATION MAP MODAL
+═══════════════════════════════════════════════════ */
+const LOCATION_TEST_NOS = [15, 16, 21, 22, 23];
+
+const DeviceLocationMapModal = ({ open, onClose, imei, testNo, rowId }) => {
+    const [points, setPoints] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    // Fetch device history from API and get the latest position for live tracking copy
+    useEffect(() => {
+        if (!open || !rowId || !imei) return;
+
+        const fetchHistory = async () => {
+            setLoading(true);
+            setPoints([]);
+            try {
+                const res = await DeviceModelServices.getDemoDeviceHistory({ onboarding_request_id: rowId });
+                
+                let fetchedData = [];
+                if (Array.isArray(res.data)) {
+                    fetchedData = res.data;
+                } else if (Array.isArray(res.data?.data)) {
+                    fetchedData = res.data.data;
+                } else if (res.data && typeof res.data === 'object') {
+                    const possibleArray = Object.values(res.data).find(val => Array.isArray(val));
+                    if (possibleArray) fetchedData = possibleArray;
+                }
+                
+                // Get the latest entry for the specified IMEI for live tracking view
+                const entries = fetchedData.flatMap(device => 
+                    (device.entries || []).map(entry => ({
+                        ...entry,
+                        device_imei: device.imei || device.device_serial_no || 'Unknown'
+                    }))
+                )
+                .filter(e => e.device_imei === imei)
+                .sort((a, b) => new Date(b.timestamp || b.created_at || 0) - new Date(a.timestamp || a.created_at || 0));
+                
+                if (entries.length > 0) {
+                    const latest = entries[0];
+                    setPoints([{
+                        imei: imei,
+                        latitude: latest.latitude,
+                        longitude: latest.longitude,
+                        speed: latest.speed || 0,
+                        ignition_status: latest.ignition_status || '0',
+                        heading: latest.heading || 0,
+                        last_updated: latest.timestamp || latest.created_at || new Date().toISOString(),
+                        ...latest
+                    }]);
+                }
+            } catch (err) {
+                console.error("Failed to fetch location history:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchHistory();
+    }, [open, rowId, imei]);
+
+    return (
+        <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
+            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#1a237e', color: '#fff', pb: 1.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <LocationOnIcon />
+                    <Box>
+                        <Typography variant="h6" fontWeight={700}>Live Tracking — Test #{testNo}</Typography>
+                        <Typography variant="caption" sx={{ opacity: 0.8 }}>IMEI: {imei}</Typography>
+                    </Box>
+                </Box>
+                <IconButton onClick={onClose} size="small" sx={{ color: '#fff' }}><CancelIcon /></IconButton>
+            </DialogTitle>
+            <DialogContent sx={{ p: 0, minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
+                {loading ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 600 }}>
+                        <CircularProgress />
+                    </Box>
+                ) : points.length === 0 ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 600, flexDirection: 'column', gap: 2 }}>
+                        <LocationOnIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
+                        <Typography color="text.secondary">No GPS coordinates available for this device.</Typography>
+                    </Box>
+                ) : (
+                    <Box sx={{ flex: 1, position: 'relative' }}>
+                        <DeviceModelLiveMap gpsData={points} autoFit={true} height="600px" />
+                    </Box>
+                )}
+            </DialogContent>
+        </Dialog>
+    );
+};
 
 /* ─── helpers ─── */
 const formatDateTime = (value) => {
@@ -257,6 +354,16 @@ const MarkOngoingDialog = ({ open, row, onClose, onSuccess }) => {
    DEVICE HISTORY MODAL
 ═══════════════════════════════════════════════════ */
 const DeviceHistoryModal = ({ open, row, onClose }) => {
+    const demoDevices = useMemo(() => {
+        if (!row?.demo_devices) return [];
+        if (Array.isArray(row.demo_devices)) return row.demo_devices;
+        try { return JSON.parse(row.demo_devices); } catch { return []; }
+    }, [row?.demo_devices]);
+
+    const imeis = useMemo(() => {
+        return demoDevices.map(d => d.imei || d.device_serial_no).filter(Boolean);
+    }, [demoDevices]);
+
     const [loading, setLoading] = useState(false);
     const [historyData, setHistoryData] = useState([]);
     const [error, setError] = useState("");
@@ -264,6 +371,7 @@ const DeviceHistoryModal = ({ open, row, onClose }) => {
     const [customStart, setCustomStart] = useState("");
     const [customEnd, setCustomEnd] = useState("");
     const [specificTimestamp, setSpecificTimestamp] = useState("");
+    const [selectedImei, setSelectedImei] = useState("ALL");
     
     // Automatically fetch 1-hr data when opened (if filterType is 1hr)
     useEffect(() => {
@@ -273,6 +381,7 @@ const DeviceHistoryModal = ({ open, row, onClose }) => {
             setCustomStart("");
             setCustomEnd("");
             setSpecificTimestamp("");
+            setSelectedImei("ALL");
             fetchHistory("1hr");
         }
     }, [open, row?.id]);
@@ -331,7 +440,24 @@ const DeviceHistoryModal = ({ open, row, onClose }) => {
             </DialogTitle>
             <DialogContent dividers sx={{ p: 3, bgcolor: '#fdfdfd' }}>
                 <Stack spacing={3}>
-                    <Paper variant="outlined" sx={{ p: 2, display: 'flex', gap: 2, alignItems: 'center', bgcolor: '#fff', borderRadius: 2 }}>
+                    <Paper variant="outlined" sx={{ p: 2, display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center', bgcolor: '#fff', borderRadius: 2 }}>
+                        
+                        {imeis.length > 0 && (
+                            <TextField
+                                select
+                                size="small"
+                                label="Select Device"
+                                value={selectedImei}
+                                onChange={(e) => setSelectedImei(e.target.value)}
+                                sx={{ minWidth: 150 }}
+                            >
+                                <MenuItem value="ALL">All Devices</MenuItem>
+                                {imeis.map(imei => (
+                                    <MenuItem key={imei} value={imei}>{imei}</MenuItem>
+                                ))}
+                            </TextField>
+                        )}
+
                         <FormControl component="fieldset">
                             <RadioGroup row value={filterType} onChange={(e) => setFilterType(e.target.value)}>
                                 <FormControlLabel value="1hr" control={<Radio size="small" />} label="Last 1 Hour" />
@@ -413,17 +539,21 @@ const DeviceHistoryModal = ({ open, row, onClose }) => {
                                         }))
                                     ).sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0)); // Sort newest first
 
-                                    if (allEntries.length === 0) {
+                                    const filteredEntries = selectedImei === "ALL" 
+                                        ? allEntries 
+                                        : allEntries.filter(e => e.device_imei === selectedImei);
+
+                                    if (filteredEntries.length === 0) {
                                         return (
                                             <TableRow>
                                                 <TableCell colSpan={3} align="center" sx={{ py: 3, color: 'text.secondary' }}>
-                                                    {historyData.length > 0 ? "No history entries found for the selected period." : "No data found."}
+                                                    {historyData.length > 0 ? "No history entries found for the selected period/device." : "No data found."}
                                                 </TableCell>
                                             </TableRow>
                                         );
                                     }
 
-                                    return allEntries.map((rowItem, idx) => (
+                                    return filteredEntries.map((rowItem, idx) => (
                                         <TableRow key={idx}>
                                             <TableCell sx={{ whiteSpace: 'nowrap', fontSize: '0.8rem', color: 'text.secondary' }}>
                                                 {rowItem.device_imei}
@@ -459,6 +589,9 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
 
     // History Modal State
     const [historyModalOpen, setHistoryModalOpen] = useState(false);
+
+    // Location Map Modal State
+    const [locationMapState, setLocationMapState] = useState({ open: false, samples: [], imei: '', testNo: null });
 
     // Checklist states
     const [activeTestId, setActiveTestId] = useState(1);
@@ -951,7 +1084,12 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                         <TableCell sx={{ width: 40 }}><b>#</b></TableCell>
                                         <TableCell sx={{ minWidth: 250 }}><b>Test</b></TableCell>
                                         {imeis.map((imei, idx) => (
-                                            <TableCell key={idx} align="center" sx={{ width: 120 }}><b>IMEI {idx + 1}</b></TableCell>
+                                            <TableCell key={idx} align="center" sx={{ width: 120 }}>
+                                                <b>IMEI {idx + 1}</b>
+                                                <Typography variant="caption" display="block" color="text.secondary" sx={{ fontSize: '0.65rem', wordBreak: 'break-all' }}>
+                                                    {imei}
+                                                </Typography>
+                                            </TableCell>
                                         ))}
                                     </TableRow>
                                 </TableHead>
@@ -1066,6 +1204,20 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                             {isExecPass ? (
                                                                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                                                     <Chip label="pass" size="small" color="success" sx={{ height: 20, fontSize: '0.65rem', mb: 1 }} />
+                                                                    {LOCATION_TEST_NOS.includes(step.serial_no) && (
+                                                                        <Button
+                                                                            variant="outlined"
+                                                                            size="small"
+                                                                            startIcon={<LocationOnIcon sx={{ fontSize: '0.7rem' }} />}
+                                                                            sx={{ fontSize: '0.55rem', p: '2px 6px', mb: 0.5, borderColor: '#1a237e', color: '#1a237e', whiteSpace: 'nowrap', minWidth: 'auto' }}
+                                                                            onClick={() => {
+                                                                                const deviceImei = execution?.demo_device?.imei || imei || `Device ${idx + 1}`;
+                                                                                setLocationMapState({ open: true, imei: deviceImei, testNo: step.serial_no, rowId: row.id });
+                                                                            }}
+                                                                        >
+                                                                            View Location
+                                                                        </Button>
+                                                                    )}
                                                                     {(() => {
                                                                         let snapshotObj = null;
                                                                         if (typeof execution.test_log_snapshot === 'string') {
@@ -1419,6 +1571,15 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                 open={historyModalOpen} 
                 row={row} 
                 onClose={() => setHistoryModalOpen(false)} 
+            />
+
+            {/* Device Location Map Modal */}
+            <DeviceLocationMapModal
+                open={locationMapState.open}
+                onClose={() => setLocationMapState(s => ({ ...s, open: false }))}
+                rowId={locationMapState.rowId}
+                imei={locationMapState.imei}
+                testNo={locationMapState.testNo}
             />
         </Dialog>
     );
