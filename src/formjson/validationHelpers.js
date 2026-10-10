@@ -18,7 +18,10 @@ export const goldMobileValidation = (label = "Mobile") =>
 
 export const goldEmailValidation = (label = "Email") =>
   Yup.string()
-    .email(`Invalid ${label} address`)
+    .matches(
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+      `Invalid ${label} address`
+    )
     .max(100, `${label} must be at most 100 characters`)
     .required(`${label} is required`);
 

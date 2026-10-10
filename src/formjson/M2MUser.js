@@ -10,7 +10,7 @@ const telecomProviderOptions = [
   { value: "vodafone", label: "Vodafone" },
   { value: "jio", label: "Jio" },
 ];
-const FILE_SIZE = 1024 * 1024; // 1 MB
+const FILE_SIZE = 512 * 1024; // 512 KB
 const SUPPORTED_FORMATS = [
   "image/png",
   "image/jpeg",
@@ -164,9 +164,20 @@ export const m2mUserFormField = {
     label: "Company PAN No",
     validation: goldPanValidation("Company PAN No").test(
       "unique-pan",
-      "Company PAN No must not be the same as Applicant ID Proof Number",
+      "Company PAN No must not be the same as Applicant ID for registered companies",
       function (value) {
-        return !value || value !== this.parent.idProofno;
+        if (!value || !this.parent.idProofno) return true;
+        if (value === this.parent.idProofno) {
+          const panStatus = value.charAt(3).toUpperCase();
+          if (panStatus !== 'P') return false; // Not a personal PAN
+
+          const companyName = this.parent.company_name || "";
+          const upperName = companyName.toUpperCase();
+          const isRegistered = /PVT|PRIVATE|LTD|LIMITED|LLP|INC/i.test(upperName);
+          
+          if (isRegistered) return false;
+        }
+        return true;
       }
     ),
   },

@@ -4,7 +4,7 @@ const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);
 const formattedDate = currentDate.toISOString().split('T')[0];
 let providerList = [{ value: '', label: 'Select' }];
-const FILE_SIZE = 1024 * 1024; // 1 MB
+const FILE_SIZE = 512 * 1024; // 512 KB
 const SUPPORTED_FORMATS = [
   "image/png",
   "image/jpeg",
@@ -216,7 +216,24 @@ export const manufacturerFormField = {
     name: "panno",
     type: "text",
     label: "Company PAN No",
-    validation: goldPanValidation("Company PAN No"),
+    validation: goldPanValidation("Company PAN No").test(
+      "unique-pan",
+      "Company PAN No must not be the same as Applicant ID for registered companies",
+      function (value) {
+        if (!value || !this.parent.idProofno) return true;
+        if (value === this.parent.idProofno) {
+          const panStatus = value.charAt(3).toUpperCase();
+          if (panStatus !== 'P') return false; // Not a personal PAN
+
+          const companyName = this.parent.company_name || "";
+          const upperName = companyName.toUpperCase();
+          const isRegistered = /PVT|PRIVATE|LTD|LIMITED|LLP|INC/i.test(upperName);
+          
+          if (isRegistered) return false;
+        }
+        return true;
+      }
+    ),
   },
   company_registration_no: {
     name: "company_registration_no",
