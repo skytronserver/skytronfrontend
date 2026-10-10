@@ -348,7 +348,7 @@ const MainRoutes = {
     {
       path: "/reports/device-data-health",
       element: <DeviceDataHealth />,
-      roles: ["superadmin", "stateadmin", "dealer", "owner", "dto"],
+      roles: ["superadmin", "stateadmin", "dealer", "dto"],
     },
     {
       path: '/reports/activation-log-report',

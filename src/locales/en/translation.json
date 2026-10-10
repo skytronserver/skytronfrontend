@@ -31,7 +31,7 @@
     "policyReveiwPoint3": "Enhancements to the SkyTron platform",
     "helpHeading": "Help & Data Exploration Guide",
     "helpIntro": "This application is designed to help you quickly drill down and search through large amounts of tracking and reporting data. You can filter information by time periods and other criteria that you define, so you always see only the data that is relevant to you.",
-    "searchingByTimePeriods": "searchingByTimePeriods",
+    "searchingByTimePeriods": "Searching by Time Periods",
     "searchingByTimePeriodsDescription": "Most data pages let you narrow results using date and time filters. Typical options include:",
     "searchingByTimePeriodsPoint1": "Selecting a single date (e.g., \"Today\", \"Yesterday\").",
     "searchingByTimePeriodsPoint2": "Selecting a date range (e.g., \"From\" and \"To\" dates).",

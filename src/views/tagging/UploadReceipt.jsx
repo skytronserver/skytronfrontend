@@ -38,6 +38,14 @@ const formatDate = (val) => {
 };
 
 
+const cleanDisplayValue = (value) => {
+  if (value === null || value === undefined) return "";
+
+  return String(value)
+    .replace(/^[\s;']+/, "")
+    .trim();
+};
+
 
 // ─────────────────────────────────────────────
 // Shared style constants – Times New Roman like the original
@@ -57,11 +65,11 @@ const T = ({ children, sx = {}, bold = false }) => (
 
 // ─────────────────────────────────────────────
 const buildRows = (d) => [
-  { label: "VLTD Serial No", value: `;${d.deviceSerialNo}` },
+  { label: "VLTD Serial No", value: `${d.deviceSerialNo}` },
   { label: "VLTD IMEI No", value: d.vltdImei },
   { label: "VLTD/E-SIM ICCID", value: formatICCID(d.iccid) },
-  { label: "Primary MSISDN/E-SIM Primary Mobile Number", value: d.primaryMsisdn },
-  { label: "Fallback MSISDN/E-SIM Secondery Mobile Number", value: d.fallbackMsisdn },
+  { label: "Primary MSISDN/E-SIM Primary Mobile Number", value: cleanDisplayValue(d.primaryMsisdn) },
+  { label: "Fallback MSISDN/E-SIM Secondary Mobile Number", value: cleanDisplayValue(d.fallbackMsisdn) },
   { label: "ICCID/E-SIM Valid Upto", value: d.esimValidUpto },
   { label: "No of EMG Button Installed", value: d.noOfEmgButtons },
 ];
@@ -217,10 +225,10 @@ const UploadReceipt = () => {
     B(false); y += 5;
     L("Dear Sir,", margin, y); y += 10;
 
-    y = Wrap(`This is to inform you that VLTD serial number: ${d.deviceSerialNo}, model number: ${d.vltdModel} of VLTD manufacturer ${d.vltdMake}, has been activated on vehicle having chasis number: ${d.chassisNo} , engine number: ${d.engineNo} ,vehicle registration number: ${d.vehicleRegNo} and vehicle class: ${d.vehicleClass}`, margin, y, usable);
+    y = Wrap(`This is to inform you that VLTD serial number: ${d.deviceSerialNo}, model number: ${d.vltdModel} of VLTD manufacturer ${d.vltdMake}, has been activated on vehicle having chassis number: ${d.chassisNo} , engine number: ${d.engineNo} ,vehicle registration number: ${d.vehicleRegNo} and vehicle class: ${d.vehicleClass}`, margin, y, usable);
     y += 14;
 
-    L("The details of VLTD shown blow:", margin, y); y += 8;
+    L("The details of VLTD shown below:", margin, y); y += 8;
     buildRows(d).forEach(({ label, value }) => {
       B(false); L(`${label}: `, margin, y);
       B(true); L(value || "", margin + pdf.getTextWidth(`${label}: `), y);
@@ -281,8 +289,8 @@ const UploadReceipt = () => {
 </div>
 <p><strong>Subject:</strong>&nbsp;&nbsp; VLTD Serial No: <strong>${d.deviceSerialNo}</strong> in the vehicle having chassis no: <strong>${d.chassisNo}</strong> in the portal (https://skytron.in), State Transport Department, Govt. of Assam.</p>
 <p>Dear Sir,</p>
-<p>This is to inform you that VLTD serial number: <strong>${d.deviceSerialNo}</strong>, model number: <strong>${d.vltdModel}</strong> of VLTD manufacturer <strong>${d.vltdMake}</strong>, has been activated on vehicle having chasis number: <strong>${d.chassisNo}</strong> , engine number: <strong>${d.engineNo}</strong> ,vehicle registration number: <strong>${d.vehicleRegNo}</strong> and vehicle class: <strong>${d.vehicleClass}</strong></p>
-<p class="gap">The details of VLTD shown blow:</p>
+<p>This is to inform you that VLTD serial number: <strong>${d.deviceSerialNo}</strong>, model number: <strong>${d.vltdModel}</strong> of VLTD manufacturer <strong>${d.vltdMake}</strong>, has been activated on vehicle having chassis number: <strong>${d.chassisNo}</strong> , engine number: <strong>${d.engineNo}</strong> ,vehicle registration number: <strong>${d.vehicleRegNo}</strong> and vehicle class: <strong>${d.vehicleClass}</strong></p>
+<p class="gap">The details of VLTD shown below:</p>
 <br/>
 ${rows}
 <p class="gap2"><strong>Thanking You</strong></p>
@@ -409,7 +417,7 @@ ${rows}
                     This is to inform you that VLTD serial number:{" "}
                     <strong>{certificateData.deviceSerialNo}</strong>, model number:{" "}
                     <strong>{certificateData.vltdModel}</strong> of VLTD manufacturer{" "}
-                    <strong>{certificateData.vltdMake}</strong>, has been activated on vehicle having chasis number:{" "}
+                    <strong>{certificateData.vltdMake}</strong>, has been activated on vehicle having chassis number:{" "}
                     <strong>{certificateData.chassisNo}</strong> , engine number:{" "}
                     <strong>{certificateData.engineNo}</strong> ,vehicle registration number:{" "}
                     <strong>{certificateData.vehicleRegNo}</strong> and vehicle class:{" "}
@@ -418,7 +426,7 @@ ${rows}
                 </Box>
 
                 {/* ── DETAILS LIST ── */}
-                <T sx={{ mb: "14px" }}>The details of VLTD shown blow:</T>
+                <T sx={{ mb: "14px" }}>The details of VLTD shown below:</T>
                 <Box sx={{ mb: "32px" }}>
                   {buildRows(certificateData).map(({ label, value }) => (
                     <Typography key={label} component="p"

@@ -329,7 +329,10 @@ function FrequencyFirmware() {
                 enableReinitialize
               >
                 {(formik) => (
-                  <form onSubmit={formik.handleSubmit}>
+                  <form 
+                  noValidate
+                  onSubmit={formik.handleSubmit}
+                  >
                     <Grid container spacing={2} className="form-controller">
                       {Object.keys(otaForm).map((field) => (
                         <Grid key={field} item md={6} sm={12} xs={12}>
@@ -372,7 +375,10 @@ function FrequencyFirmware() {
               enableReinitialize
             >
               {(formik) => (
-                <form onSubmit={formik.handleSubmit}>
+                <form 
+                noValidate
+                onSubmit={formik.handleSubmit}
+                >
                   <Grid container spacing={2} className="form-controller">
                     {Object.keys(firmwareFormFields).map((field) => (
                       <Grid key={field} item md={6} sm={12} xs={12}>

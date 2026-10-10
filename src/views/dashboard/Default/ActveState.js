@@ -682,36 +682,56 @@ const ActiveState = () => {
         const response = await UserServices.getDealerDashboard();
         const data = await response.data;
         setDealerFitmentInfo({
-          total: data.Total_Fitment_done || 0,
-          taggedDevice: data.TotalTaggedDevice || 0,
-          onlineDevice: data.Total_Online_now || 0,
-          offlineDevice: (data.TotalTaggedDevice || 0) - (data.Total_Online_now || 0),
-        });
+        total: Number(data.Total_Fitment_done ?? 0),
+        monthly: Number(data.Fitment_month ?? 0),
+        daily: Number(data.Fitment_today ?? 0),
+        taggedDevice: Number(data.TotalTaggedDevice ?? 0),
+        onlineDevice: Number(data.Total_Online_now ?? 0),
+        offlineDevice: Math.max(
+          0,
+          Number(data.TotalTaggedDevice ?? 0) -
+            Number(data.Total_Online_now ?? 0)
+        ),
+      });
         setDealerDeviceInfo({
-          assigned: data.Total_Device_Assigned || 0,
-          returned: data.Total_Device_Returned || 0,
-          stocked: data.Current_Device_stock || 0,
-          faulty: data.Current_Device_faulty || 0,
-          freeDevice: data.Available_Free_Device || 0
-        });
+        assigned: Number(data.Total_Device_Assigned ?? 0),
+        returned: Number(data.Total_Device_Returned ?? 0),
+        stocked: Number(data.Current_Device_stock ?? 0),
+        faulty: Number(data.Current_Device_faulty ?? 0),
+        freeDevice: Number(data.Available_Free_Device ?? 0),
+      });
         setDealerVehicleOwnerInfo({
-          total: data.Unique_Vehicle_Owners_Associated || data.Total_Vehicle_Owner || 0,
-          month: data.Unique_Vehicle_Owners_Associated_This_Month || data.Total_Vehicle_Owner_month || 0,
-          today: data.Unique_Vehicle_Owners_Associated_Today || data.Total_Vehicle_Owner_today || 0,
-        });
+        total: Number(data.Unique_Vehicle_Owners_Associated ?? 0),
+        month: Number(
+          data.Unique_Vehicle_Owners_Associated_This_Month ?? 0
+        ),
+        today: Number(
+          data.Unique_Vehicle_Owners_Associated_Today ?? 0
+        ),
+      });
         setDealerESIMInfo({
-          totalActivation: data.Total_esim_activation_request || data.ESim_Activation_Request_Sent || 0,
-          activated: data.Total_esim_activated || 0,
-          oneYearRenewal: data.Total_1_year_renewal_request || 0,
-          twoYearRenewal: data.Total_2_year_renewal_request || 0,
-          expired: data.Total_esim_expired || data.Total_expired_device || 0
-        });
+        totalActivation: Number(
+          data.Total_esim_activation_request ??
+          data.ESim_Activation_Request_Sent ?? 0
+        ),
+        activated: Number(data.Total_esim_activated ?? 0),
+        oneYearRenewal: Number(
+          data.Total_1_year_renewal_request ?? 0
+        ),
+        twoYearRenewal: Number(
+          data.Total_2_year_renewal_request ?? 0
+        ),
+        expired: Number(
+          data.Total_esim_expired ??
+          data.ESim_Already_Expired ?? 0
+        ),
+      });
         setDeviceStatusInfo({
-          onlineNow: data.Total_Online_now || 0,
-          onlineToday: data.Total_Online_today || 0,
-          sevenDaysOffline: data.Total_Offline_7_days || 0,
-          thirtyDaysOffline: data.Total_Offline_30_days || 0,
-        })
+        onlineNow: Number(data.Total_Online_now ?? 0),
+        onlineToday: Number(data.Total_Online_today ?? 0),
+        sevenDaysOffline: Number(data.Total_Offline_7_days ?? 0),
+        thirtyDaysOffline: Number(data.Total_Offline_30_days ?? 0),
+      });
       })();
     }
     if (userRoles === 'desk_ex') {
@@ -1915,29 +1935,49 @@ const ActiveState = () => {
       */
 
       // Fitment Trends Bar Chart
-      const fitmentTrendsData = [
-        { name: 'Total', count: dealerFitmentInfo.total || 0 },
-        { name: 'Monthly', count: dealerFitmentInfo.monthly || 0 },
-        { name: 'Daily', count: dealerFitmentInfo.daily || 0 }
-      ];
+    
+const fitmentTrendsData = [
+  {
+    name: "Total Fitment",
+    count: Number(dealerFitmentInfo.total ?? 0),
+  },
+  {
+    name: "Monthly Fitment",
+    count: Number(dealerFitmentInfo.monthly ?? 0),
+  },
+  {
+    name: "Today's Fitment",
+    count: Number(dealerFitmentInfo.daily ?? 0),
+  },
+];
 
-      charts.push(
-        <Grid item xs={12} md={6} key="fitment-trends">
-          <Card sx={{ p: 2, height: 400 }}>
-            <Typography variant="h6" gutterBottom>Fitment Trends</Typography>
-            <ResponsiveContainer width="100%" height="90%">
-              <BarChart data={fitmentTrendsData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="count" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Card>
-        </Grid>
-      );
+charts.push(
+  <Grid item xs={12} md={6} key="fitment-trends">
+    <Card sx={{ p: 2, height: 400 }}>
+      <Typography variant="h6" gutterBottom>
+        Fitment Trends
+      </Typography>
+
+      <ResponsiveContainer width="100%" height="90%">
+        <BarChart
+          data={fitmentTrendsData}
+          margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" interval={0} />
+          <YAxis allowDecimals={false} />
+          <Tooltip />
+          <Legend />
+          <Bar
+            dataKey="count"
+            name="Fitment Count"
+            fill="#8884d8"
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    </Card>
+  </Grid>
+);
 
       // Device Statistics Pie Chart
       /*
@@ -1975,13 +2015,27 @@ const ActiveState = () => {
 
       // M2M Statistics Bar Chart
       const esimStatsData = [
-        { name: 'Total with M2M', count: eSIMInfo.totalDevicesWithESim || 0 },
-        { name: 'Validated', count: eSIMInfo.validated || 0 },
-        { name: 'Active', count: eSIMInfo.active || 0 },
-        { name: 'Expired', count: eSIMInfo.expired || 0 },
-        { name: 'Pending', count: eSIMInfo.pending || 0 },
-        { name: 'Invalid', count: eSIMInfo.invalid || 0 }
-      ];
+  {
+    name: "Activation Requests",
+    count: Number(dealerESIMInfo.totalActivation ?? 0),
+  },
+  {
+    name: "Activated",
+    count: Number(dealerESIMInfo.activated ?? 0),
+  },
+  {
+    name: "1-Year Renewal",
+    count: Number(dealerESIMInfo.oneYearRenewal ?? 0),
+  },
+  {
+    name: "2-Year Renewal",
+    count: Number(dealerESIMInfo.twoYearRenewal ?? 0),
+  },
+  {
+    name: "Expired",
+    count: Number(dealerESIMInfo.expired ?? 0),
+  },
+];
 
       charts.push(
         <Grid item xs={12} md={6} key="esim-statistics">
@@ -2003,11 +2057,27 @@ const ActiveState = () => {
 
       // Device Health Overview Pie Chart
       const deviceHealthData = [
-        { name: 'Total Activated', value: deviceHealthInfo.totalActivatedDevice || 0 },
-        { name: 'Today Active', value: deviceHealthInfo.todayActive || 0 },
-        { name: 'Inactive 7 Days', value: deviceHealthInfo.inActiveFor7Days || 0 },
-        { name: 'Inactive 30 Days', value: deviceHealthInfo.inActiveFor30Days || 0 }
-      ];
+  {
+    name: "Tagged Devices",
+    value: Number(dealerFitmentInfo.taggedDevice ?? 0),
+  },
+  {
+    name: "Online Now",
+    value: Number(deviceStatusInfo.onlineNow ?? 0),
+  },
+  {
+    name: "Online Today",
+    value: Number(deviceStatusInfo.onlineToday ?? 0),
+  },
+  {
+    name: "Offline 7 Days",
+    value: Number(deviceStatusInfo.sevenDaysOffline ?? 0),
+  },
+  {
+    name: "Offline 30 Days",
+    value: Number(deviceStatusInfo.thirtyDaysOffline ?? 0),
+  },
+];
 
       charts.push(
         <Grid item xs={12} md={6} key="device-health">
@@ -2036,11 +2106,23 @@ const ActiveState = () => {
 
       // Device Status Timeline Bar Chart
       const deviceStatusData = [
-        { name: 'Online', count: deviceStatusInfo.online || 0 },
-        { name: 'Today Offline', count: deviceStatusInfo.todayOffline || 0 },
-        { name: '7 Days Offline', count: deviceStatusInfo.sevenDaysOffline || 0 },
-        { name: '30 Days Offline', count: deviceStatusInfo.thirtyDaysOffline || 0 }
-      ];
+  {
+    name: "Online Now",
+    count: Number(deviceStatusInfo.onlineNow ?? 0),
+  },
+  {
+    name: "Online Today",
+    count: Number(deviceStatusInfo.onlineToday ?? 0),
+  },
+  {
+    name: "Offline 7 Days",
+    count: Number(deviceStatusInfo.sevenDaysOffline ?? 0),
+  },
+  {
+    name: "Offline 30 Days",
+    count: Number(deviceStatusInfo.thirtyDaysOffline ?? 0),
+  },
+];
 
       charts.push(
         <Grid item xs={12} md={6} key="device-status-timeline">

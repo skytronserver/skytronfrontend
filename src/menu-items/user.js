@@ -885,7 +885,7 @@ const user = {
           url: '/reports/device-data-health',
           icon: icons.IconDeviceAnalytics,
           breadcrumbs: false,
-          roles: ['superadmin', 'stateadmin', 'dealer', 'owner', 'dto']
+          roles: ['superadmin', 'stateadmin', 'dealer', 'dto']
         },
         {
           id: 'activation-log-report',

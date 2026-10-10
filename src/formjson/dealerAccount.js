@@ -83,7 +83,9 @@ export const dealerAccountFormField = {
     name: "districts",
     type: "multiselect",
     label: "dealerAccountForm.fields.district",
-    validation: Yup.array().required("dealerAccountForm.validation.districtsRequired"),
+    validation: Yup.array()
+      .min(1, "dealerAccountForm.validation.districtsRequired")
+      .required("dealerAccountForm.validation.districtsRequired"),
     options: [],
   },
   idProofno: {
