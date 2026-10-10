@@ -208,161 +208,161 @@ function DealerAccount() {
   // };
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
-  const userData = sessionStorage.getItem("cookiesData");
-  const data = userData ? userData.split("-") : [];
-  const userId = data.length > 2 ? data[3] : "";
+    const userData = sessionStorage.getItem("cookiesData");
+    const data = userData ? userData.split("-") : [];
+    const userId = data.length > 2 ? data[3] : "";
 
-  setSubmitting(true);
-  setLoading(true);
+    setSubmitting(true);
+    setLoading(true);
 
-  try {
-    const formData = new FormData();
+    try {
+      const formData = new FormData();
 
-    // Normal fields
-    formData.append("manufacturer", userId);
-    formData.append("name", values.name || "");
-    formData.append("mobile", values.mobile || "");
-    formData.append("email", values.email || "");
-    formData.append("dob", values.dob || "");
-    formData.append("company_name", values.company_name || "");
-    formData.append("gstnnumber", values.gstnnumber || "");
+      // Normal fields
+      formData.append("manufacturer", userId);
+      formData.append("name", values.name || "");
+      formData.append("mobile", values.mobile || "");
+      formData.append("email", values.email || "");
+      formData.append("dob", values.dob || "");
+      formData.append("company_name", values.company_name || "");
+      formData.append("gstnnumber", values.gstnnumber || "");
 
-    // State ID
-    formData.append(
-      "address_State",
-      updatedFormFields.address_State?.id || ""
-    );
-
-    // IMPORTANT:
-    // API expects districts[] instead of a comma-separated value
-    if (Array.isArray(values.districts)) {
-      values.districts.forEach((district) => {
-        const districtValue =
-          typeof district === "object"
-            ? district.value
-            : district;
-
-        if (districtValue !== undefined && districtValue !== null) {
-          formData.append("districts[]", districtValue);
-        }
-      });
-    }
-
-    // Send districts as comma-separated value for testing
-// const formattedDistricts = Array.isArray(values.districts)
-//   ? values.districts
-//       .map((district) =>
-//         typeof district === "object"
-//           ? district.value
-//           : district
-//       )
-//       .filter(
-//         (district) =>
-//           district !== undefined &&
-//           district !== null &&
-//           district !== ""
-//       )
-//       .join(",")
-//   : values.districts || "";
-
-// formData.append("districts", formattedDistricts);
-
-    formData.append("idProofno", values.idProofno || "");
-    formData.append("expirydate", values.expirydate || "");
-
-    // Files
-    if (values.file_authLetter) {
+      // State ID
       formData.append(
-        "file_authLetter",
-        values.file_authLetter
+        "address_State",
+        updatedFormFields.address_State?.id || ""
       );
-    }
 
-    if (values.file_companRegCertificate) {
-      formData.append(
-        "file_companRegCertificate",
-        values.file_companRegCertificate
-      );
-    }
+      // IMPORTANT:
+      // API expects districts[] instead of a comma-separated value
+      if (Array.isArray(values.districts)) {
+        values.districts.forEach((district) => {
+          const districtValue =
+            typeof district === "object"
+              ? district.value
+              : district;
 
-    if (values.file_GSTCertificate) {
-      formData.append(
-        "file_GSTCertificate",
-        values.file_GSTCertificate
-      );
-    }
+          if (districtValue !== undefined && districtValue !== null) {
+            formData.append("districts[]", districtValue);
+          }
+        });
+      }
 
-    if (values.file_idProof) {
-      formData.append(
-        "file_idProof",
-        values.file_idProof
-      );
-    }
+      // Send districts as comma-separated value for testing
+      // const formattedDistricts = Array.isArray(values.districts)
+      //   ? values.districts
+      //       .map((district) =>
+      //         typeof district === "object"
+      //           ? district.value
+      //           : district
+      //       )
+      //       .filter(
+      //         (district) =>
+      //           district !== undefined &&
+      //           district !== null &&
+      //           district !== ""
+      //       )
+      //       .join(",")
+      //   : values.districts || "";
 
-    // Location
-    formData.append("lat", values.lat || "");
-    formData.append("lon", values.lon || "");
+      // formData.append("districts", formattedDistricts);
 
-    // Role / creator
-    formData.append("role", "devicemanufacturer");
-    formData.append("createdby", userId);
+      formData.append("idProofno", values.idProofno || "");
+      formData.append("expirydate", values.expirydate || "");
 
-    // Debug - VERY useful
-    for (const [key, value] of formData.entries()) {
-      console.log(
-        key,
-        value instanceof File
-          ? {
+      // Files
+      if (values.file_authLetter) {
+        formData.append(
+          "file_authLetter",
+          values.file_authLetter
+        );
+      }
+
+      if (values.file_companRegCertificate) {
+        formData.append(
+          "file_companRegCertificate",
+          values.file_companRegCertificate
+        );
+      }
+
+      if (values.file_GSTCertificate) {
+        formData.append(
+          "file_GSTCertificate",
+          values.file_GSTCertificate
+        );
+      }
+
+      if (values.file_idProof) {
+        formData.append(
+          "file_idProof",
+          values.file_idProof
+        );
+      }
+
+      // Location
+      formData.append("lat", values.lat || "");
+      formData.append("lon", values.lon || "");
+
+      // Role / creator
+      formData.append("role", "devicemanufacturer");
+      formData.append("createdby", userId);
+
+      // Debug - VERY useful
+      for (const [key, value] of formData.entries()) {
+        console.log(
+          key,
+          value instanceof File
+            ? {
               name: value.name,
               type: value.type,
               size: value.size,
             }
-          : value
-      );
-    }
+            : value
+        );
+      }
 
-    await DealerServices.dealerUser(formData);
+      await DealerServices.dealerUser(formData);
 
-    setAlert({
-      error: false,
-      message: t("common.formSubmittedSuccessfully"),
-      errorList: [],
-    });
-
-    setOpen(true);
-
-    resetForm();
-    setShowResend(true);
-  } catch (error) {
-    console.error("Create dealer error:", error);
-    console.error("Response:", error?.response?.data);
-
-    if (error?.message === "Network Error") {
       setAlert({
-        error: true,
-        message: t("common.internalServerError"),
+        error: false,
+        message: t("common.formSubmittedSuccessfully"),
         errorList: [],
       });
 
       setOpen(true);
-      return;
+
+      resetForm();
+      setShowResend(true);
+    } catch (error) {
+      console.error("Create dealer error:", error);
+      console.error("Response:", error?.response?.data);
+
+      if (error?.message === "Network Error") {
+        setAlert({
+          error: true,
+          message: t("common.internalServerError"),
+          errorList: [],
+        });
+
+        setOpen(true);
+        return;
+      }
+
+      setAlert({
+        error: true,
+        message: t("common.formNotSubmitted"),
+        errorList: error?.response?.data
+          ? convertErrorObjectToArray(error.response.data)
+          : [],
+      });
+
+      setOpen(true);
+      setShowResend(false);
+    } finally {
+      setSubmitting(false);
+      setLoading(false);
     }
-
-    setAlert({
-      error: true,
-      message: t("common.formNotSubmitted"),
-      errorList: error?.response?.data
-        ? convertErrorObjectToArray(error.response.data)
-        : [],
-    });
-
-    setOpen(true);
-    setShowResend(false);
-  } finally {
-    setSubmitting(false);
-    setLoading(false);
-  }
-};
+  };
 
   const handleResend = (resetForm) => {
     setShowResend(false);
@@ -386,9 +386,9 @@ function DealerAccount() {
         <Grid item xs={12} className={loading ? "loading" : "not-loading"}>
           <MainCard title={t("dealerAccountForm.title")}>
             {!hasOnboardedModel ? (
-               <div style={{ textAlign: 'center', padding: '40px' }}>
-                 <h3>You must complete Technical Onboarding for at least one device model before you can create a dealer.</h3>
-               </div>
+              <div style={{ textAlign: 'center', padding: '40px' }}>
+                <h3>You must complete Technical Onboarding for at least one device model before you can create a dealer.</h3>
+              </div>
             ) : isFormLoaded && (
               <Formik
                 initialValues={dealerAccountInitialValues}
@@ -397,15 +397,73 @@ function DealerAccount() {
                 enableReinitialize
               >
                 {(formik) => (
-                  <form onSubmit={formik.handleSubmit}>
+                  <form
+                    noValidate
+                    onSubmit={formik.handleSubmit}
+                  >
                     <Grid container spacing={2} className="form-controller">
                       {Object.keys(updatedFormFields).map((field) => (
-                        <Grid key={field} item md={6} sm={12} xs={12}>
+                        <Grid
+                          key={field}
+                          item
+                          xs={12}
+                          sm={12}
+                          md={6}
+                          sx={{
+                            minWidth: 0,
+                            boxSizing: "border-box",
+
+                            "& .MuiFormControl-root": {
+                              width: "100%",
+                              minWidth: 0,
+                            },
+
+                            "& .MuiOutlinedInput-root": {
+                              width: "100%",
+                              minWidth: 0,
+                              boxSizing: "border-box",
+                            },
+
+                            "& .MuiInputLabel-root": {
+                              maxWidth: "calc(100% - 28px)",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            },
+
+                            "& input[type='file']": {
+                              display: "block",
+                              width: "100%",
+                              minWidth: 0,
+                              maxWidth: "100%",
+                              boxSizing: "border-box",
+                            },
+
+                            "& .MuiFormHelperText-root": {
+                              whiteSpace: "normal",
+                              overflowWrap: "anywhere",
+                            },
+                          }}
+                        >
                           <FormField
                             fieldConfig={updatedFormFields[field]}
                             formik={formik}
                             handleFileChange={handleFileChange}
-                          // handleOptionChange={handleStateChange}
+                            sx={
+                              updatedFormFields[field]?.type === "file"
+                                ? {
+                                  minWidth: 0,
+                                  height: "auto",
+                                  minHeight: "50px",
+                                  whiteSpace: "normal",
+                                  textAlign: "left",
+                                  overflowWrap: "anywhere",
+                                  wordBreak: "break-word",
+                                  "& .MuiButton-startIcon": {
+                                    flexShrink: 0,
+                                  },
+                                }
+                                : undefined
+                            }
                           />
                         </Grid>
                       ))}

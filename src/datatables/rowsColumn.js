@@ -659,13 +659,31 @@ export const vehicleOwnerCols = [
     }
   },
   {
-    name: "users", label: "User Type", options: {
+    name: "users", label: "Address", options: {
       filter: true, sort: false, customBodyRender: (value, tableMeta, updateValue) => {
         return (
           <p>{value[0]?.address}</p>
         )
       }, csvExportKey: "address"
     }
+  },
+  {
+    name: "users",
+    label: "User Type",
+    options: {
+      filter: true,
+      sort: false,
+      customBodyRender: (value) => (
+        <p>
+          {value?.[0]?.usertype
+            ? value[0].usertype.charAt(0).toUpperCase() +
+              value[0].usertype.slice(1)
+            : "N/A"}
+        </p>
+      ),
+      csvExportKey: "usertype",
+      columnKey: 0,
+    },
   },
   { name: "idProofno", label: "ID Proof No", options: { filter: true, sort: false } },
   {

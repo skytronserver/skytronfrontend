@@ -259,15 +259,52 @@ const EsimIpRanges = () => {
             {(formik) => (
               <form onSubmit={formik.handleSubmit}>
                 <Grid container spacing={2}>
-                  {Object.keys(esimIpRangeField).map((field) => (
-                    <Grid key={field} item xs={12} md={field === 'remarks' ? 12 : 6}>
-                      <FormField
-                        fieldConfig={esimIpRangeField[field]}
-                        formik={formik}
-                        handleFileChange={handleFileChange}
-                      />
-                    </Grid>
-                  ))}
+                  
+{Object.keys(esimIpRangeField).map((field) => {
+  const fieldConfig = {
+    ...esimIpRangeField[field],
+  };
+
+  // Certificate is optional in Edit mode
+  if (isEditMode && field === "certificate_file") {
+    fieldConfig.validation = Yup.mixed()
+      .nullable()
+      .notRequired()
+      .test(
+        "fileSize",
+        "File size is too large (max 1MB)",
+        (value) => !value || value.size <= 1024 * 1024
+      )
+      .test(
+        "fileFormat",
+        "Unsupported format (must be PDF, JPG, PNG)",
+        (value) =>
+          !value ||
+          ["image/png", "image/jpeg", "image/jpg", "application/pdf"].includes(
+            value.type
+          )
+      );
+
+    // Remove required indicator if CustomTextField uses this property
+    fieldConfig.required = false;
+  }
+
+  return (
+    <Grid
+      key={field}
+      item
+      xs={12}
+      md={field === "remarks" ? 12 : 6}
+    >
+      <FormField
+        fieldConfig={fieldConfig}
+        formik={formik}
+        handleFileChange={handleFileChange}
+      />
+    </Grid>
+  );
+})}
+
                   <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', mt: 2 }}>
                     <Button variant="outlined" onClick={handleCloseForm} disabled={loading}>Cancel</Button>
                     <Button type="submit" variant="contained" color="primary" disabled={loading}>

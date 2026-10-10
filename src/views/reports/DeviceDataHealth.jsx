@@ -37,44 +37,76 @@ const DeviceDataHealth = ({ initialImei = '', isTagging = false }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTagging, imei, protocol]);
 
-  const fetchFormats = async () => {
-    try {
-      const res = await DeviceDataHealthService.getFormats();
-      if (res.data && res.data.options && Array.isArray(res.data.options)) {
-        const filteredOptions = res.data.options.filter(opt => opt.value !== 'Amendment3' && opt.label !== 'Amendment 3');
-        setFormats(filteredOptions);
-        if (filteredOptions.length > 0) {
-          setProtocol(filteredOptions[0].value);
-        }
-        return;
-      }
+  // const fetchFormats = async () => {
+  //   try {
+  //     const res = await DeviceDataHealthService.getFormats();
+  //     if (res.data && res.data.options && Array.isArray(res.data.options)) {
+  //       const filteredOptions = res.data.options.filter(opt => opt.value !== 'Amendment3' && opt.label !== 'Amendment 3');
+  //       setFormats(filteredOptions);
+  //       if (filteredOptions.length > 0) {
+  //         setProtocol(filteredOptions[0].value);
+  //       }
+  //       return;
+  //     }
       
-      // Fallback logic
-      if (res.data) {
-        let formatObj = res.data.data ? res.data.data : res.data;
-        if (formatObj.status || Array.isArray(formatObj)) {
-          formatObj = { "ARAI_2025": "ARAI (current)", "Amendment3": "Amendment 3" };
-        }
+  //     // Fallback logic
+  //     if (res.data) {
+  //       let formatObj = res.data.data ? res.data.data : res.data;
+  //       if (formatObj.status || Array.isArray(formatObj)) {
+  //         formatObj = { "ARAI_2025": "ARAI (current)", "Amendment3": "Amendment 3" };
+  //       }
         
-        const formatList = Object.entries(formatObj)
-          .map(([key, value]) => ({ value: key, label: value }))
-          .filter(opt => opt.value !== 'Amendment3' && opt.label !== 'Amendment 3');
-        setFormats(formatList);
-        if (formatList.length > 0) {
-          setProtocol(formatList[0].value);
-        }
-      }
-    } catch (err) {
-      console.error('Failed to fetch formats', err);
-      const fallback = [
-        { value: 'ARAI_2025', label: 'ARAI (current)' },
-        // { value: 'Amendment3', label: 'Amendment 3' }
-      ];
-      setFormats(fallback);
-      setProtocol(fallback[0].value);
-    }
-  };
+  //       const formatList = Object.entries(formatObj)
+  //         .map(([key, value]) => ({ value: key, label: value }))
+  //         .filter(opt => opt.value !== 'Amendment3' && opt.label !== 'Amendment 3');
+  //       setFormats(formatList);
+  //       if (formatList.length > 0) {
+  //         setProtocol(formatList[0].value);
+  //       }
+  //     }
+  //   } catch (err) {
+  //     console.error('Failed to fetch formats', err);
+  //     const fallback = [
+  //       { value: 'ARAI_2025', label: 'ARAI (current)' },
+  //       // { value: 'Amendment3', label: 'Amendment 3' }
+  //     ];
+  //     setFormats(fallback);
+  //     setProtocol(fallback[0].value);
+  //   }
+  // };
 
+  const fetchFormats = async () => {
+  try {
+    const res = await DeviceDataHealthService.getFormats();
+
+    const responseData = res.data?.data || res.data;
+
+    if (
+      responseData &&
+      Array.isArray(responseData.options)
+    ) {
+      const formatList = responseData.options;
+
+      setFormats(formatList);
+
+      // Select the server's current format by default
+      const currentFormat =
+        responseData.current_server_format ||
+        formatList.find((opt) => opt.implemented)?.value ||
+        '';
+
+      setProtocol(currentFormat);
+      return;
+    }
+
+    setFormats([]);
+    setProtocol('');
+  } catch (err) {
+    console.error('Failed to fetch formats:', err);
+    setError('Failed to load protocol formats.');
+    setFormats([]);
+  }
+};
   const handleCheck = async () => {
     if (!imei || !protocol) {
       setError('Please fill in IMEI and Protocol format.');

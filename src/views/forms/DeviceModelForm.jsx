@@ -365,7 +365,10 @@ const DeviceModelForm = () => {
                 enableReinitialize
               >
                 {(formik) => (
-                  <form onSubmit={formik.handleSubmit}>
+                  <form 
+                  noValidate
+                  onSubmit={formik.handleSubmit}
+                  >
                     <Grid container spacing={2} className="form-controller">
                       {Object.keys(updatedFormFields).map((field) => {
                         const tacVal = formik.values.tac_validity;

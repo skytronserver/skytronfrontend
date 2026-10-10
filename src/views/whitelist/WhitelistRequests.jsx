@@ -184,7 +184,15 @@ const WhitelistRequests = () => {
       const res = await WhitelistService.listActiveWhitelist(params);
       if (res && res.data) {
         setActiveWhitelists(res.data.active_whitelists || []);
-        setActiveCount(res.data.count || 0);
+const data = res.data;
+        const totalCount =
+        data.count ??
+        data.total_count ??
+        data.total ??
+        data.pagination?.count ??
+        entries.length;
+
+      setActiveCount(Number(totalCount) || 0);
       }
     } catch (err) {
       console.error('Error fetching active whitelists:', err);

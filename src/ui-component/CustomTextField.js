@@ -24,6 +24,7 @@ const FormField = ({
   handleFileChange,
   handleOptionChange,
   onChange,
+  sx,
 }) => {
   const { t } = useTranslation();
 
@@ -34,7 +35,7 @@ const FormField = ({
         const desc = fieldConfig.validation.describe();
         return desc.tests && desc.tests.some(t => t.name === 'required');
       }
-    } catch (e) {}
+    } catch (e) { }
     return false;
   }, [fieldConfig]);
 
@@ -294,19 +295,19 @@ const FormField = ({
             formik.touched[fieldConfig.name] && t(formik.errors[fieldConfig.name])
           }
           onChange={(event) => {
-        // Update Formik value
-        formik.handleChange(event);
+            // Update Formik value
+            formik.handleChange(event);
 
-        // Existing generic handler
-        handleOptionChange &&
-          handleOptionChange(event, formik);
+            // Existing generic handler
+            handleOptionChange &&
+              handleOptionChange(event, formik);
 
-        // IMPORTANT:
-        // Call parent's onChange
-        // This is required for dependent dropdowns
-        onChange &&
-          onChange(event);
-      }}
+            // IMPORTANT:
+            // Call parent's onChange
+            // This is required for dependent dropdowns
+            onChange &&
+              onChange(event);
+          }}
         >
           {options.map((option) => (
             <MenuItem key={option.value} value={option.value}>
@@ -315,7 +316,13 @@ const FormField = ({
           ))}
         </TextField>
       );
-    case "multiselect":
+
+    case "multiselect": {
+      const hasError = Boolean(
+        formik.touched[fieldConfig.name] &&
+        formik.errors[fieldConfig.name]
+      );
+
       return (
         <TextField
           select
@@ -324,24 +331,37 @@ const FormField = ({
           fullWidth
           margin="normal"
           required={isMandatory}
-          {...formik.getFieldProps(fieldConfig.name)}
-          error={
-            formik.touched[fieldConfig.name] &&
-            Boolean(formik.errors[fieldConfig.name])
-          }
+          name={fieldConfig.name}
+          value={formik.values[fieldConfig.name] || []}
+          error={hasError}
           helperText={
-            formik.touched[fieldConfig.name] && t(formik.errors[fieldConfig.name])
+            hasError
+              ? formik.errors[fieldConfig.name] ===
+                "dealerAccountForm.validation.districtsRequired"
+                ? "District is required"
+                : t(formik.errors[fieldConfig.name])
+              : ""
           }
+          onBlur={() => formik.setFieldTouched(fieldConfig.name, true)}
           onChange={(event) => {
-            formik.handleChange(event);
-            handleOptionChange && handleOptionChange(event, formik);
+            formik.setFieldValue(fieldConfig.name, event.target.value);
+            formik.setFieldTouched(fieldConfig.name, true, false);
+            handleOptionChange &&
+              handleOptionChange(event, formik);
           }}
           SelectProps={{
-            multiple: true, // Enable multiple selection
+            multiple: true,
             renderValue: (selected) => (
               <div>
                 {selected.map((value) => (
-                  <Chip key={value} label={options.find(option => option.value === value)?.label || value} />
+                  <Chip
+                    key={value}
+                    label={
+                      options.find(
+                        (option) => option.value === value
+                      )?.label || value
+                    }
+                  />
                 ))}
               </div>
             ),
@@ -349,12 +369,18 @@ const FormField = ({
         >
           {options.map((option) => (
             <MenuItem key={option.value} value={option.value}>
-              <Checkbox checked={formik.values[fieldConfig.name].includes(option.value)} />
+              <Checkbox
+                checked={(formik.values[fieldConfig.name] || []).includes(
+                  option.value
+                )}
+              />
               <ListItemText primary={option.label} />
             </MenuItem>
           ))}
         </TextField>
       );
+    }
+
 
     case "file":
       const isOfficialTechnicalOnboardingRequestLetter =
@@ -570,14 +596,14 @@ const FormField = ({
             <Tooltip
               title={
                 isVehicleTypeApprovalTacAnnexureCopy
-                    ? vehicleTypeApprovalTacAnnexureCopyTooltipTitle
-                    : isFactoryFitmentDeclaration
-                      ? factoryFitmentDeclarationTooltipTitle
-                      : isAffidavitCumUndertakingBackendAccess
-                        ? affidavitCumUndertakingBackendAccessTooltipTitle
-                        : isSelfCertifiedIdProofAuthorisedSignatory
-                          ? selfCertifiedIdProofAuthorisedSignatoryTooltipTitle
-                          : ""
+                  ? vehicleTypeApprovalTacAnnexureCopyTooltipTitle
+                  : isFactoryFitmentDeclaration
+                    ? factoryFitmentDeclarationTooltipTitle
+                    : isAffidavitCumUndertakingBackendAccess
+                      ? affidavitCumUndertakingBackendAccessTooltipTitle
+                      : isSelfCertifiedIdProofAuthorisedSignatory
+                        ? selfCertifiedIdProofAuthorisedSignatoryTooltipTitle
+                        : ""
               }
               arrow
               placement="top"
@@ -596,6 +622,7 @@ const FormField = ({
                   height: "50px",
                   borderRadius: "10px",
                   justifyContent: "flex-start",
+                  ...sx,
                 }}
               >
                 {t(label)}
