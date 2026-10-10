@@ -162,7 +162,13 @@ export const m2mUserFormField = {
     name: "panno",
     type: "text",
     label: "Company PAN No",
-    validation: goldPanValidation("Company PAN No"),
+    validation: goldPanValidation("Company PAN No").test(
+      "unique-pan",
+      "Company PAN No must not be the same as Applicant ID Proof Number",
+      function (value) {
+        return !value || value !== this.parent.idProofno;
+      }
+    ),
   },
   company_registration_no: {
     name: "company_registration_no",
