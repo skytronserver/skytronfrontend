@@ -2474,7 +2474,7 @@ const MapComponent = ({
                 fill: new Fill({ color: customPinColor || "#1a237e" }),
                 stroke: new Stroke({ color: "#ffffff", width: 3 }),
                 backgroundFill: new Fill({ color: "rgba(255, 255, 255, 0.95)" }),
-                padding: [2, 6, 2, 6],
+                padding: [3, 8, 3, 8],
                 textAlign: 'center',
                 textBaseline: 'bottom',
                 offsetY: -44,
@@ -2702,11 +2702,31 @@ const MapComponent = ({
 
     const clusterStyleFunction = (feature) => {
         const features = feature.get('features');
+        if (!features || features.length === 0) return null;
         const size = features.length;
 
-        if (size === 1) {
-            // Return the style of the original feature
-            return features[0].getStyle();
+        // For test onboarding markers or autoFit maps, never show cluster circles with numbers
+        const isTestMarker = features.some(f => {
+            const e = f.get('entryData');
+            return e && (e.locked || e.testNo || e.testFeatureType || e.pointType);
+        });
+
+        if (size === 1 || autoFit || isTestMarker) {
+            if (isTestMarker && size > 1) {
+                const allStyles = [];
+                features.forEach(f => {
+                    const st = f.getStyle();
+                    if (Array.isArray(st)) allStyles.push(...st);
+                    else if (st) allStyles.push(st);
+                });
+                if (allStyles.length > 0) return allStyles;
+            }
+            // Prioritize showing recovered, exit, or end points if overlapping
+            const target = features.find(f => {
+                const pt = f.get('entryData')?.pointType;
+                return pt === 'recovered' || pt === 'recovery' || pt === 'exit' || pt === 'end';
+            }) || features[features.length - 1] || features[0];
+            return target.getStyle();
         }
 
         return new Style({
