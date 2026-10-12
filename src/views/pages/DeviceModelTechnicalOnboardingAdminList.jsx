@@ -58,6 +58,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import GavelIcon from "@mui/icons-material/Gavel";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import MainCard from "../../ui-component/cards/MainCard";
 import { gridSpacing } from "../../store/constant";
 import DeviceModelServices from "../../services/DeviceModelServices";
@@ -67,80 +68,424 @@ import DeviceDataHealthService from "../../services/DeviceDataHealth";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import DeviceModelLiveMap from "../direct/DeviceModelLiveMap";
+import { Map as OlMap, View as OlView } from "ol";
+import { Tile as OlTileLayer } from "ol/layer";
+import { XYZ as OlXYZ, OSM as OlOSM } from "ol/source";
+import { fromLonLat } from "ol/proj";
+import "ol/ol.css";
 
 /* ═══════════════════════════════════════════════════
    DEVICE LOCATION MAP MODAL
 ═══════════════════════════════════════════════════ */
-const LOCATION_TEST_NOS = [15, 16, 21, 22, 23];
+const LOCATION_TEST_NOS = [14, 15, 16, 20, 21, 22, 23, 41];
 
-const DeviceLocationMapModal = ({ open, onClose, imei, testNo, rowId }) => {
+const parseCoordinate = (rawVal, dir) => {
+    if (!rawVal) return null;
+    let num = parseFloat(rawVal);
+    if (!Number.isFinite(num)) return null;
+
+    if (dir === 'N' || dir === 'S') {
+        if (Math.abs(num) > 90) {
+            const deg = Math.floor(Math.abs(num) / 100);
+            const min = Math.abs(num) % 100;
+            num = deg + (min / 60);
+        }
+        if (dir === 'S') num = -num;
+    } else if (dir === 'E' || dir === 'W') {
+        if (Math.abs(num) > 180) {
+            const deg = Math.floor(Math.abs(num) / 100);
+            const min = Math.abs(num) % 100;
+            num = deg + (min / 60);
+        }
+        if (dir === 'W') num = -num;
+    }
+    return num;
+};
+
+const extractCoordFromSample = (sample) => {
+    if (!sample) return null;
+    let sampleObj = sample;
+    if (typeof sample === 'string') {
+        try {
+            sampleObj = JSON.parse(sample);
+        } catch {
+            sampleObj = { raw_data: sample };
+        }
+    }
+
+    let lat = Number(sampleObj.latitude || sampleObj.lat);
+    let lng = Number(sampleObj.longitude || sampleObj.lng || sampleObj.lon);
+
+    if (Number.isFinite(lat) && Number.isFinite(lng) && (lat !== 0 || lng !== 0)) {
+        return {
+            lat,
+            lng,
+            speed: sampleObj.speed || 0,
+            timestamp: sampleObj.timestamp || sampleObj.created_at,
+            raw_data: sampleObj.raw_data
+        };
+    }
+
+    if (sampleObj.raw_data && typeof sampleObj.raw_data === 'string') {
+        const rawStr = sampleObj.raw_data.trim();
+        const isComma = rawStr.startsWith("$,PVT");
+        if (rawStr.startsWith("$PVT") || isComma) {
+            const parts = rawStr.split(",");
+            const offset = isComma ? 1 : 0;
+            if (parts.length > 14 + offset) {
+                const rawLat = parts[11 + offset];
+                const latDir = parts[12 + offset];
+                const rawLng = parts[13 + offset];
+                const longDir = parts[14 + offset];
+                const speed = parts.length > 15 + offset ? parseFloat(parts[15 + offset]) || 0 : 0;
+
+                const parsedLat = parseCoordinate(rawLat, latDir);
+                const parsedLng = parseCoordinate(rawLng, longDir);
+
+                if (Number.isFinite(parsedLat) && Number.isFinite(parsedLng) && (parsedLat !== 0 || parsedLng !== 0)) {
+                    return {
+                        lat: parsedLat,
+                        lng: parsedLng,
+                        speed,
+                        timestamp: sampleObj.timestamp || sampleObj.created_at,
+                        raw_data: sampleObj.raw_data,
+                        rawLat,
+                        latDir,
+                        rawLng,
+                        longDir
+                    };
+                }
+            }
+        }
+    }
+    return null;
+};
+
+const processTestPointsForMap = ({ sampleList, testNo, testName, imei }) => {
+    if (!Array.isArray(sampleList) || sampleList.length === 0) return [];
+
+    const sorted = [...sampleList].sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
+    const validCoords = [];
+    sorted.forEach((sample, idx) => {
+        const coord = extractCoordFromSample(sample);
+        if (coord && Number.isFinite(coord.lat) && Number.isFinite(coord.lng) && (coord.lat !== 0 || coord.lng !== 0)) {
+            validCoords.push({ ...coord, sampleIndex: idx, rawSample: sample });
+        }
+    });
+
+    if (validCoords.length === 0) return [];
+
+    const isGeofence = Number(testNo) === 16 || (testName && /geofence/i.test(testName));
+    const isSpeed = Number(testNo) === 14 || Number(testNo) === 15 || (testName && /speed/i.test(testName));
+    const isEmergency = Number(testNo) === 41 || (testName && /(emergency|sos|alert|panic)/i.test(testName));
+
+    if (isGeofence) {
+        if (validCoords.length >= 2) {
+            const entryCoord = validCoords[0];
+            const exitCoord = validCoords[validCoords.length - 1];
+
+            return [
+                {
+                    imei,
+                    markerId: `${imei}_entry`,
+                    latitude: entryCoord.lat,
+                    longitude: entryCoord.lng,
+                    speed: entryCoord.speed || 0,
+                    timestamp: entryCoord.timestamp,
+                    last_updated: entryCoord.timestamp,
+                    locked: true,
+                    raw_data: entryCoord.raw_data,
+                    testNo,
+                    testName,
+                    testFeatureType: 'geofence',
+                    pointType: 'entry',
+                    pinColor: '#2e7d32',
+                    dotColor: '#ffffff',
+                    label: 'Geofence IN (Entry)'
+                },
+                {
+                    imei,
+                    markerId: `${imei}_exit`,
+                    latitude: exitCoord.lat,
+                    longitude: exitCoord.lng,
+                    speed: exitCoord.speed || 0,
+                    timestamp: exitCoord.timestamp,
+                    last_updated: exitCoord.timestamp,
+                    locked: true,
+                    raw_data: exitCoord.raw_data,
+                    testNo,
+                    testName,
+                    testFeatureType: 'geofence',
+                    pointType: 'exit',
+                    pinColor: '#d32f2f',
+                    dotColor: '#ffffff',
+                    label: 'Geofence OUT (Exit)'
+                }
+            ];
+        }
+
+        const single = validCoords[0];
+        return [{
+            imei,
+            markerId: `${imei}_loc_0`,
+            latitude: single.lat,
+            longitude: single.lng,
+            speed: single.speed || 0,
+            timestamp: single.timestamp,
+            last_updated: single.timestamp,
+            locked: true,
+            raw_data: single.raw_data,
+            testNo,
+            testName,
+            testFeatureType: 'geofence',
+            pinColor: '#2e7d32',
+            dotColor: '#ffffff',
+            label: 'Geofence Location'
+        }];
+    }
+
+    if (isSpeed) {
+        return validCoords.map((c, idx) => {
+            const isStart = idx === 0;
+            const isEnd = idx === validCoords.length - 1 && validCoords.length > 1;
+            const speedVal = Number(c.speed) || 0;
+            return {
+                imei,
+                markerId: `${imei}_speed_${idx}`,
+                latitude: c.lat,
+                longitude: c.lng,
+                speed: speedVal,
+                timestamp: c.timestamp,
+                last_updated: c.timestamp,
+                locked: true,
+                raw_data: c.raw_data,
+                testNo,
+                testName,
+                testFeatureType: 'speed',
+                pointType: isStart ? 'start' : isEnd ? 'end' : 'checkpoint',
+                pinColor: isStart ? '#2e7d32' : isEnd ? '#d32f2f' : (speedVal > 40 ? '#f57c00' : '#0288d1'),
+                dotColor: '#ffffff',
+                label: `${speedVal} km/h`
+            };
+        });
+    }
+
+    if (isEmergency) {
+        return validCoords.map((c, idx) => ({
+            imei,
+            markerId: `${imei}_emergency_${idx}`,
+            latitude: c.lat,
+            longitude: c.lng,
+            speed: c.speed || 0,
+            timestamp: c.timestamp,
+            last_updated: c.timestamp,
+            locked: true,
+            raw_data: c.raw_data,
+            testNo,
+            testName,
+            testFeatureType: 'emergency',
+            pointType: 'emergency',
+            pinColor: '#d32f2f',
+            dotColor: '#ffffff',
+            label: '🚨 SOS Emergency Alert'
+        }));
+    }
+
+    // Default multi-point tracking:
+    if (validCoords.length > 1) {
+        return validCoords.map((c, idx) => {
+            const isStart = idx === 0;
+            const isEnd = idx === validCoords.length - 1;
+            return {
+                imei,
+                markerId: `${imei}_loc_${idx}`,
+                latitude: c.lat,
+                longitude: c.lng,
+                speed: c.speed || 0,
+                timestamp: c.timestamp,
+                last_updated: c.timestamp,
+                locked: true,
+                raw_data: c.raw_data,
+                testNo,
+                testName,
+                pointType: isStart ? 'start' : isEnd ? 'end' : 'intermediate',
+                pinColor: isStart ? '#2e7d32' : isEnd ? '#d32f2f' : '#0288d1',
+                dotColor: '#ffffff',
+                label: isStart ? 'Start Point' : isEnd ? 'Latest Point' : `Point #${idx + 1}`
+            };
+        });
+    }
+
+    // Single point default:
+    const single = validCoords[0];
+    return [{
+        imei,
+        markerId: `${imei}_loc_0`,
+        latitude: single.lat,
+        longitude: single.lng,
+        speed: single.speed || 0,
+        timestamp: single.timestamp,
+        last_updated: single.timestamp,
+        locked: true,
+        raw_data: single.raw_data,
+        testNo,
+        testName,
+        pinColor: '#1a237e',
+        dotColor: '#ffffff',
+        label: imei
+    }];
+};
+
+const MiniLocationMap = ({ lat, lng, testNo, testName, onClick }) => {
+    const mapRef = useRef(null);
+    const mapInstanceRef = useRef(null);
+
+    const isGeofence = Number(testNo) === 16 || (testName && /geofence/i.test(testName));
+
+    useEffect(() => {
+        if (!mapRef.current || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+        const tileSource = process.env.REACT_APP_TILE_SERVER_URL
+            ? new OlXYZ({ url: process.env.REACT_APP_TILE_SERVER_URL, maxZoom: 20 })
+            : new OlOSM();
+
+        const map = new OlMap({
+            target: mapRef.current,
+            layers: [
+                new OlTileLayer({
+                    source: tileSource,
+                }),
+            ],
+            view: new OlView({
+                center: fromLonLat([lng, lat]),
+                zoom: 15,
+                maxZoom: 18,
+            }),
+            controls: [],
+            interactions: [],
+        });
+
+        mapInstanceRef.current = map;
+
+        const timer = setTimeout(() => {
+            if (mapInstanceRef.current) {
+                mapInstanceRef.current.updateSize();
+            }
+        }, 80);
+
+        return () => {
+            clearTimeout(timer);
+            map.setTarget(null);
+            mapInstanceRef.current = null;
+        };
+    }, [lat, lng]);
+
+    return (
+        <Box
+            onClick={onClick}
+            sx={{
+                width: '100%',
+                maxWidth: 115,
+                height: 70,
+                borderRadius: 1.5,
+                overflow: 'hidden',
+                border: '1.5px solid #1a237e',
+                position: 'relative',
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                transition: 'all 0.2s ease-in-out',
+                my: 0.5,
+                bgcolor: '#e8eaf6',
+                '&:hover': {
+                    transform: 'scale(1.04)',
+                    boxShadow: '0 4px 12px rgba(26,35,126,0.25)',
+                    borderColor: '#283593'
+                }
+            }}
+        >
+            <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+            {/* Center location marker pin */}
+            <Box
+                sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -100%)',
+                    pointerEvents: 'none',
+                    lineHeight: 0
+                }}
+            >
+                <LocationOnIcon
+                    sx={{
+                        color: '#1a237e',
+                        fontSize: 22,
+                        filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.45))'
+                    }}
+                />
+            </Box>
+        </Box>
+    );
+};
+
+const DeviceLocationMapModal = ({ open, onClose, imei, testNo, testName, rowId, samples, execution }) => {
     const [points, setPoints] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [lockedCoord, setLockedCoord] = useState(null);
 
-    // Fetch device history from API and get the latest position for live tracking copy
+    const isGeofence = Number(testNo) === 16 || (testName && /geofence/i.test(testName));
+    const isSpeed = Number(testNo) === 14 || Number(testNo) === 15 || (testName && /speed/i.test(testName));
+    const isEmergency = Number(testNo) === 41 || (testName && /(emergency|sos|alert|panic)/i.test(testName));
+
+    // Extract all valid test coordinates with feature-specific mapping
     useEffect(() => {
-        if (!open || !rowId || !imei) return;
+        if (!open || !imei) return;
 
-        const fetchHistory = async () => {
-            setLoading(true);
-            setPoints([]);
-            try {
-                const res = await DeviceModelServices.getDemoDeviceHistory({ onboarding_request_id: rowId });
-                
-                let fetchedData = [];
-                if (Array.isArray(res.data)) {
-                    fetchedData = res.data;
-                } else if (Array.isArray(res.data?.data)) {
-                    fetchedData = res.data.data;
-                } else if (res.data && typeof res.data === 'object') {
-                    const possibleArray = Object.values(res.data).find(val => Array.isArray(val));
-                    if (possibleArray) fetchedData = possibleArray;
-                }
-                
-                // Get the latest entry for the specified IMEI for live tracking view
-                const entries = fetchedData.flatMap(device => 
-                    (device.entries || []).map(entry => ({
-                        ...entry,
-                        device_imei: device.imei || device.device_serial_no || 'Unknown'
-                    }))
-                )
-                .filter(e => e.device_imei === imei)
-                .sort((a, b) => new Date(b.timestamp || b.created_at || 0) - new Date(a.timestamp || a.created_at || 0));
-                
-                if (entries.length > 0) {
-                    const latest = entries[0];
-                    setPoints([{
-                        imei: imei,
-                        latitude: latest.latitude,
-                        longitude: latest.longitude,
-                        speed: latest.speed || 0,
-                        ignition_status: latest.ignition_status || '0',
-                        heading: latest.heading || 0,
-                        last_updated: latest.timestamp || latest.created_at || new Date().toISOString(),
-                        ...latest
-                    }]);
-                }
-            } catch (err) {
-                console.error("Failed to fetch location history:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
+        setLoading(true);
+        setPoints([]);
+        setLockedCoord(null);
 
-        fetchHistory();
-    }, [open, rowId, imei]);
+        const sampleList = Array.isArray(samples) && samples.length > 0
+            ? samples
+            : (Array.isArray(execution?.test_log_snapshot?.samples) ? execution.test_log_snapshot.samples : []);
+
+        const mappedPoints = processTestPointsForMap({ sampleList, testNo, testName, imei });
+
+        if (mappedPoints.length > 0) {
+            setPoints(mappedPoints);
+            const primary = mappedPoints.find(p => p.pointType === 'entry') || mappedPoints[0];
+            setLockedCoord({
+                lat: primary.latitude,
+                lng: primary.longitude,
+                timestamp: primary.timestamp
+            });
+        }
+
+        setLoading(false);
+    }, [open, imei, samples, execution, testNo, testName]);
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
-            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#1a237e', color: '#fff', pb: 1.5 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <LocationOnIcon />
-                    <Box>
-                        <Typography variant="h6" fontWeight={700}>Live Tracking — Test #{testNo}</Typography>
-                        <Typography variant="caption" sx={{ opacity: 0.8 }}>IMEI: {imei}</Typography>
+            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#1a237e', color: '#ffffff', py: 1.5, px: 2.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1 }}>
+                    <LocationOnIcon sx={{ color: '#ffffff', fontSize: 30 }} />
+                    <Box sx={{ flex: 1 }}>
+                        <Typography variant="h6" sx={{ color: '#ffffff', fontWeight: 700, lineHeight: 1.2 }}>
+                            Test #{testNo}{testName ? `: ${testName}` : ''}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.92)', display: 'block', mt: 0.4 }}>
+                            IMEI: <b>{imei}</b>
+                            {lockedCoord ? (
+                                <>
+                                    {' | '}Lat: {Number(lockedCoord.lat).toFixed(6)}, Lon: {Number(lockedCoord.lng).toFixed(6)}
+                                    {lockedCoord?.timestamp ? ` (${new Date(lockedCoord.timestamp).toLocaleString('en-IN')})` : ''}
+                                </>
+                            ) : null}
+                        </Typography>
                     </Box>
                 </Box>
-                <IconButton onClick={onClose} size="small" sx={{ color: '#fff' }}><CancelIcon /></IconButton>
+                <IconButton onClick={onClose} size="small" sx={{ color: '#ffffff', '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' } }}>
+                    <CancelIcon sx={{ color: '#ffffff', fontSize: 26 }} />
+                </IconButton>
             </DialogTitle>
             <DialogContent sx={{ p: 0, minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
                 {loading ? (
@@ -150,7 +495,7 @@ const DeviceLocationMapModal = ({ open, onClose, imei, testNo, rowId }) => {
                 ) : points.length === 0 ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 600, flexDirection: 'column', gap: 2 }}>
                         <LocationOnIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
-                        <Typography color="text.secondary">No GPS coordinates available for this device.</Typography>
+                        <Typography color="text.secondary">No locked GPS coordinates available for this device test.</Typography>
                     </Box>
                 ) : (
                     <Box sx={{ flex: 1, position: 'relative' }}>
@@ -789,11 +1134,13 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                 let timestamp = "N/A";
                 let rawData = "N/A";
                 let extraData = "";
+                let hasSamples = false;
 
                 if (execution?.test_log_snapshot) {
                     try {
                         const snap = typeof execution.test_log_snapshot === "string" ? JSON.parse(execution.test_log_snapshot) : execution.test_log_snapshot;
                         if (snap.samples && snap.samples.length > 0) {
+                            hasSamples = true;
                             const timestamps = [];
                             const rawDatas = [];
 
@@ -867,6 +1214,14 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                             }
                         }
                     } catch (e) { }
+                }
+
+                const execStatus = execution?.status || "not_started";
+                const isPassed = execStatus === "pass" || execStatus === "completed" || execStatus === "complete";
+                if (!hasSamples && isPassed) {
+                    timestamp = "Bypassed";
+                    rawData = "Bypassed";
+                    extraData = "Bypassed";
                 }
 
                 let displayName = step.name;
@@ -945,6 +1300,10 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                 } else if (step.serial_no === 23 || step.serial_no === 24) {
                     const match = extraData.match(/Op: (.*?)( \||$)/);
                     if (match) filteredExtraData = `Op: ${match[1]}`;
+                }
+
+                if (!hasSamples && isPassed) {
+                    filteredExtraData = "Bypassed";
                 }
 
                 let pdfDescription = step.description;
@@ -1201,34 +1560,60 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
 
                                                     return (
                                                         <TableCell key={idx} align="center" sx={{ verticalAlign: 'top', pt: 2, borderLeft: '1px solid #f0f0f0' }}>
-                                                            {isExecPass ? (
-                                                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                                                    <Chip label="pass" size="small" color="success" sx={{ height: 20, fontSize: '0.65rem', mb: 1 }} />
-                                                                    {LOCATION_TEST_NOS.includes(step.serial_no) && (
-                                                                        <Button
-                                                                            variant="outlined"
-                                                                            size="small"
-                                                                            startIcon={<LocationOnIcon sx={{ fontSize: '0.7rem' }} />}
-                                                                            sx={{ fontSize: '0.55rem', p: '2px 6px', mb: 0.5, borderColor: '#1a237e', color: '#1a237e', whiteSpace: 'nowrap', minWidth: 'auto' }}
-                                                                            onClick={() => {
-                                                                                const deviceImei = execution?.demo_device?.imei || imei || `Device ${idx + 1}`;
-                                                                                setLocationMapState({ open: true, imei: deviceImei, testNo: step.serial_no, rowId: row.id });
-                                                                            }}
-                                                                        >
-                                                                            View Location
-                                                                        </Button>
-                                                                    )}
-                                                                    {(() => {
-                                                                        let snapshotObj = null;
-                                                                        if (typeof execution.test_log_snapshot === 'string') {
-                                                                            try { snapshotObj = JSON.parse(execution.test_log_snapshot); } catch (e) { }
-                                                                        } else if (typeof execution.test_log_snapshot === 'object' && execution.test_log_snapshot !== null) {
-                                                                            snapshotObj = execution.test_log_snapshot;
-                                                                        }
-                                                                        const resolvedSamples = snapshotObj && Array.isArray(snapshotObj.samples) ? snapshotObj.samples : [];
-                                                                        if (resolvedSamples.length > 0) {
-                                                                            return (
-                                                                                <Box sx={{ my: 1, lineHeight: 1.2 }}>
+                                                            {isExecPass ? (() => {
+                                                                let snapshotObj = null;
+                                                                if (typeof execution?.test_log_snapshot === 'string') {
+                                                                    try { snapshotObj = JSON.parse(execution.test_log_snapshot); } catch (e) { }
+                                                                } else if (typeof execution?.test_log_snapshot === 'object' && execution?.test_log_snapshot !== null) {
+                                                                    snapshotObj = execution.test_log_snapshot;
+                                                                }
+                                                                const resolvedSamples = snapshotObj && Array.isArray(snapshotObj.samples) ? snapshotObj.samples : [];
+
+                                                                return (
+                                                                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                                                        <Chip label="pass" size="small" color="success" sx={{ height: 20, fontSize: '0.65rem', mb: 1 }} />
+                                                                        {(LOCATION_TEST_NOS.includes(step.serial_no) || (resolvedSamples && resolvedSamples.length > 0 && resolvedSamples.some(s => extractCoordFromSample(s)))) && (() => {
+                                                                            let lockedCoord = null;
+                                                                            if (resolvedSamples && resolvedSamples.length > 0) {
+                                                                                const sorted = [...resolvedSamples].sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
+                                                                                for (let i = sorted.length - 1; i >= 0; i--) {
+                                                                                    const coord = extractCoordFromSample(sorted[i]);
+                                                                                    if (coord) {
+                                                                                        lockedCoord = coord;
+                                                                                        break;
+                                                                                    }
+                                                                                }
+                                                                            }
+
+                                                                            const deviceImei = execution?.demo_device?.imei || imei || `Device ${idx + 1}`;
+                                                                            const handleOpenBigMap = () => {
+                                                                                setLocationMapState({
+                                                                                    open: true,
+                                                                                    imei: deviceImei,
+                                                                                    testNo: step.serial_no,
+                                                                                    testName: step.name,
+                                                                                    rowId: row.id,
+                                                                                    samples: resolvedSamples,
+                                                                                    execution
+                                                                                });
+                                                                            };
+
+                                                                            if (lockedCoord) {
+                                                                                return (
+                                                                                    <MiniLocationMap
+                                                                                        lat={lockedCoord.lat}
+                                                                                        lng={lockedCoord.lng}
+                                                                                        testNo={step.serial_no}
+                                                                                        testName={step.name}
+                                                                                        onClick={handleOpenBigMap}
+                                                                                    />
+                                                                                );
+                                                                            }
+
+                                                                            return null;
+                                                                        })()}
+                                                                        {resolvedSamples.length > 0 ? (
+                                                                            <Box sx={{ my: 1, lineHeight: 1.2 }}>
                                                                                     {[...resolvedSamples].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)).map((sample, sIdx) => {
                                                                                         let sampleFwVersion = "";
                                                                                         let sampleVoltage = "";
@@ -1313,12 +1698,14 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                         );
                                                                                     })}
                                                                                 </Box>
-                                                                            );
-                                                                        }
-                                                                        return null;
-                                                                    })()}
-                                                                </Box>
-                                                            ) : execStatus === "in_progress" ? (
+                                                                            ) : (
+                                                                                <Typography variant="caption" sx={{ color: 'text.secondary', fontStyle: 'italic', fontSize: '0.65rem', display: 'block', mt: 0.5 }}>
+                                                                                    Bypassed
+                                                                                </Typography>
+                                                                            )}
+                                                                        </Box>
+                                                                    );
+                                                                })() : execStatus === "in_progress" ? (
                                                                 <>
                                                                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1, gap: 0.5 }}>
                                                                         <Chip label="In progress" size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#fff9c4', color: '#f57f17', borderRadius: 1 }} />
@@ -1580,6 +1967,9 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                 rowId={locationMapState.rowId}
                 imei={locationMapState.imei}
                 testNo={locationMapState.testNo}
+                testName={locationMapState.testName}
+                samples={locationMapState.samples}
+                execution={locationMapState.execution}
             />
         </Dialog>
     );

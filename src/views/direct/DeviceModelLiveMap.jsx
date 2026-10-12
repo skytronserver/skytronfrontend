@@ -507,7 +507,8 @@ const setMapCenterSafely = (mapInstance, lat, lng) => {
 
 const LEGACYMAP_HD_POPUP_STYLE_ID = "legacyMap-hd-popup-styles";
 
-const ensureHdPopupStyles = () => { return; 
+const ensureHdPopupStyles = () => {
+    return;
     if (typeof document === "undefined") return;
 
     if (document.getElementById(LEGACYMAP_HD_POPUP_STYLE_ID)) {
@@ -1007,6 +1008,7 @@ const MapComponent = ({
     const positionHistoryRef = useRef({}); // Format: { [imei]: [{lat, lng}, ...] }
     // Inside MapComponent, add this ref
     const activeFeaturesRef = useRef({}); // Format: { [imei]: FeatureObject }
+    const testOverlayLayerRef = useRef(null); // Dedicated vector layer for non-point geometries (routes, geofences)
     const hasAutoFittedRef = useRef(false);
 
     const [map, setMap] = useState(null);
@@ -2384,66 +2386,9 @@ const MapComponent = ({
 
 
 
-    const fetchVehicleTrackingDetail = async (entry) => {
-        const imei =
-            entry?.imei ||
-            entry?.imei_no ||
-            entry?.imeiNo ||
-            entry?.device_tag_info?.device?.imei ||
-            entry?.device_tag_info?.imei;
-        const regno =
-            entry?.vehicle_registration_number ||
-            entry?.vehicle_reg_no ||
-            entry?.device_tag_info?.device?.vehicle_reg_no ||
-            entry?.device_tag_info?.vehicle?.vehicle_reg_no ||
-            "";
-
-        const cacheKey = imei ? `imei:${imei}` : regno ? `regno:${regno}` : null;
-        if (!cacheKey) return null;
-
-        const cached = trackingDetailCacheRef.current[cacheKey];
-        if (cached) return cached;
-
-        const inFlight = trackingDetailInFlightRef.current[cacheKey];
-        if (inFlight) return inFlight;
-
-        const now = Date.now();
-        const lastFetchAt = trackingDetailLastFetchAtRef.current[cacheKey];
-        if (lastFetchAt && now - lastFetchAt < 15000) {
-            return null;
-        }
-        trackingDetailLastFetchAtRef.current[cacheKey] = now;
-
-        const reqPromise = HomePageService.getLiveTracking_data({
-            imei: imei || "",
-            regno,
-            owner: "",
-            poi: "",
-            roads: "",
-            polygon: "",
-            category: "",
-            make: "",
-            district: "",
-            speed_limit: "",
-            poi_id: "",
-            in_range: false,
-            poi_as_polygon: false,
-        })
-            .then((resp) => {
-                const detail = Array.isArray(resp?.data?.data) ? resp.data.data[0] : null;
-                if (detail) {
-                    trackingDetailCacheRef.current[cacheKey] = detail;
-                    return detail;
-                }
-                return null;
-            })
-            .catch(() => null)
-            .finally(() => {
-                delete trackingDetailInFlightRef.current[cacheKey];
-            });
-
-        trackingDetailInFlightRef.current[cacheKey] = reqPromise;
-        return reqPromise;
+    const fetchVehicleTrackingDetail = async () => {
+        // Disabled for onboarding test: do not query live tracking server
+        return null;
     };
 
     // Geocoding State
@@ -2510,67 +2455,37 @@ const MapComponent = ({
         return USE_TYPE_COLORS[key] || "#1E88E5";
     };
 
-    const createIconStyle = (color, vehicleType, labelText) => {
-        const normalizedVehicleType = vehicleType
-            ? vehicleType.toLowerCase().replace(/\s+/g, "_")
-            : "bus";
+    const getCustomPinSvg = (pinColor = "#1a237e", dotColor = "#ffffff") => `data:image/svg+xml;utf8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="34" height="42" viewBox="0 0 34 42">
+  <path d="M17 0C7.611 0 0 7.611 0 17c0 11.5 17 25 17 25s17-13.5 17-25C34 7.611 26.389 0 17 0z" fill="${pinColor}" stroke="#ffffff" stroke-width="2"/>
+  <circle cx="17" cy="16" r="6.5" fill="#ffffff"/>
+  <circle cx="17" cy="16" r="3.5" fill="${dotColor}"/>
+</svg>
+`)}`;
 
-        const availableTypes = [
-            "ambulance",
-            "bus",
-            "dumper",
-            "police",
-            "school_bus",
-            "tanker",
-            "taxi",
-            "truck",
-        ];
-        const iconType = availableTypes.includes(normalizedVehicleType)
-            ? normalizedVehicleType
-            : "bus";
+    const locationPinSvg = getCustomPinSvg("#1a237e", "#2e7d32");
 
-        let iconPath;
-        try {
-            iconPath = vehicleIconContext(`./${color}/${iconType}.png`);
-        } catch (error) {
-            try {
-                iconPath = vehicleIconContext(`./${color}/bus.png`);
-            } catch (fallbackError) {
-                iconPath = vehicleIconContext(`./default/bus.png`);
-            }
-        }
-
-        const standardWidth = 45;
-        const iconWidth = standardWidth;
-        // Reduce gap to make it "stick" to top of the icon
-        const labelGap = color === "grey" ? 5 : 0;
-        const labelOffsetY = -(Math.round(iconWidth / 2) + labelGap);
-
+    const createIconStyle = (color, vehicleType, labelText, customPinColor = null, customDotColor = null) => {
+        const pinSvg = customPinColor ? getCustomPinSvg(customPinColor, customDotColor || "#ffffff") : locationPinSvg;
         const textStyle = labelText
             ? new Text({
                 text: labelText,
-                font: '11px "Roboto", sans-serif',
-                fill: new Fill({ color: "#0D47A1" }),
+                font: 'bold 11px "Roboto", sans-serif',
+                fill: new Fill({ color: customPinColor || "#1a237e" }),
                 stroke: new Stroke({ color: "#ffffff", width: 3 }),
-                backgroundFill: new Fill({ color: "rgba(255, 255, 255, 0.92)" }),
-                padding: [1, 3, 1, 3],
+                backgroundFill: new Fill({ color: "rgba(255, 255, 255, 0.95)" }),
+                padding: [2, 6, 2, 6],
                 textAlign: 'center',
                 textBaseline: 'bottom',
-                offsetY: labelOffsetY,
+                offsetY: -44,
             })
             : undefined;
 
-        // Force rotation to 0
-        const rotation = 0;
-        const rotationInRadians = (rotation * Math.PI) / 180;
-
         return new Style({
             image: new Icon({
-                anchor: [0.5, 0.5],
-                src: iconPath,
-                width: iconWidth,
-                rotation: rotationInRadians,
-                rotateWithView: true,
+                anchor: [0.5, 1.0],
+                src: pinSvg,
+                scale: 1,
             }),
             text: textStyle,
         });
@@ -2578,6 +2493,7 @@ const MapComponent = ({
 
     const getMarkerLabel = (entry, mode) => {
         if (!entry) return "";
+        if (entry.label) return entry.label;
         switch (mode) {
             case "block": {
                 return (
@@ -2615,11 +2531,10 @@ const MapComponent = ({
             case "vehicle":
             default: {
                 return (
-                    entry.vehicle_registration_number ||
-                    entry.vehicle_reg_no ||
-                    entry.device_tag_info?.device?.vehicle_reg_no ||
-                    entry.device_tag_info?.vehicle?.vehicle_reg_no ||
+                    entry.label ||
                     entry.imei ||
+                    (entry.testNo ? `Test #${entry.testNo}` : "") ||
+                    entry.vehicle_registration_number ||
                     ""
                 );
             }
@@ -2859,8 +2774,12 @@ const MapComponent = ({
         // Initialize vector layer for markers (with Clustering)
         const initialVectorLayer = new VectorLayer({
             source: new Cluster({
-                distance: 40,
+                distance: autoFit ? 0 : 40,
                 source: new VectorSource(),
+                geometryFunction: (feature) => {
+                    const geom = feature.getGeometry();
+                    return geom && geom.getType() === "Point" ? geom : null;
+                },
             }),
             zIndex: 200,
             style: clusterStyleFunction,
@@ -3090,8 +3009,12 @@ const MapComponent = ({
             // Initialize vector layer for markers (with Clustering)
             const initialVectorLayer = new VectorLayer({
                 source: new Cluster({
-                    distance: 40,
+                    distance: autoFit ? 0 : 40,
                     source: new VectorSource(),
+                    geometryFunction: (feature) => {
+                        const geom = feature.getGeometry();
+                        return geom && geom.getType() === "Point" ? geom : null;
+                    },
                 }),
                 zIndex: 200,
                 style: clusterStyleFunction,
@@ -4094,8 +4017,12 @@ const MapComponent = ({
             // Initialize vector layer for markers (with Clustering)
             const initialVectorLayer = new VectorLayer({
                 source: new Cluster({
-                    distance: 40,
+                    distance: autoFit ? 0 : 40,
                     source: new VectorSource(),
+                    geometryFunction: (feature) => {
+                        const geom = feature.getGeometry();
+                        return geom && geom.getType() === "Point" ? geom : null;
+                    },
                 }),
                 zIndex: 200,
                 style: clusterStyleFunction,
@@ -4215,7 +4142,7 @@ const MapComponent = ({
 
     // Initialize HD Map (LegacyMap)
     useEffect(() => {
-        return; if(false || !hdMapContainerRef.current) return;
+        return; if (false || !hdMapContainerRef.current) return;
 
         let isMounted = true;
 
@@ -4386,7 +4313,8 @@ display: none !important;
             }
         };
 
-        const ensureLegacyMapInitialized = () => { return; 
+        const ensureLegacyMapInitialized = () => {
+            return;
             if (!isMounted) return;
 
             if (!legacyMapInstanceRef.current) {
@@ -4484,7 +4412,7 @@ display: none !important;
 
     // Plot vehicles and POIs on HD map
     useEffect(() => {
-        return; if(false || !legacyMapMapRef.current) return;
+        return; if (false || !legacyMapMapRef.current) return;
 
         const hdMap = legacyMapMapRef.current;
         const legacyMapInstance = legacyMapInstanceRef.current;
@@ -4786,7 +4714,7 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
 
     // HD Map Drawing Logic - Handle Clicks
     useEffect(() => {
-        return; if(false || !legacyMapMapRef.current) return;
+        return; if (false || !legacyMapMapRef.current) return;
 
         const hdMap = legacyMapMapRef.current;
 
@@ -4831,7 +4759,7 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
 
     // HD Map Drawing Logic - Visualization
     useEffect(() => {
-        return; if(false || !legacyMapMapRef.current) return;
+        return; if (false || !legacyMapMapRef.current) return;
         const hdMap = legacyMapMapRef.current;
 
         // Cleanup temp poly
@@ -5253,7 +5181,7 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
         const labelText = getMarkerLabel(data, labelMode);
 
         // Enforce 0 rotation
-        return createIconStyle(color, iconVehicleType, labelText);
+        return createIconStyle(color, iconVehicleType, labelText, data?.pinColor, data?.dotColor);
     };
 
     useEffect(() => {
@@ -5321,6 +5249,13 @@ ${incident.image_file ? `<div id="${hdMediaContainerId}" style="margin-top: 8px;
                 }, { hitTolerance: 5 });
 
                 if (allHits.length === 0) return;
+
+                // Do not display live tracking detail popup for onboarding test markers
+                const hasTestMarker = allHits.some(f => {
+                    const e = f.get('entryData');
+                    return e && (e.locked || e.testFeatureType || e.pointType);
+                });
+                if (hasTestMarker) return;
 
                 // Temporary compatibility: define 'feature' as the first hit so subsequent code works
                 const feature = allHits[0];
@@ -5475,246 +5410,19 @@ ${incident.image_file ? `<div id="${imageContainerId}" style="margin-top: 8px;">
 
                     } else {
                         const entryDataRaw = item.data;
-                        const renderVehicleOverlay = (entryData) => {
-                            const isStale = isEntryStale15Min(entryData);
-                            const speedValue = entryData.speed > 2 ? entryData.speed : 0;
-                            const deviceStatusLabel = resolveDeviceStatusLabel(entryData);
-                            const isOfflineResolved = deviceStatusLabel === "Offline";
-                            const packetTypeCode = (isStale || isOfflineResolved)
-                                ? "Offline"
-                                : (resolveAlertCode(entryData) || "NR1");
-                            const alertLabel = (isStale || isOfflineResolved)
-                                ? "Offline"
-                                : resolveAlertLabel(entryData);
-                            const pillText = (isStale || isOfflineResolved)
-                                ? "Offline"
-                                : alertLabel.split(' (')[0];
-                            const normalizedPacketTypeCode = String(packetTypeCode).trim().toUpperCase();
-                            const pillClass = (isStale || isOfflineResolved || normalizedPacketTypeCode === "OFFLINE")
-                                ? "overlay-pill--offline"
-                                : (/^NR/i.test(packetTypeCode) || normalizedPacketTypeCode === "NORMAL")
-                                    ? "overlay-pill--normal"
-                                    : "overlay-pill--alert";
+                        if (typeof onVehicleClick === "function") {
+                            onVehicleClick(entryDataRaw);
+                        }
 
-                            if (typeof onVehicleClick === "function") {
-                                onVehicleClick(entryData);
-                            }
-
-                            lastClickedVehicleRef.current = {
-                                imei: entryData?.imei,
-                                coordinates,
-                            };
-
-                            const addressValue = entryData?.address ? entryData.address : "-";
-                            const categoryValue = (entryData?.device_tag_info?.category_info?.category || entryData?.category || "-").replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
-                            const packetTypeLabel = (isStale || isOfflineResolved)
-                                ? "Offline"
-                                : resolvePacketTypeLabel(entryData);
-                            const nearestPoiLabel = resolveNearestPoiLabel(entryData);
-                            const nearestPolice = resolveNearestPoliceDetails(entryData);
-                            const policeContactValue =
-                                entryData?.nearestPoliceContact || entryData?.nearest_police?.data?.phone || null;
-
-                            const routeId =
-                                entryData?.route_id ||
-                                entryData?.route_ref?.id ||
-                                entryData?.device_tag_info?.route?.id ||
-                                entryData?.nearby_routes_within_100m?.[0]?.data?.id ||
-                                "-";
-
-                            const routeData = entryData?.route_ref || entryData?.device_tag_info?.route || {};
-
-                            const routeName =
-                                entryData?.route_name ||
-                                entryData?.route ||
-                                entryData?.route_info ||
-                                entryData?.routeInformation ||
-                                routeData?.name ||
-                                (routeId && routeId !== "-" ? `Route ${routeId}` : "-");
-
-                            const policeInfoRows = [
-                                nearestPolice?.name && nearestPolice.name !== "-"
-                                    ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Station</span><span class="overlay-value overlay-value--multiline">${nearestPolice.name}</span></div>`
-                                    : "",
-                                nearestPolice?.address && nearestPolice.address !== "-"
-                                    ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Address</span><span class="overlay-value overlay-value--multiline">${nearestPolice.address}</span></div>`
-                                    : "",
-                                nearestPolice?.lat && nearestPolice.lat !== "-" && nearestPolice?.lng && nearestPolice.lng !== "-"
-                                    ? `<div class="overlay-row"><span class="overlay-label">Police Lat/Lng</span><span class="overlay-value">${nearestPolice.lat}, ${nearestPolice.lng}</span></div>`
-                                    : "",
-                                policeContactValue
-                                    ? `<div class="overlay-row"><span class="overlay-label">Police Contact</span><span class="overlay-value">${policeContactValue}</span></div>`
-                                    : "",
-                            ].filter(Boolean).join("");
-
-                            const policeDetailsRows = [
-                                nearestPolice?.name && nearestPolice.name !== "-"
-                                    ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police</span><span class="overlay-value overlay-value--multiline">${nearestPolice.name}</span></div>`
-                                    : "",
-                                nearestPolice?.address && nearestPolice.description !== "-"
-                                    ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Addr</span><span class="overlay-value overlay-value--multiline">${nearestPolice.description}</span></div>`
-                                    : "",
-                                nearestPolice?.lat && nearestPolice.lat !== "-" && nearestPolice?.lng && nearestPolice.lng !== "-"
-                                    ? `<div class="overlay-row"><span class="overlay-label">Police Lat/Lng</span><span class="overlay-value">${nearestPolice.lat}, ${nearestPolice.lng}</span></div>`
-                                    : "",
-                            ].join("");
-
-                            const withTrailer = entryData?.with_trailer === true || entryData?.with_trailer === "true" || entryData?.device_tag_info?.with_trailer === true || entryData?.device_tag_info?.with_trailer === "true";
-                            const trailerId = entryData?.trailer_id || entryData?.device_tag_info?.trailer_id || "-";
-
-                            const trailerHtml = withTrailer ? `
-<div class="overlay-row">
-<span class="overlay-label">Trailer</span>
-<span class="overlay-value">Attached</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Trailer ID</span>
-<span class="overlay-value">${trailerId}</span>
-</div>
-` : `
-<div class="overlay-row">
-<span class="overlay-label">Trailer</span>
-<span class="overlay-value">None</span>
-</div>
-`;
-
-                            document.getElementById("overlay-content").innerHTML = toCspHtml(`
-<div class="overlay-card">
-<div class="overlay-header">
-<div class="overlay-header-content">
-<div class="overlay-title">${entryData.vehicle_registration_number || "-"}</div>
-</div>
-<div class="overlay-pill ${pillClass}">${pillText}</div>
-</div>
-<div class="overlay-tabs" data-overlay-tabs>
-<div class="overlay-tab-list" role="tablist">
-<button class="overlay-tab overlay-tab--active" type="button" data-overlay-tab="vehicle" role="tab">Vehicle</button>
-<button class="overlay-tab" type="button" data-overlay-tab="geographic" role="tab">Geographic</button>
-<button class="overlay-tab" type="button" data-overlay-tab="route" role="tab">Route</button>
-<button class="overlay-tab" type="button" data-overlay-tab="police-support" role="tab">Police Support</button>
-</div>
-
-<div class="overlay-panel overlay-panel--active" data-overlay-panel="vehicle" role="tabpanel">
-<div class="overlay-section">
-<div class="overlay-section-title">Vehicle Information</div>
-<div class="overlay-section-body">
-<div class="overlay-row">
-<span class="overlay-label">Packet Status</span>
-<span class="overlay-value">${packetTypeLabel}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Device Status</span>
-<span class="overlay-value">${deviceStatusLabel}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Date</span>
-<span class="overlay-value">${formatDateDDMMYY(entryData.date)}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Time</span>
-<span class="overlay-value">${formatTimeHHMMSS(entryData.time)}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Speed</span>
-<span class="overlay-value">${speedValue} km/h</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Category</span>
-<span class="overlay-value">${categoryValue}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Battery</span>
-<span class="overlay-value">${entryData.internal_battery_voltage || "-"} - ${entryData.main_input_voltage || "-"}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Latitude</span>
-<span class="overlay-value">${entryData.latitude || "-"}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Longitude</span>
-<span class="overlay-value">${entryData.longitude || "-"}</span>
-</div>
-${trailerHtml}
-</div>
-</div>
-</div>
-
-<div class="overlay-panel" data-overlay-panel="geographic" role="tabpanel">
-<div class="overlay-section">
-<div class="overlay-section-body">
-<div class="overlay-row overlay-row--multiline">
-<span class="overlay-label">Address</span>
-<span class="overlay-value overlay-value--multiline">${addressValue}</span>
-</div>
-<div class="overlay-row overlay-row--multiline">
-<span class="overlay-label">Nearest Poi</span>
-<span class="overlay-value overlay-value--multiline">${nearestPoiLabel || 'No nearby POI found'}</span>
-</div>
-</div>
-</div>
-</div>
-
-<div class="overlay-panel" data-overlay-panel="route" role="tabpanel">
-<div class="overlay-section">
-<div class="overlay-section-title">Route Information</div>
-<div class="overlay-section-body">
-<!-- Basic Route Info -->
-<div class="overlay-row">
-<span class="overlay-label">Route Name</span>
-<span class="overlay-value">${routeName}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Route ID</span>
-<span class="overlay-value">${routeId}</span>
-</div>
-</div>
-</div>
-</div>
-
-<div class="overlay-panel" data-overlay-panel="police-support" role="tabpanel">
-<div class="overlay-section">
-<div class="overlay-section-title">Police Support</div>
-<div class="overlay-section-body">
-${policeInfoRows || policeDetailsRows
-                                    ? `${policeInfoRows}${policeDetailsRows}`
-                                    : `<div class="overlay-row overlay-row--multiline"><span class="overlay-value overlay-value--multiline">No police details available</span></div>`
-                                }
-</div>
-</div>
-</div>
-</div>
-<div style="padding: 8px 10px 4px; border-top: 1px solid #f1f5f9; margin-top: 4px;">
-<button
-  id="get-direction-btn"
-  data-vehicle-lat="${entryData.latitude}"
-  data-vehicle-lng="${entryData.longitude}"
-  style="width:100%;padding:7px 0;background:#1e40af;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.03em;"
->
-  🧭 Get Direction
-</button>
-<div id="get-direction-hint" style="display:none;margin-top:6px;font-size:11px;color:#1e40af;text-align:center;padding:4px 6px;background:#eff6ff;border-radius:4px;">
-  Click anywhere on the map to draw route from this vehicle
-</div>
-</div>
-`);
-                            applyInlineStyles(document.getElementById("overlay-content"));
+                        lastClickedVehicleRef.current = {
+                            imei: entryDataRaw?.imei,
+                            coordinates,
                         };
 
-                        renderVehicleOverlay(entryDataRaw);
-
-                        dynamicOverlay.setPosition(coordinates);
-                        dynamicOverlay.getElement().style.display = "block";
-
-                        fetchVehicleTrackingDetail(entryDataRaw)
-                            .then((trackingDetail) => {
-                                if (!trackingDetail) return;
-                                const lastClick = lastClickedVehicleRef.current;
-                                if (!lastClick?.imei || lastClick.imei !== trackingDetail?.imei) return;
-                                renderVehicleOverlay(trackingDetail);
-                            })
-                            .catch(() => {
-                                // best-effort only
-                            });
+                        // Popup overlay card is not needed as all details are in the modal header
+                        if (dynamicOverlay) {
+                            dynamicOverlay.setPosition(undefined);
+                        }
 
                         const currentZoom = map.getView().getZoom();
                         // Only zoom if we're significantly below the target zoom level
@@ -5762,215 +5470,11 @@ ${policeInfoRows || policeDetailsRows
     ]);
 
     useEffect(() => {
-        if (!dynamicOverlay || !map || !focusEntry?.address) return;
-
-        const lastClicked = lastClickedVehicleRef.current;
-        if (!lastClicked?.imei || lastClicked.imei !== focusEntry?.imei) return;
-
-        const overlayContent = document.getElementById("overlay-content");
-        if (!overlayContent) return;
-
-        const isStale = isEntryStale15Min(focusEntry);
-        const speedValue = focusEntry.speed > 2 ? focusEntry.speed : 0;
-        const deviceStatusLabel = resolveDeviceStatusLabel(focusEntry);
-        const isOfflineResolved = deviceStatusLabel === "Offline";
-        const packetTypeCode = (isStale || isOfflineResolved)
-            ? "Offline"
-            : (resolveAlertCode(focusEntry) || "NR1");
-        const alertLabel = (isStale || isOfflineResolved)
-            ? "Offline"
-            : resolveAlertLabel(focusEntry);
-        // Extract just the name part (without the code in parentheses if present)
-        const pillText = (isStale || isOfflineResolved)
-            ? "Offline"
-            : alertLabel.split(' (')[0];
-        const normalizedPacketTypeCode = String(packetTypeCode).trim().toUpperCase();
-        const pillClass = (isStale || isOfflineResolved || normalizedPacketTypeCode === "OFFLINE")
-            ? "overlay-pill--offline"
-            : (/^NR/i.test(packetTypeCode) || normalizedPacketTypeCode === "NORMAL")
-                ? "overlay-pill--normal"
-                : "overlay-pill--alert";
-
-        const packetTypeLabel = (isStale || isOfflineResolved)
-            ? "Offline"
-            : resolvePacketTypeLabel(focusEntry);
-        const nearestPoiLabel = resolveNearestPoiLabel(focusEntry);
-        const nearestPolice = resolveNearestPoliceDetails(focusEntry);
-
-        const nearestPoliceStationValue =
-            focusEntry?.markerCategory === "police"
-                ? (focusEntry.nearestPoliceStation || "uzanbazr policestation")
-                : null;
-        const policeContactValue =
-            focusEntry?.markerCategory === "police"
-                ? (focusEntry.nearestPoliceContact || "987654123")
-                : null;
-
-        const wardValue =
-            focusEntry?.ward_name ||
-            focusEntry?.ward ||
-            focusEntry?.wardName ||
-            focusEntry?.device_tag_info?.ward?.name ||
-            focusEntry?.device_tag_info?.ward_name ||
-            "-";
-        const districtValue =
-            focusEntry?.district ||
-            focusEntry?.district_name ||
-            focusEntry?.districtName ||
-            focusEntry?.device_tag_info?.device?.district ||
-            focusEntry?.device_tag_info?.district?.name ||
-            focusEntry?.device_tag_info?.district_name ||
-            "-";
-        const stateValue =
-            focusEntry?.state ||
-            focusEntry?.state_name ||
-            focusEntry?.stateName ||
-            focusEntry?.device_tag_info?.state_info?.state ||
-            focusEntry?.device_tag_info?.state?.name ||
-            focusEntry?.device_tag_info?.state_name ||
-            "-";
-
-        // Extract route information with fallbacks
-        const routeId =
-            focusEntry?.route_id ||
-            focusEntry?.route_ref?.id ||
-            focusEntry?.device_tag_info?.route?.id ||
-            focusEntry?.nearby_routes_within_100m?.[0]?.data?.id ||
-            "-";
-
-        const routeData = focusEntry?.route_ref || focusEntry?.device_tag_info?.route || {};
-
-        const routeName =
-            focusEntry?.route_name ||
-            focusEntry?.route ||
-            focusEntry?.route_info ||
-            focusEntry?.routeInformation ||
-            routeData?.name ||
-            (routeId && routeId !== "-" ? `Route ${routeId}` : "-");
-
-        const routeCode = routeData?.code || focusEntry?.route_code || "-";
-        const routeType = routeData?.type || focusEntry?.route_type || "-";
-        const startPoint = routeData?.start_point || focusEntry?.start_point || "-";
-        const endPoint = routeData?.end_point || focusEntry?.end_point || "-";
-        const stops = routeData?.stops || focusEntry?.route_stops || [];
-        const distance = routeData?.distance ? `${routeData.distance} km` : "-";
-        const duration = routeData?.duration || focusEntry?.route_duration || "-";
-        const schedule = routeData?.schedule || focusEntry?.route_schedule || "-";
-        const operator = routeData?.operator || focusEntry?.route_operator || "-";
-
-        const policeInfoRows = [
-            nearestPoliceStationValue
-                ? `<div class="overlay-row"><span class="overlay-label">Nearest Police Station</span><span class="overlay-value">${nearestPoliceStationValue}</span></div>`
-                : "",
-            policeContactValue
-                ? `<div class="overlay-row"><span class="overlay-label">Police Contact</span><span class="overlay-value">${policeContactValue}</span></div>`
-                : "",
-        ].join("");
-
-        const policeDetailsRows = [
-            nearestPolice?.name && nearestPolice.name !== "-"
-                ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police</span><span class="overlay-value overlay-value--multiline">${nearestPolice.name}</span></div>`
-                : "",
-            nearestPolice?.address && nearestPolice.address !== "-"
-                ? `<div class="overlay-row overlay-row--multiline"><span class="overlay-label">Police Addr</span><span class="overlay-value overlay-value--multiline">${nearestPolice.address}</span></div>`
-                : "",
-            nearestPolice?.lat && nearestPolice.lat !== "-" && nearestPolice?.lng && nearestPolice.lng !== "-"
-                ? `<div class="overlay-row"><span class="overlay-label">Police Lat/Lng</span><span class="overlay-value">${nearestPolice.lat}, ${nearestPolice.lng}</span></div>`
-                : "",
-        ].join("");
-
-        const showSelectedOnly =
-            Array.isArray(selectedColumns) &&
-            selectedColumns.length > 0;
-        overlayContent.innerHTML = toCspHtml(`
-<div class="overlay-card">
-<div class="overlay-header">
-<div class="overlay-header-content">
-<div class="overlay-title">${focusEntry.vehicle_registration_number || "-"}</div>
-</div>
-<div class="overlay-pill ${pillClass}">${pillText}</div>
-</div>
-
-
-${!showSelectedOnly ? `
-<div class="overlay-panel overlay-panel--active" data-overlay-panel="vehicle" role="tabpanel">
-<div class="overlay-section">
-<div class="overlay-section-title">Vehicle Information</div>
-<div class="overlay-section-body">
-<div class="overlay-row">
-<span class="overlay-label">Vehicle No</span>
-<span class="overlay-value">${focusEntry.vehicle_registration_number || "-"}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">IMEI</span>
-<span class="overlay-value">${focusEntry.imei || "-"}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Alert Id</span>
-<span class="overlay-value">${focusEntry.alert_id || "-"}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Latitude</span>
-<span class="overlay-value">${focusEntry.latitude || "-"}</span>
-</div>
-<div class="overlay-row">
-<span class="overlay-label">Longitude</span>
-<span class="overlay-value">${focusEntry.longitude || "-"}</span>
-</div>
-</div>
-</div>
-</div>
-
-
-` : `
-<div class="overlay-section">
-<div class="overlay-section-title">
-Selected Fields
-</div>
-
-<div class="overlay-section-body">
-
-${selectedColumns.map((key) => {
-            const label = COLUMN_LABELS[key] || key;
-            const value = getColumnValue(focusEntry, key);
-
-            return `
-    <div class="overlay-row">
-        <span class="overlay-label">${label}</span>
-        <span class="overlay-value">
-            ${value !== null &&
-                    value !== undefined &&
-                    value !== ""
-                    ? String(value)
-                    : "-"
-                }
-        </span>
-    </div>
-    `;
-        }).join("")}
-
-</div>
-</div>
-`}
-
-<div style="padding: 8px 10px 4px; border-top: 1px solid #f1f5f9; margin-top: 4px;">
-<button
-  id="get-direction-btn"
-  data-vehicle-lat="${focusEntry.latitude}"
-  data-vehicle-lng="${focusEntry.longitude}"
-  style="width:100%;padding:7px 0;background:#1e40af;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.03em;"
->
-  🧭 Get Direction
-</button>
-<div id="get-direction-hint" style="display:none;margin-top:6px;font-size:11px;color:#1e40af;text-align:center;padding:4px 6px;background:#eff6ff;border-radius:4px;">
-  Click anywhere on the map to draw route from this vehicle
-</div>
-
-</div>
-`);
-        applyInlineStyles(overlayContent);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [dynamicOverlay, map, focusEntry?.imei, focusEntry?.address, selectedColumns]);
+        if (dynamicOverlay) {
+            dynamicOverlay.setPosition(undefined);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [dynamicOverlay, focusEntry]);
 
     useEffect(() => {
         const container = overlayElement.current;
@@ -6508,8 +6012,8 @@ ${selectedColumns.map((key) => {
         // Duration should be slightly less than your polling interval (e.g., if you poll every 5s, use 4500)
         const animationDuration = 2500;
 
-        allMarkers.forEach((entry) => {
-            const imei = entry.imei || entry.vehicle_registration_number;
+        allMarkers.forEach((entry, idx) => {
+            const imei = entry.markerId || (allMarkers.length === 1 ? (entry.imei || entry.vehicle_registration_number) : `${entry.imei || 'pt'}_${idx}`);
             if (!imei) return;
             currentImeis.add(imei);
 
@@ -6520,7 +6024,7 @@ ${selectedColumns.map((key) => {
             let feature = activeFeaturesRef.current[imei];
 
             if (!feature) {
-                // First time seeing this vehicle: Create it
+                // First time seeing this vehicle / point: Create it
                 feature = new Feature({
                     geometry: new Point(targetCoords),
                     entryData: entry,
@@ -6530,52 +6034,53 @@ ${selectedColumns.map((key) => {
                 activeFeaturesRef.current[imei] = feature;
                 vectorSource.addFeature(feature);
             } else {
-                // Existing vehicle: Animate movement
-                const startCoords = feature.getGeometry().getCoordinates();
-                const startTime = performance.now();
-
-                // Cancel any previous animation frame for this specific car
-                if (feature.get("animFrameId")) {
-                    cancelAnimationFrame(feature.get("animFrameId"));
-                }
-
-                const frame = (now) => {
-                    const elapsed = now - startTime;
-                    const progress = Math.min(elapsed / animationDuration, 1);
-
-                    // 1. Smoothly slide coordinates
-                    const currLng = startCoords[0] + (targetCoords[0] - startCoords[0]) * progress;
-                    const currLat = startCoords[1] + (targetCoords[1] - startCoords[1]) * progress;
-                    const currentPos = [currLng, currLat];
-                    feature.getGeometry().setCoordinates(currentPos);
-
-                    // 2. Rotation is fixed to 0
-                    feature.set("currentRotation", 0);
-
-                    // 3. Update Style
-                    feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode));
-
-                    // 4. MAP FOLLOWING (Move camera with car if focused or single device)
-                    if ((allMarkers.length === 1) || (focusEntry && (focusEntry.imei === imei || focusEntry.vehicle_registration_number === imei))) {
-                        map.getView().setCenter(currentPos);
-                    }
-
-                    if (progress < 1) {
-                        feature.set("animFrameId", requestAnimationFrame(frame));
-                    }
-                };
-
-                // Only start animation if the car has actually moved a bit
-                if (Math.abs(startCoords[0] - targetCoords[0]) > 0.000001 || Math.abs(startCoords[1] - targetCoords[1]) > 0.000001) {
-                    feature.set("animFrameId", requestAnimationFrame(frame));
-                } else {
-                    // Car is stationary, just update metadata/style
-                    feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode));
-                }
+                feature.getGeometry().setCoordinates(targetCoords);
+                feature.setStyle(getIconStyle(entry, vehicleType, markerLabelMode, allMode));
             }
         });
 
-        // Clean up features for cars that are no longer in the list
+        // Ensure test overlay layer exists for non-clustered route & geofence shapes
+        if (!testOverlayLayerRef.current && map) {
+            const overlaySource = new VectorSource();
+            const overlayLayer = new VectorLayer({
+                source: overlaySource,
+                zIndex: 150,
+            });
+            map.addLayer(overlayLayer);
+            testOverlayLayerRef.current = overlayLayer;
+        }
+
+        if (testOverlayLayerRef.current) {
+            const overlaySource = testOverlayLayerRef.current.getSource();
+            overlaySource.clear();
+
+            // Draw Connecting Route Line if multiple markers exist
+            if (allMarkers.length > 1) {
+                const routeCoords = allMarkers
+                    .map(m => {
+                        const pos = getAveragedLocation(m);
+                        return [pos.lng, pos.lat];
+                    })
+                    .filter(c => Number.isFinite(c[0]) && Number.isFinite(c[1]));
+
+                if (routeCoords.length >= 2) {
+                    const isGeofence = allMarkers.some(m => m.testFeatureType === "geofence" || m.pointType === "entry" || m.pointType === "exit");
+                    const lineFeature = new Feature({
+                        geometry: new LineString(routeCoords),
+                    });
+                    lineFeature.setStyle(new Style({
+                        stroke: new Stroke({
+                            color: isGeofence ? "#2e7d32" : "#1a237e",
+                            width: 3.5,
+                            lineDash: [8, 6],
+                        }),
+                    }));
+                    overlaySource.addFeature(lineFeature);
+                }
+            }
+        }
+
+        // Clean up features for cars/points that are no longer in the list
         Object.keys(activeFeaturesRef.current).forEach(imei => {
             if (!currentImeis.has(imei)) {
                 vectorSource.removeFeature(activeFeaturesRef.current[imei]);
@@ -6587,28 +6092,36 @@ ${selectedColumns.map((key) => {
             const single = allMarkers[0];
             const targetPos = getAveragedLocation(single);
             if (Number.isFinite(targetPos.lat) && Number.isFinite(targetPos.lng)) {
-                if (!hasAutoFittedRef.current) {
-                    map.getView().setCenter([targetPos.lng, targetPos.lat]);
-                    map.getView().setZoom(16);
-                    hasAutoFittedRef.current = true;
-                } else {
-                    map.getView().animate({ center: [targetPos.lng, targetPos.lat], duration: 400 });
-                }
-            }
-        } else if (autoFit && allMarkers.length > 0 && !hasAutoFittedRef.current) {
-            const extent = vectorSource.getExtent();
-            // Check if extent is valid (not infinite)
-            if (extent && extent[0] !== Infinity) {
-                map.getView().fit(extent, { padding: [100, 100, 100, 100], maxZoom: 16, duration: 800 });
+                map.getView().setCenter([targetPos.lng, targetPos.lat]);
+                map.getView().setZoom(16);
+                setTimeout(() => {
+                    try {
+                        map.updateSize();
+                        map.getView().setCenter([targetPos.lng, targetPos.lat]);
+                    } catch (e) { }
+                }, 200);
                 hasAutoFittedRef.current = true;
             }
+        } else if (autoFit && allMarkers.length > 1) {
+            const performFit = () => {
+                try {
+                    map.updateSize();
+                    const extent = vectorSource.getExtent();
+                    if (extent && extent[0] !== Infinity && extent[2] !== -Infinity) {
+                        map.getView().fit(extent, { padding: [90, 90, 90, 90], maxZoom: 17, duration: 400 });
+                    }
+                } catch (e) { }
+            };
+            performFit();
+            setTimeout(performFit, 200);
+            hasAutoFittedRef.current = true;
         } else if (allMarkers.length === 0) {
             // Reset the auto-fitted ref if data is cleared so next time we fit again
             hasAutoFittedRef.current = false;
         }
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [gpsData, policeData, map, mapType, markerLabelMode, allMode, focusEntry, autoFit]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [gpsData, policeData, map, mapType, markerLabelMode, allMode, focusEntry, autoFit, dynamicOverlay]);
 
     useEffect(() => {
         if (!focusEntry) return;
@@ -6828,7 +6341,7 @@ ${selectedColumns.map((key) => {
         // eslint-disable-next-line no-mixed-operators
         let lng = result.longitude || result.lng || result.lon;
 
-// eslint-disable-next-line no-mixed-operators
+        // eslint-disable-next-line no-mixed-operators
 
         // If lat/lng are missing, try to fetch them using eLoc
         if ((!lat || !lng) && result.eLoc) {
@@ -7066,27 +6579,25 @@ ${result.state ? `<div class="overlay-row" style="display: flex; gap: 8px; margi
                 }}
             >
                 <Box sx={{ position: 'relative', display: 'flex', alignItems: 'flex-start', flexDirection: 'row-reverse' }}>
-                    <Tooltip title="Map Layers" placement="left">
-                        <Paper
-                            elevation={4}
-                            sx={{
-                                width: 44,
-                                height: 44,
-                                borderRadius: '12px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                backgroundColor: alpha(theme.palette.background.paper, 0.9),
-                                backdropFilter: 'blur(8px)',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                '&:hover': { bgcolor: 'white', transform: 'scale(1.05)' }
-                            }}
-                            onClick={() => setShowLayerMenu(!showLayerMenu)}
-                        >
-                            <LayersIcon color="primary" />
-                        </Paper>
-                    </Tooltip>
+                    <Paper
+                        elevation={4}
+                        sx={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: alpha(theme.palette.background.paper, 0.9),
+                            backdropFilter: 'blur(8px)',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            '&:hover': { bgcolor: 'white', transform: 'scale(1.05)' }
+                        }}
+                        onClick={() => setShowLayerMenu(!showLayerMenu)}
+                    >
+                        <LayersIcon color="primary" />
+                    </Paper>
 
                     {/* Expanded Layer Menu */}
                     {showLayerMenu && (
