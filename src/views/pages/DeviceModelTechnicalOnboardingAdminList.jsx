@@ -2008,6 +2008,8 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                 let rawData = "N/A";
                 let extraData = "";
                 let hasSamples = false;
+                const rowSpeeds = [];
+                const rowLocations = [];
 
                 if (execution?.test_log_snapshot) {
                     try {
@@ -2020,8 +2022,8 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                             const fwVersions = [];
                             const voltages = [];
                             const extVoltages = [];
-                            const speeds = [];
-                            const locations = [];
+                            const speeds = rowSpeeds;
+                            const locations = rowLocations;
                             const networks = [];
                             const operators = [];
 
@@ -2159,10 +2161,10 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                     if (match) filteredExtraData = `Ext Vol: ${match[1]}`;
                 } else if (step.serial_no === 14 || step.serial_no === 15) {
                     let speedStr = "";
-                    if (speeds.length >= 2) {
-                        speedStr = `Start Speed: ${speeds[0]} km/h | End Speed: ${speeds[speeds.length - 1]} km/h`;
-                    } else if (speeds.length === 1) {
-                        speedStr = `Speed: ${speeds[0]} km/h`;
+                    if (rowSpeeds.length >= 2) {
+                        speedStr = `Start Speed: ${rowSpeeds[0]} km/h | End Speed: ${rowSpeeds[rowSpeeds.length - 1]} km/h`;
+                    } else if (rowSpeeds.length === 1) {
+                        speedStr = `Speed: ${rowSpeeds[0]} km/h`;
                     }
                     const locMatch = extraData.match(/Lat\/Lon: (.*?)( \||$)/);
                     const locStr = locMatch ? `Lat/Lon: ${locMatch[1]}` : "";
@@ -2177,10 +2179,10 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                 } else if (step.serial_no === 23) {
                     const isGpsRecovery = /(loss|recovery|satellite)/i.test(step.name);
                     if (isGpsRecovery) {
-                        if (locations.length >= 2) {
-                            filteredExtraData = `Loss Point: ${locations[0]} | Recovery Point: ${locations[locations.length - 1]}`;
-                        } else if (locations.length === 1) {
-                            filteredExtraData = `Recovery Point: ${locations[0]}`;
+                        if (rowLocations.length >= 2) {
+                            filteredExtraData = `Loss Point: ${rowLocations[0]} | Recovery Point: ${rowLocations[rowLocations.length - 1]}`;
+                        } else if (rowLocations.length === 1) {
+                            filteredExtraData = `Recovery Point: ${rowLocations[0]}`;
                         } else {
                             const locMatch = extraData.match(/Lat\/Lon: (.*?)( \||$)/);
                             if (locMatch) filteredExtraData = locMatch[1];
@@ -2903,16 +2905,16 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                                         )}
                                                                                                         {(step.serial_no === 14 || step.serial_no === 15) && speed && (
                                                                                                             <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
-                                                                                                                {snap.samples && snap.samples.length >= 2
-                                                                                                                    ? (idx === 0 ? `Start Speed: ${speed} km/h` : idx === snap.samples.length - 1 ? `End Speed: ${speed} km/h` : `Speed: ${speed} km/h`)
+                                                                                                                {snapshotObj.samples && snapshotObj.samples.length >= 2
+                                                                                                                    ? (idx === 0 ? `Start Speed: ${speed} km/h` : idx === snapshotObj.samples.length - 1 ? `End Speed: ${speed} km/h` : `Speed: ${speed} km/h`)
                                                                                                                     : `Speed: ${speed} km/h`}
                                                                                                             </Typography>
                                                                                                         )}
                                                                                                         {(LOCATION_TEST_NOS.includes(step.serial_no) || step.serial_no === 20) && location && (
                                                                                                             <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
                                                                                                                 {step.serial_no === 23
-                                                                                                                    ? (snap.samples && snap.samples.length >= 2
-                                                                                                                        ? (idx === 0 ? `Loss Point: ${location}` : idx === snap.samples.length - 1 ? `Recovery Point: ${location}` : `Lat/Lon: ${location}`)
+                                                                                                                    ? (snapshotObj.samples && snapshotObj.samples.length >= 2
+                                                                                                                        ? (idx === 0 ? `Loss Point: ${location}` : idx === snapshotObj.samples.length - 1 ? `Recovery Point: ${location}` : `Lat/Lon: ${location}`)
                                                                                                                         : `Recovery Point: ${location}`)
                                                                                                                     : `Lat/Lon: ${location}`}
                                                                                                             </Typography>
