@@ -1,15 +1,22 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Grid, Button, Box, Paper, Typography, CircularProgress, useTheme, useMediaQuery } from "@mui/material";
 import { Download, Print } from "@mui/icons-material";
-import { useTranslation } from "react-i18next";
 import { jsPDF } from "jspdf";
-import { QRCodeSVG, QRCodeCanvas } from "qrcode.react";
+import html2canvas from "html2canvas";
+import { QRCodeCanvas } from "qrcode.react";
 import TaggingService from "../../services/TaggingService";
 import { withStyleNonce } from "../../utils/cspNonce";
 
 // ─────────────────────────────────────────────
 // Utilities
 // ─────────────────────────────────────────────
+const cleanDisplayValue = (value) => {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .replace(/^[\s;']+/, "")
+    .trim();
+};
+
 const formatICCID = (val) => {
   if (!val) return "";
   const str = String(val);
@@ -33,15 +40,15 @@ const formatDate = (val) => {
 // Shared style constants – Times New Roman like the original
 // ─────────────────────────────────────────────
 const F = "'Times New Roman', Times, serif";
-const FS = "14px";
-const LH = 1.8;
+const FS = "15px";
+const LH = 1.85;
 
 const T = ({ children, sx = {}, bold = false }) => (
   <Typography
     component="p"
     sx={{
       fontFamily: F,
-      fontSize: { xs: "13px", sm: "13.5px", md: FS },
+      fontSize: { xs: "13px", sm: "14px", md: FS },
       lineHeight: { xs: 1.6, sm: 1.7, md: LH },
       fontWeight: bold ? 700 : 400,
       color: "#000",
@@ -52,26 +59,29 @@ const T = ({ children, sx = {}, bold = false }) => (
   </Typography>
 );
 
+
 const buildRows = (d) => [
-  { label: "VLTD Serial No", value: `;${d.deviceSerialNo}` },
-  { label: "VLTD IMEI No", value: d.vltdImei },
+  { label: "VLTD Serial No.", value: cleanDisplayValue(d.deviceSerialNo) },
+  { label: "VLTD IMEI No.", value: cleanDisplayValue(d.vltdImei) },
   { label: "VLTD/E-SIM ICCID", value: formatICCID(d.iccid) },
-  { label: "Primary MSISDN/E-SIM Primary Mobile Number", value: d.primaryMsisdn },
-  { label: "Fallback MSISDN/E-SIM Secondery Mobile Number", value: d.fallbackMsisdn },
+  { label: "Primary MSISDN/E-SIM Primary Mobile Number", value: cleanDisplayValue(d.primaryMsisdn) },
+  { label: "Fallback MSISDN/E-SIM Secondary Mobile Number", value: cleanDisplayValue(d.fallbackMsisdn) },
   { label: "ICCID/E-SIM Valid Upto", value: d.esimValidUpto },
-  { label: "No of EMG Button Installed", value: d.noOfEmgButtons },
+  { label: "No. of EMG Buttons Installed", value: d.noOfEmgButtons },
 ];
 
 const ActivationCertificatePreview = ({ deviceId }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const qrSize = isMobile ? 96 : isTablet ? 126 : 148;
 
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [printing, setPrinting] = useState(false);
   const [certificateData, setCertificateData] = useState(null);
   const qrCanvasRef = useRef(null);
+  const certificateRef = useRef(null);
 
   useEffect(() => {
     if (deviceId) {
@@ -99,7 +109,6 @@ const ActivationCertificatePreview = ({ deviceId }) => {
       const imei = device?.imei || vd?.imeiNo || "";
       const serialNo = device?.serial_no || vd?.deviceSerialno || "";
       const vehicleRegNo = vehicle?.vehicle_reg_no || vd?.regnNo || "";
-      const activationDate = formatDate(vd?.activationDate || vehicle?.activation_date || new Date());
       const qrData = `https://skytron.in/activationcertificate/${vehicleRegNo}/${imei}/`;
 
       setCertificateData({
@@ -133,132 +142,231 @@ const ActivationCertificatePreview = ({ deviceId }) => {
   };
 
   const handleDownloadPdf = async () => {
-    if (!certificateData) return;
-    const d = certificateData;
-    const pdf = new jsPDF({ unit: "mm", format: "a4" });
-    const pw = pdf.internal.pageSize.getWidth();
-    const margin = 18;
-    const usable = pw - margin * 2;
-    let y = 16;
-
-    const B = (on) => pdf.setFont("times", on ? "bold" : "normal");
-    const Sz = (n) => pdf.setFontSize(n);
-    const L = (txt, x, yy, opts = {}) => pdf.text(txt, x, yy, opts);
-    const Wrap = (txt, x, yy, w) => {
-      const lines = pdf.splitTextToSize(txt, w);
-      lines.forEach((l) => { pdf.text(l, x, yy); yy += 6; });
-      return yy;
-    };
-
-    Sz(16); B(true);
-    L("VLTD ACTIVATION CERTIFICATE", pw / 2, y, { align: "center" }); y += 6;
-    Sz(9); B(false);
-    L("(Generated Online in https://skytron.in)", pw / 2, y, { align: "center" }); y += 3;
+    if (!certificateData || !certificateRef.current) return;
 
     try {
-      const canvas = qrCanvasRef.current?.querySelector("canvas");
-      if (canvas) {
-        const qrDataUrl = canvas.toDataURL("image/png");
-        pdf.addImage(qrDataUrl, "PNG", pw - margin - 35, y + 2, 35, 35);
+      setDownloading(true);
+      const element = certificateRef.current;
+      const scrollWidth = element.scrollWidth || element.offsetWidth;
+      const scrollHeight = element.scrollHeight || element.offsetHeight;
+
+      const canvas = await html2canvas(element, {
+        scale: 2.5,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        scrollX: 0,
+        scrollY: 0,
+        x: 0,
+        y: 0,
+        width: scrollWidth,
+        height: scrollHeight,
+        windowWidth: Math.max(1280, scrollWidth),
+        windowHeight: scrollHeight + 400,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pageWidth = pdf.internal.pageSize.getWidth(); // 210
+      const pageHeight = pdf.internal.pageSize.getHeight(); // 297
+
+      // Generous side and vertical margins
+      const marginX = 8;
+      const marginY = 12;
+      const usableWidth = pageWidth - marginX * 2; // 194mm
+      const usableHeight = pageHeight - marginY * 2; // 273mm
+
+      let imgWidth = usableWidth;
+      let imgHeight = (canvas.height * usableWidth) / canvas.width;
+
+      if (imgHeight > usableHeight) {
+        const ratio = usableHeight / imgHeight;
+        imgHeight = usableHeight;
+        imgWidth = imgWidth * ratio;
       }
-    } catch (_) { }
 
-    y += 14;
-    Sz(11); B(false);
-    L("To,", margin, y); y += 5;
-    L("The Registering Authority", margin, y); y += 5;
-    L("State Transport Department, Govt. of Assam", margin, y); y += 24;
+      // Position slightly upward from center for optimal document optical balance
+      const xOffset = (pageWidth - imgWidth) / 2;
+      const yOffset = Math.max(marginY, ((pageHeight - imgHeight) / 2) - 10);
 
-    Sz(10);
-    L("VLTD Certificate No: ", margin, y);
-    B(true); L(d.certNo, margin + pdf.getTextWidth("VLTD Certificate No: "), y); B(false);
-    const dl = "VLTD Activation Date (In https://skytron.in): ";
-    const dx = pw / 2;
-    L(dl, dx, y);
-    B(true); L(d.activationDate, dx + pdf.getTextWidth(dl), y); B(false);
-    y += 12;
-
-    Sz(11); B(true);
-    y = Wrap(`Subject:   VLTD Serial No: ${d.deviceSerialNo} in the vehicle having chassis no: ${d.chassisNo} in the portal (https://skytron.in), State Transport Department, Govt. of Assam.`, margin, y, usable);
-    B(false); y += 5;
-    L("Dear Sir,", margin, y); y += 10;
-
-    y = Wrap(`This is to inform you that VLTD serial number: ${d.deviceSerialNo}, model number: ${d.vltdModel} of VLTD manufacturer ${d.vltdMake}, has been activated on vehicle having chasis number: ${d.chassisNo} , engine number: ${d.engineNo} ,vehicle registration number: ${d.vehicleRegNo} and vehicle class: ${d.vehicleClass}`, margin, y, usable);
-    y += 14;
-
-    L("The details of VLTD shown blow:", margin, y); y += 8;
-    buildRows(d).forEach(({ label, value }) => {
-      B(false); L(`${label}: `, margin, y);
-      B(true); L(value || "", margin + pdf.getTextWidth(`${label}: `), y);
-      y += 6;
-    });
-    y += 14;
-
-    B(true); L("Thanking You", margin, y); y += 16;
-    L("(Name & Address of Retro Fitment Center)", margin, y); y += 6;
-    L(d.fitmentCenterName, margin, y); y += 6;
-    B(false);
-    if (d.fitmentCenterAddress) { y = Wrap(d.fitmentCenterAddress, margin, y, usable); }
-    y += 6;
-    B(true); L(`Registering Office: ${d.registeringOffice}`, margin, y);
-
-    pdf.save("VLTD_Activation_Certificate.pdf");
+      pdf.addImage(imgData, "PNG", xOffset, yOffset, imgWidth, imgHeight, undefined, "FAST");
+      pdf.save("VLTD_Activation_Certificate.pdf");
+    } catch (err) {
+      console.error("Certificate PDF generation error:", err);
+    } finally {
+      setDownloading(false);
+    }
   };
 
-  const handlePrintCertificate = () => {
-    if (!certificateData) return;
-    const d = certificateData;
-    const rows = buildRows(d).map((r) => `<p class="dr">${r.label}: <strong>${r.value || ""}</strong></p>`).join("");
-    const qrDataUrl = (() => {
-      try {
-        const canvas = qrCanvasRef.current?.querySelector("canvas");
-        if (canvas) return canvas.toDataURL("image/png");
-      } catch (_) { }
-      return "";
-    })();
+  const handlePrintCertificate = async () => {
+    if (!certificateData || !certificateRef.current) return;
 
-    const html = `<!DOCTYPE html>
-<html><head><title>VLTD Activation Certificate</title>
-<style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:'Times New Roman',Times,serif;padding:52px 58px;color:#000;font-size:14px;line-height:1.8}
-  .hdr{text-align:center;margin-bottom:36px}
-  .hdr h1{font-size:20px;font-weight:bold;letter-spacing:.5px}
-  .hdr sub{font-size:12px;font-style:normal}
-  .top-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:36px}
-  .meta{display:flex;justify-content:space-between;margin-bottom:20px}
-  p{margin-bottom:12px}
-  .dr{margin-bottom:5px}
-  .gap{margin-top:24px;margin-bottom:12px}
-  .gap2{margin-top:32px}
-  @media print{@page{margin:18px}body{padding:20px}}
-</style></head><body>
-<div class="hdr"><h1>VLTD ACTIVATION CERTIFICATE</h1><p><sub>(Generated Online in https://skytron.in)</sub></p></div>
-<div class="top-row">
-  <div>
-    <p>To,<br/>The Registering Authority<br/>State Transport Department, Govt. of Assam</p>
-  </div>
-  ${qrDataUrl ? `<div><img src="${qrDataUrl}" width="148" height="148" alt="QR"/></div>` : ""}
-</div>
-<div class="meta">
-  <span>VLTD Certificate No: <strong>${d.certNo}</strong></span>
-  <span>VLTD Activation Date (In https://skytron.in): <strong>${d.activationDate}</strong></span>
-</div>
-<p><strong>Subject:</strong>&nbsp;&nbsp; VLTD Serial No: <strong>${d.deviceSerialNo}</strong> in the vehicle having chassis no: <strong>${d.chassisNo}</strong> in the portal (https://skytron.in), State Transport Department, Govt. of Assam.</p>
-<p>Dear Sir,</p>
-<p>This is to inform you that VLTD serial number: <strong>${d.deviceSerialNo}</strong>, model number: <strong>${d.vltdModel}</strong> of VLTD manufacturer <strong>${d.vltdMake}</strong>, has been activated on vehicle having chasis number: <strong>${d.chassisNo}</strong> , engine number: <strong>${d.engineNo}</strong> ,vehicle registration number: <strong>${d.vehicleRegNo}</strong> and vehicle class: <strong>${d.vehicleClass}</strong></p>
-<p class="gap">The details of VLTD shown blow:</p>
-<br/>
-${rows}
-<p class="gap2"><strong>Thanking You</strong></p>
-<br/><br/>
-<p><strong>(Name &amp; Address of Retro Fitment Center)</strong><br/><strong>${d.fitmentCenterName}</strong><br/><strong>${d.fitmentCenterAddress || ""}</strong></p>
-<p><strong>Registering Office: ${d.registeringOffice}</strong></p>
-</body></html>`;
+    // Pre-open print window synchronously to prevent popup blocker on async completion
     const w = window.open("", "_blank", "width=900,height=1200");
-    if (!w) return;
-    w.document.open(); w.document.write(withStyleNonce(html)); w.document.close();
-    w.focus(); setTimeout(() => { w.print(); w.close(); }, 300);
+    if (w) {
+      w.document.open();
+      w.document.write("<!DOCTYPE html><html><head><title></title></head><body style='margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:serif;color:#555;'><p>Preparing Certificate for Print...</p></body></html>");
+      w.document.close();
+    }
+
+    try {
+      setPrinting(true);
+      const element = certificateRef.current;
+      const scrollWidth = element.scrollWidth || element.offsetWidth;
+      const scrollHeight = element.scrollHeight || element.offsetHeight;
+
+      const canvas = await html2canvas(element, {
+        scale: 2.5,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        scrollX: 0,
+        scrollY: 0,
+        x: 0,
+        y: 0,
+        width: scrollWidth,
+        height: scrollHeight,
+        windowWidth: Math.max(1280, scrollWidth),
+        windowHeight: scrollHeight + 400,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+
+      const pageWidth = 210; // mm
+      const pageHeight = 297; // mm
+      const marginX = 8; // mm
+      const marginY = 12; // mm
+      const usableWidth = pageWidth - marginX * 2; // 194mm
+      const usableHeight = pageHeight - marginY * 2; // 273mm
+
+      let imgWidth = usableWidth;
+      let imgHeight = (canvas.height * usableWidth) / canvas.width;
+
+      if (imgHeight > usableHeight) {
+        const ratio = usableHeight / imgHeight;
+        imgHeight = usableHeight;
+        imgWidth = imgWidth * ratio;
+      }
+
+      // Position slightly upward matching download PDF
+      const xOffset = (pageWidth - imgWidth) / 2;
+      const yOffset = Math.max(marginY, ((pageHeight - imgHeight) / 2) - 10);
+
+      const html = `<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<style>
+  @page {
+    size: A4 portrait;
+    margin: 0 !important;
+  }
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    max-height: 297mm !important;
+    background: #fff !important;
+    overflow: hidden !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .print-page {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    max-height: 297mm;
+    overflow: hidden;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+  .cert-img {
+    position: absolute;
+    left: ${xOffset.toFixed(2)}mm;
+    top: ${yOffset.toFixed(2)}mm;
+    width: ${imgWidth.toFixed(2)}mm;
+    height: ${imgHeight.toFixed(2)}mm;
+    display: block;
+  }
+  @media print {
+    @page {
+      size: A4 portrait;
+      margin: 0 !important;
+    }
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 210mm !important;
+      height: 297mm !important;
+      max-height: 297mm !important;
+      overflow: hidden !important;
+    }
+    .print-page {
+      width: 210mm !important;
+      height: 297mm !important;
+      max-height: 297mm !important;
+      overflow: hidden !important;
+      page-break-after: avoid !important;
+      break-after: avoid !important;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="print-page">
+    <img class="cert-img" src="${imgData}" alt="" />
+  </div>
+</body>
+</html>`;
+
+      if (w && !w.closed) {
+        w.document.open();
+        w.document.write(withStyleNonce(html));
+        w.document.close();
+        w.focus();
+        setTimeout(() => {
+          w.print();
+          w.close();
+        }, 300);
+      } else {
+        let frame = document.getElementById("certificate-print-frame");
+        if (!frame) {
+          frame = document.createElement("iframe");
+          frame.id = "certificate-print-frame";
+          frame.style.position = "fixed";
+          frame.style.top = "-9999px";
+          frame.style.left = "-9999px";
+          frame.style.width = "210mm";
+          frame.style.height = "297mm";
+          frame.style.border = "none";
+          document.body.appendChild(frame);
+        }
+        const frameDoc = frame.contentWindow.document;
+        frameDoc.open();
+        frameDoc.write(withStyleNonce(html));
+        frameDoc.close();
+        setTimeout(() => {
+          frame.contentWindow.focus();
+          frame.contentWindow.print();
+        }, 300);
+      }
+    } catch (err) {
+      console.error("Certificate print error:", err);
+      if (w && !w.closed) w.close();
+    } finally {
+      setPrinting(false);
+    }
   };
 
   if (loading) {
@@ -300,7 +408,8 @@ ${rows}
         <Button
           variant="outlined"
           color="secondary"
-          startIcon={<Print />}
+          startIcon={printing ? <CircularProgress size={18} color="inherit" /> : <Print />}
+          disabled={printing || downloading}
           onClick={handlePrintCertificate}
           sx={{
             borderRadius: 2,
@@ -309,12 +418,13 @@ ${rows}
             width: { xs: "100%", sm: "auto" }
           }}
         >
-          Print Certificate
+          {printing ? "Preparing Print..." : "Print Certificate"}
         </Button>
         <Button
           variant="contained"
           color="primary"
-          startIcon={<Download />}
+          startIcon={downloading ? <CircularProgress size={18} color="inherit" /> : <Download />}
+          disabled={downloading}
           onClick={handleDownloadPdf}
           sx={{
             borderRadius: 2,
@@ -323,41 +433,48 @@ ${rows}
             width: { xs: "100%", sm: "auto" }
           }}
         >
-          Download PDF
+          {downloading ? "Generating PDF..." : "Download PDF"}
         </Button>
       </Box>
 
       <Grid container justifyContent="center">
-        <Grid item xs={12} md={10} lg={12}>
+        <Grid item xs={12}>
           <Paper
-            elevation={2}
+            elevation={3}
             sx={{
               background: "#fff",
-              border: "1px solid #ccc",
+              border: "1px solid #d4d4d4",
               borderRadius: "4px",
               width: "100%",
+              maxWidth: "860px",
+              mx: "auto",
               overflow: "hidden",
-              boxShadow: { xs: "0 1px 4px rgba(0,0,0,0.08)", sm: "0 2px 8px rgba(0,0,0,0.1)" }
+              boxShadow: "0 3px 14px rgba(0,0,0,0.08)"
             }}
           >
             <Box
+              ref={certificateRef}
+              id="certificate-print-node-preview"
               sx={{
-                p: { xs: "24px 16px", sm: "36px 32px", md: "52px 58px" },
+                pt: { xs: "18px", sm: "24px", md: "34px" },
+                pb: { xs: "24px", sm: "36px", md: "52px" },
+                px: { xs: "20px", sm: "44px", md: "76px" },
                 fontFamily: F,
-                fontSize: { xs: "13px", sm: "13.5px", md: FS },
+                fontSize: { xs: "13px", sm: "14px", md: FS },
                 lineHeight: { xs: 1.6, sm: 1.7, md: LH },
                 color: "#000",
+                backgroundColor: "#ffffff",
                 wordBreak: "break-word",
                 overflowWrap: "break-word"
               }}
             >
-              <Box sx={{ textAlign: "center", mb: { xs: "20px", sm: "28px", md: "36px" } }}>
+              <Box sx={{ textAlign: "center", mb: { xs: "26px", sm: "36px", md: "52px" } }}>
                 <Typography
                   sx={{
                     fontFamily: F,
-                    fontSize: { xs: "16px", sm: "18px", md: "20px" },
+                    fontSize: { xs: "17px", sm: "19px", md: "21px" },
                     fontWeight: 700,
-                    letterSpacing: ".5px",
+                    letterSpacing: ".6px",
                     color: "#000",
                     lineHeight: 1.3
                   }}
@@ -367,9 +484,9 @@ ${rows}
                 <Typography
                   sx={{
                     fontFamily: F,
-                    fontSize: { xs: "11px", sm: "11.5px", md: "12px" },
+                    fontSize: { xs: "11.5px", sm: "12px", md: "12.5px" },
                     color: "#000",
-                    mt: 0.5
+                    mt: 0.8
                   }}
                 >
                   (Generated Online in https://skytron.in)
@@ -382,20 +499,21 @@ ${rows}
                   justifyContent: "space-between",
                   alignItems: "flex-start",
                   gap: { xs: 1.5, sm: 2 },
-                  mb: { xs: "20px", sm: "28px", md: "36px" }
+                  mb: { xs: "20px", sm: "26px", md: "32px" }
                 }}
               >
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <T>To,</T>
-                  <T>The Registering Authority</T>
-                  <T>State Transport Department, Govt. of Assam</T>
+                  <T>The Registering Authority,</T>
+                  <T>State Transport Department, Govt. of Assam.</T>
                 </Box>
                 <Box
+                  ref={qrCanvasRef}
                   sx={{
                     flexShrink: 0,
                     ml: { xs: 1, sm: 2 },
                     p: 0.5,
-                    border: "1px solid #eaeaea",
+                    border: "1px solid #e0e0e0",
                     borderRadius: "4px",
                     bgcolor: "#fff",
                     display: "flex",
@@ -403,20 +521,12 @@ ${rows}
                     justifyContent: "center"
                   }}
                 >
-                  <QRCodeSVG
+                  <QRCodeCanvas
                     value={certificateData.qrData || "VLTD-CERTIFICATE"}
                     size={qrSize}
                     level="M"
                     includeMargin={false}
                   />
-                  <Box ref={qrCanvasRef} sx={{ display: "none" }}>
-                    <QRCodeCanvas
-                      value={certificateData.qrData || "VLTD-CERTIFICATE"}
-                      size={200}
-                      level="M"
-                      includeMargin={false}
-                    />
-                  </Box>
                 </Box>
               </Box>
 
@@ -426,19 +536,19 @@ ${rows}
                   flexDirection: { xs: "column", sm: "row" },
                   justifyContent: "space-between",
                   gap: { xs: 0.8, sm: 1.5 },
-                  mb: { xs: "16px", sm: "20px" }
+                  mb: { xs: "16px", sm: "20px", md: "24px" }
                 }}
               >
                 <Typography sx={{ fontFamily: F, fontSize: { xs: "13px", sm: FS }, color: "#000" }}>
-                  VLTD Certificate No: <strong>{certificateData.certNo}</strong>
+                  VLTD Certificate No.: <strong>{certificateData.certNo}</strong>
                 </Typography>
                 <Typography sx={{ fontFamily: F, fontSize: { xs: "13px", sm: FS }, color: "#000" }}>
-                  VLTD Activation Date (In https://skytron.in):{" "}
+                  VLTD Activation Date (in https://skytron.in):{" "}
                   <strong>{certificateData.activationDate}</strong>
                 </Typography>
               </Box>
 
-              <Box sx={{ mb: { xs: "10px", sm: "12px" } }}>
+              <Box sx={{ mb: { xs: "12px", sm: "16px", md: "20px" } }}>
                 <Typography
                   component="p"
                   sx={{
@@ -448,38 +558,42 @@ ${rows}
                     color: "#000"
                   }}
                 >
-                  <strong>Subject:</strong>&nbsp;&nbsp; VLTD Serial No:{" "}
-                  <strong>{certificateData.deviceSerialNo}</strong> in the vehicle having chassis no:{" "}
+                  <strong>Subject:</strong>&nbsp;&nbsp;VLTD Serial No.:{" "}
+                  <strong>{cleanDisplayValue(certificateData.deviceSerialNo)}</strong> in vehicle having Chassis No.:{" "}
                   <strong>{certificateData.chassisNo}</strong> in the portal (https://skytron.in),
                   State Transport Department, Govt. of Assam.
                 </Typography>
               </Box>
 
-              <T sx={{ mb: { xs: "10px", sm: "12px" } }}>Dear Sir,</T>
+              <T sx={{ mb: { xs: "12px", sm: "14px", md: "16px" } }}>Dear Sir,</T>
 
-              <Box sx={{ mb: { xs: "20px", sm: "26px", md: "32px" } }}>
+              <Box sx={{ mb: { xs: "22px", sm: "26px", md: "32px" } }}>
                 <Typography
                   component="p"
                   sx={{
                     fontFamily: F,
                     fontSize: { xs: "13px", sm: FS },
                     lineHeight: { xs: 1.6, sm: LH },
-                    color: "#000"
+                    color: "#000",
+                    textAlign: "justify"
                   }}
                 >
-                  This is to inform you that VLTD serial number:{" "}
-                  <strong>{certificateData.deviceSerialNo}</strong>, model number:{" "}
-                  <strong>{certificateData.vltdModel}</strong> of VLTD manufacturer{" "}
-                  <strong>{certificateData.vltdMake}</strong>, has been activated on vehicle having chasis number:{" "}
-                  <strong>{certificateData.chassisNo}</strong> , engine number:{" "}
-                  <strong>{certificateData.engineNo}</strong> ,vehicle registration number:{" "}
-                  <strong>{certificateData.vehicleRegNo}</strong> and vehicle class:{" "}
-                  <strong>{certificateData.vehicleClass}</strong>
+                  This is to inform you that Serial Number:{" "}
+                  <strong>{cleanDisplayValue(certificateData.deviceSerialNo)}</strong>, Model:{" "}
+                  <strong>{certificateData.vltdModel}</strong> of VLTD Manufacturer{" "}
+                  <Box component="span" sx={{ whiteSpace: "nowrap" }}>
+                    <strong>{certificateData.vltdMake}</strong>,
+                  </Box>{" "}
+                  has been activated on vehicle having Chassis Number:{" "}
+                  <strong>{certificateData.chassisNo}</strong>, Engine Number:{" "}
+                  <strong>{certificateData.engineNo}</strong>, Vehicle Registration Number:{" "}
+                  <strong>{certificateData.vehicleRegNo}</strong>, and Vehicle Class:{" "}
+                  <strong>{certificateData.vehicleClass}</strong>.
                 </Typography>
               </Box>
 
-              <T sx={{ mb: { xs: "10px", sm: "14px" } }}>The details of VLTD shown blow:</T>
-              <Box sx={{ mb: { xs: "20px", sm: "26px", md: "32px" } }}>
+              <T sx={{ mb: { xs: "14px", sm: "16px", md: "20px" } }}>The details of the VLTD are shown below:</T>
+              <Box sx={{ pl: { xs: "16px", sm: "24px" }, mb: { xs: "24px", sm: "28px", md: "34px" } }}>
                 {buildRows(certificateData).map(({ label, value }) => (
                   <Typography
                     key={label}
@@ -488,7 +602,7 @@ ${rows}
                       fontFamily: F,
                       fontSize: { xs: "13px", sm: FS },
                       lineHeight: { xs: 1.6, sm: LH },
-                      mb: "4px",
+                      mb: { xs: "14px", sm: "16px", md: "18px" },
                       color: "#000"
                     }}
                   >
@@ -497,18 +611,26 @@ ${rows}
                 ))}
               </Box>
 
-              <T bold sx={{ mb: { xs: "20px", sm: "26px", md: "32px" } }}>Thanking You</T>
+              <T bold sx={{ mb: { xs: "18px", sm: "22px", md: "26px" } }}>Thanking You,</T>
 
-              <Box sx={{ mt: "8px" }}>
-                <T bold>(Name &amp; Address of Retro Fitment Center)</T>
-                <T bold>{certificateData.fitmentCenterName}</T>
-                {certificateData.fitmentCenterAddress && (
-                  <T bold>{certificateData.fitmentCenterAddress}</T>
+              <Box sx={{ display: "flex", flexDirection: "column" }}>
+                <T sx={{ mb: { xs: "4px", sm: "6px" } }}>Retro Fitment Center</T>
+                {certificateData.fitmentCenterName && (
+                  <T sx={{ lineHeight: 1.5 }}>
+                    <strong>
+                      {certificateData.fitmentCenterName.trim().replace(/,+$/, "")}
+                      {certificateData.fitmentCenterAddress ? "," : ""}
+                    </strong>
+                  </T>
                 )}
-              </Box>
-
-              <Box sx={{ mt: { xs: "12px", sm: "16px" } }}>
-                <T bold>Registering Office: {certificateData.registeringOffice}</T>
+                {certificateData.fitmentCenterAddress && (
+                  <T sx={{ lineHeight: 1.5 }}>
+                    <strong>{certificateData.fitmentCenterAddress.trim()}</strong>
+                  </T>
+                )}
+                <Box sx={{ mt: { xs: "12px", sm: "16px" } }}>
+                  <T>Registered Office: <strong>{certificateData.registeringOffice}</strong></T>
+                </Box>
               </Box>
             </Box>
           </Paper>

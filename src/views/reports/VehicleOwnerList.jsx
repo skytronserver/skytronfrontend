@@ -46,15 +46,51 @@ const VehicleOwnerList = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const parseDateSafely = (val) => {
+    if (!val) return null;
+    if (val instanceof Date && !isNaN(val.getTime())) return val;
+    if (typeof val === 'string') {
+      const trimmed = val.trim();
+      const direct = new Date(trimmed);
+      if (!isNaN(direct.getTime())) return direct;
+
+      // Handle DD/MM/YYYY or DD-MM-YYYY formats (e.g. 24/10/2029 or 24-10-2029)
+      const parts = trimmed.split(/[-/]/);
+      if (parts.length === 3) {
+        if (parts[2].length === 4) {
+          const day = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1;
+          const year = parseInt(parts[2], 10);
+          const parsed = new Date(year, month, day);
+          if (!isNaN(parsed.getTime())) return parsed;
+        } else if (parts[0].length === 4) {
+          const year = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1;
+          const day = parseInt(parts[2], 10);
+          const parsed = new Date(year, month, day);
+          if (!isNaN(parsed.getTime())) return parsed;
+        }
+      }
+    }
+    return null;
+  };
+
   // Extend Validity Handlers
   const handleOpenExtendDialog = (ownerId, userName, currentExpiry) => {
     // Format date for input type="date" (YYYY-MM-DD) if currentExpiry exists
     let formattedDate = '';
     let displayCurrentExpiry = 'N/A';
     if (currentExpiry) {
-      const date = new Date(currentExpiry);
-      formattedDate = date.toISOString().split('T')[0];
-      displayCurrentExpiry = date.toLocaleDateString('en-GB');
+      const parsed = parseDateSafely(currentExpiry);
+      if (parsed) {
+        const yyyy = parsed.getFullYear();
+        const mm = String(parsed.getMonth() + 1).padStart(2, '0');
+        const dd = String(parsed.getDate()).padStart(2, '0');
+        formattedDate = `${yyyy}-${mm}-${dd}`;
+        displayCurrentExpiry = parsed.toLocaleDateString('en-GB');
+      } else if (typeof currentExpiry === 'string') {
+        displayCurrentExpiry = currentExpiry;
+      }
     }
 
     setExtendDialog({
@@ -81,6 +117,15 @@ const VehicleOwnerList = () => {
         return;
       }
 
+      if (!extendDialog.ownerId) {
+        setNotification({
+          open: true,
+          message: 'Invalid owner ID',
+          severity: 'error'
+        });
+        return;
+      }
+
       const response = await UserServices.updateVehicleOwnerExpiry({
         owner_id: extendDialog.ownerId,
         new_expiry_date: extendDialog.newExpiry
@@ -101,7 +146,7 @@ const VehicleOwnerList = () => {
       console.error('Error extending validity:', error);
       setNotification({
         open: true,
-        message: 'Failed to extend validity',
+        message: error?.response?.data?.message || 'Failed to extend validity',
         severity: 'error'
       });
     }
@@ -119,7 +164,11 @@ const VehicleOwnerList = () => {
           ...col,
           options: {
             ...col.options,
-            customBodyRender: (value) => value ? new Date(value).toLocaleDateString('en-GB') : 'N/A'
+            customBodyRender: (value) => {
+              if (!value) return 'N/A';
+              const parsed = parseDateSafely(value);
+              return parsed ? parsed.toLocaleDateString('en-GB') : String(value);
+            }
           }
         };
       }
@@ -132,20 +181,24 @@ const VehicleOwnerList = () => {
         filter: false,
         sort: false,
         customBodyRender: (value, tableMeta) => {
-          // Note: tableMeta.rowData contains raw values from API (timestamps, where present, are in GMT/UTC).
-          // 'users' column is at index 1 and contains array of user objects.
-          // We need to support cases where columns might be reordered, but relying on data structure is safer if we knew field name.
-          // tableMeta.rowData follows the column order. 
-          // vehicleOwnerCols index 1 is 'users' (User Name).
-          // vehicleOwnerCols index 7 is 'expirydate'.
+          // Direct row object lookup using tableMeta.dataIndex
+          const rowObj = (ownerList && ownerList[tableMeta.dataIndex]) || {};
 
-          // Finding the 'users' object from rowData. 
-          // Since multiple columns use 'users', we can pick index 1.
-          const usersData = tableMeta.rowData[1];
-          const currentExpiry = tableMeta.rowData[7];
-          const ownerId = tableMeta.rowData[0]; // owner_id is at index 0
+          // Column indices in vehicleOwnerCols:
+          // 0: id
+          // 1..5: users (Name, Email, Mobile, Address, User Type)
+          // 6: idProofno
+          // 7: users (Status)
+          // 8: expirydate
+          // 9..10: users (Created By, Created On)
+          const expiryColIndex = vehicleOwnerCols.findIndex(col => col.name === 'expirydate');
+          const idColIndex = vehicleOwnerCols.findIndex(col => col.name === 'id');
+          const userColIndex = vehicleOwnerCols.findIndex(col => col.name === 'users');
 
-          const userName = usersData && usersData[0] ? usersData[0].name : 'Unknown';
+          const ownerId = rowObj.id ?? (idColIndex !== -1 ? tableMeta.rowData[idColIndex] : tableMeta.rowData[0]);
+          const usersData = rowObj.users ?? (userColIndex !== -1 ? tableMeta.rowData[userColIndex] : tableMeta.rowData[1]);
+          const userName = (Array.isArray(usersData) && usersData[0]?.name) || 'Unknown';
+          const currentExpiry = rowObj.expirydate ?? (expiryColIndex !== -1 ? tableMeta.rowData[expiryColIndex] : tableMeta.rowData[8]);
 
           return (
             <Button

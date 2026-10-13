@@ -49,7 +49,7 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
   const container = window !== undefined ? () => window.document.body : undefined;
 
   return (
-    <Box component="nav" sx={{ flexShrink: { md: 0 }, width: matchUpMd ? drawerWidth : 'auto' }} aria-label="mailbox folders">
+    <Box component="nav" sx={{ flexShrink: { md: 0 }, width: matchUpMd ? drawerWidth : 'auto', zIndex: { xs: theme.zIndex.drawer + 50, md: 'auto' } }} aria-label="mailbox folders">
       <Drawer
         container={container}
         variant={matchUpMd ? 'persistent' : 'permanent'}
@@ -57,6 +57,7 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
         open={drawerOpen}
         onClose={drawerToggle}
         sx={{
+          zIndex: { xs: theme.zIndex.drawer + 50, md: 'auto' },
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             background: theme.palette.background.default,
@@ -68,6 +69,7 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
             [theme.breakpoints.down('md')]: {
               position: 'fixed',
               top: 0,
+              zIndex: theme.zIndex.drawer + 50,
               left: drawerOpen ? 0 : -drawerWidth,
               transition: theme.transitions.create(['left'], {
                 easing: theme.transitions.easing.sharp,

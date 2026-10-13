@@ -2817,13 +2817,13 @@ ${trailerHtml}
     };
 
     return (
-        <div style={{ width, height, position: 'relative' }}>
+        <div style={{ width, height, position: 'relative', isolation: 'isolate', zIndex: 1 }}>
             {/* Map container */}
             <div style={{ width: "100%", height: "100%", position: "relative" }}>
                 {/* Map Type Toggle Buttons */}
                 {showMapTypeToggle && (
                     <Box
-                        sx={{ position: "absolute", top: "10px", left: "50px", zIndex: 10000 }}
+                        sx={{ position: "absolute", top: "10px", left: "50px", zIndex: 10 }}
                     >
                         <ButtonGroup variant="outlined" size="small" sx={{ backgroundColor: "rgba(255, 255, 255, 0.85)", backdropFilter: "blur(4px)" }}>
                             <Tooltip title="Normal Map - Bhuvan Layers">
