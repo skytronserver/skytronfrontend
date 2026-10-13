@@ -1267,7 +1267,7 @@
     "approvedCOPsTitle": "Approved COP Models"
   },
   "device": {
-    "reportTitle": "Device Report",
+    "reportTitle": "Fitment Report",
     "availableDevices": "Available Devices",
     "sell": "Sell",
     "defective": "Defective",

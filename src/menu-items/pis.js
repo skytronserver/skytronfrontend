@@ -10,7 +10,7 @@ const pis = {
   id: 'pis-management',
   title: 'Passenger Info System',
   type: 'group',
-  roles: ['superadmin', 'stateadmin', 'dtorto', 'owner'],
+  roles: ['superadmin', 'stateadmin', 'dtorto'],
   children: [
     {
       id: 'pis-main',

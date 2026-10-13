@@ -498,10 +498,12 @@ const RouteFixing = () => {
     } catch (error) {
       console.error("Error adding new route:", error);
       setAlert({
-        open: true,
-        message: error.message || "Failed to add route. Please try again.",
-        type: "error"
-      });
+    open: true,
+    message:
+      error?.response?.data?.error ||
+      "Failed to add route. Please try again.",
+    type: "error",
+  });
     }
   };
   const handleAutocompleteChange = (event, newValue) => {

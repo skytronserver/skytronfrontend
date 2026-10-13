@@ -556,7 +556,7 @@ const MainRoutes = {
     {
       path: '/pis/bus-schedules',
       element: <BusScheduleManagement />,
-      roles: ['superadmin', 'stateadmin', 'dtorto', 'owner']
+      roles: ['superadmin', 'stateadmin', 'dtorto']
     },
     // State Transport Analytics Routes
     {
