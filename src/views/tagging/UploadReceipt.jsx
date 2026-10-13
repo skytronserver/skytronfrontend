@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useRef } from "react";
 import * as Yup from "yup";
-import { Grid, Button, Box, Paper, Typography } from "@mui/material";
+import { Grid, Button, Box, Paper, Typography, useTheme, useMediaQuery } from "@mui/material";
 import { Download, Print, Visibility } from "@mui/icons-material";
 import MainCard from "../../ui-component/cards/MainCard";
 import { Formik } from "formik";
@@ -57,7 +57,14 @@ const LH = 1.8;
 const T = ({ children, sx = {}, bold = false }) => (
   <Typography
     component="p"
-    sx={{ fontFamily: F, fontSize: FS, lineHeight: LH, fontWeight: bold ? 700 : 400, color: "#000", ...sx }}
+    sx={{
+      fontFamily: F,
+      fontSize: { xs: "13px", sm: "13.5px", md: FS },
+      lineHeight: { xs: 1.6, sm: 1.7, md: LH },
+      fontWeight: bold ? 700 : 400,
+      color: "#000",
+      ...sx
+    }}
   >
     {children}
   </Typography>
@@ -77,6 +84,11 @@ const buildRows = (d) => [
 // ─────────────────────────────────────────────
 const UploadReceipt = () => {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
+  const qrSize = isMobile ? 96 : isTablet ? 126 : 148;
+
   const [loading, setLoading] = useState(false);
   const [updatedFormFields, setUpdatedFormField] = useState(uploadReceiptFormFields);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
@@ -134,9 +146,10 @@ const UploadReceipt = () => {
       const imeiData = apiData.imei || imei || "";
       const serialNo = apiData.serial_no || ""; 
       const chassisNo = apiData.chassis_no || "";
+      const vehicleRegNo = apiData.vehicle_reg_no || "";
       const activationDate = formatDate(apiData.tagged_at || new Date());
-      // QR encodes all key certificate fields — unique per device
-      const qrData = `Sr No:${serialNo}\nIMEI:${imeiData}\nChassis No:${chassisNo}\nCertificate No:${certNo || ""}\nActivation Date:${activationDate}`;
+      // QR encodes the activation certificate link
+      const qrData = `https://skytron.in/activationcertificate/${vehicleRegNo}/${imeiData}/`;
 
       setCertificateData({
         certNo: certNo,
@@ -317,21 +330,60 @@ ${rows}
                     <FormField fieldConfig={updatedFormFields[field]} formik={formik} handleFileChange={handleFileChange} />
                   </Grid>
                 ))}
-                <Grid item xs={12} sx={{ mt: 2.5, display: "flex", gap: "12px", flexWrap: "wrap" }}>
-                  <Button variant="outlined" color="primary" startIcon={<Visibility />}
+                <Grid
+                  item
+                  xs={12}
+                  sx={{
+                    mt: 2.5,
+                    display: "flex",
+                    gap: { xs: 1.5, sm: "12px" },
+                    flexWrap: "wrap",
+                    flexDirection: { xs: "column", sm: "row" }
+                  }}
+                >
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<Visibility />}
                     disabled={loading || !formik.values.device_id}
                     onClick={() => loadCertificatePreview(formik.values)}
-                    sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}>
+                    sx={{
+                      borderRadius: 2,
+                      textTransform: "none",
+                      fontWeight: 600,
+                      width: { xs: "100%", sm: "auto" }
+                    }}
+                  >
                     View Certificate
                   </Button>
-                  <Button variant="outlined" color="secondary" startIcon={<Print />}
-                    disabled={loading || !certificateData} onClick={handlePrintCertificate}
-                    sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    startIcon={<Print />}
+                    disabled={loading || !certificateData}
+                    onClick={handlePrintCertificate}
+                    sx={{
+                      borderRadius: 2,
+                      textTransform: "none",
+                      fontWeight: 600,
+                      width: { xs: "100%", sm: "auto" }
+                    }}
+                  >
                     Print
                   </Button>
-                  <Button variant="contained" color="primary" startIcon={<Download />}
-                    disabled={loading || !certificateData} onClick={handleDownloadPdf}
-                    sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<Download />}
+                    disabled={loading || !certificateData}
+                    onClick={handleDownloadPdf}
+                    sx={{
+                      borderRadius: 2,
+                      textTransform: "none",
+                      fontWeight: 600,
+                      width: { xs: "100%", sm: "auto" }
+                    }}
+                  >
                     {t("common.download", { defaultValue: "Download PDF" })}
                   </Button>
                 </Grid>
@@ -343,35 +395,91 @@ ${rows}
 
       {/* ─── Certificate Preview ─── */}
       {certificateData && (
-        <Grid container justifyContent="center" sx={{ mt: 4 }}>
+        <Grid container justifyContent="center" sx={{ mt: { xs: 2.5, sm: 3.5, md: 4 } }}>
           <Grid item xs={12} md={10} lg={9}>
-            <Paper elevation={2} sx={{ background: "#fff", border: "1px solid #ccc", borderRadius: "4px" }}>
+            <Paper
+              elevation={2}
+              sx={{
+                background: "#fff",
+                border: "1px solid #ccc",
+                borderRadius: "4px",
+                width: "100%",
+                overflow: "hidden",
+                boxShadow: { xs: "0 1px 4px rgba(0,0,0,0.08)", sm: "0 2px 8px rgba(0,0,0,0.1)" }
+              }}
+            >
 
               {/* Printable area */}
-              <Box sx={{ p: "52px 58px", fontFamily: F, fontSize: FS, lineHeight: LH, color: "#000" }}>
+              <Box
+                sx={{
+                  p: { xs: "24px 16px", sm: "36px 32px", md: "52px 58px" },
+                  fontFamily: F,
+                  fontSize: { xs: "13px", sm: "13.5px", md: FS },
+                  lineHeight: { xs: 1.6, sm: 1.7, md: LH },
+                  color: "#000",
+                  wordBreak: "break-word",
+                  overflowWrap: "break-word"
+                }}
+              >
 
                 {/* ── HEADER ── */}
-                <Box sx={{ textAlign: "center", mb: "36px" }}>
-                  <Typography sx={{ fontFamily: F, fontSize: "20px", fontWeight: 700, letterSpacing: ".5px", color: "#000" }}>
+                <Box sx={{ textAlign: "center", mb: { xs: "20px", sm: "28px", md: "36px" } }}>
+                  <Typography
+                    sx={{
+                      fontFamily: F,
+                      fontSize: { xs: "16px", sm: "18px", md: "20px" },
+                      fontWeight: 700,
+                      letterSpacing: ".5px",
+                      color: "#000",
+                      lineHeight: 1.3
+                    }}
+                  >
                     VLTD ACTIVATION CERTIFICATE
                   </Typography>
-                  <Typography sx={{ fontFamily: F, fontSize: "12px", color: "#000" }}>
+                  <Typography
+                    sx={{
+                      fontFamily: F,
+                      fontSize: { xs: "11px", sm: "11.5px", md: "12px" },
+                      color: "#000",
+                      mt: 0.5
+                    }}
+                  >
                     (Generated Online in https://skytron.in)
                   </Typography>
                 </Box>
 
                 {/* ── TO + QR ── */}
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: "36px" }}>
-                  <Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    gap: { xs: 1.5, sm: 2 },
+                    mb: { xs: "20px", sm: "28px", md: "36px" }
+                  }}
+                >
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
                     <T>To,</T>
                     <T>The Registering Authority</T>
                     <T>State Transport Department, Govt. of Assam</T>
                   </Box>
-                  <Box sx={{ flexShrink: 0, ml: 2 }}>
+                  <Box
+                    sx={{
+                      flexShrink: 0,
+                      ml: { xs: 1, sm: 2 },
+                      p: 0.5,
+                      border: "1px solid #eaeaea",
+                      borderRadius: "4px",
+                      bgcolor: "#fff",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}
+                  >
                     {/* Visible QR */}
                     <QRCodeSVG
                       value={certificateData.qrData || "VLTD-CERTIFICATE"}
-                      size={148}
+                      size={qrSize}
                       level="M"
                       includeMargin={false}
                     />
@@ -388,19 +496,35 @@ ${rows}
                 </Box>
 
                 {/* ── CERT NO & DATE ── */}
-                <Box sx={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 1, mb: "20px" }}>
-                  <Typography sx={{ fontFamily: F, fontSize: FS, color: "#000" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
+                    justifyContent: "space-between",
+                    gap: { xs: 0.8, sm: 1.5 },
+                    mb: { xs: "16px", sm: "20px" }
+                  }}
+                >
+                  <Typography sx={{ fontFamily: F, fontSize: { xs: "13px", sm: FS }, color: "#000" }}>
                     VLTD Certificate No: <strong>{certificateData.certNo}</strong>
                   </Typography>
-                  <Typography sx={{ fontFamily: F, fontSize: FS, color: "#000" }}>
+                  <Typography sx={{ fontFamily: F, fontSize: { xs: "13px", sm: FS }, color: "#000" }}>
                     VLTD Activation Date (In https://skytron.in):{" "}
                     <strong>{certificateData.activationDate}</strong>
                   </Typography>
                 </Box>
 
                 {/* ── SUBJECT ── */}
-                <Box sx={{ mb: "12px" }}>
-                  <Typography component="p" sx={{ fontFamily: F, fontSize: FS, lineHeight: LH, color: "#000" }}>
+                <Box sx={{ mb: { xs: "10px", sm: "12px" } }}>
+                  <Typography
+                    component="p"
+                    sx={{
+                      fontFamily: F,
+                      fontSize: { xs: "13px", sm: FS },
+                      lineHeight: { xs: 1.6, sm: LH },
+                      color: "#000"
+                    }}
+                  >
                     <strong>Subject:</strong>&nbsp;&nbsp; VLTD Serial No:{" "}
                     <strong>{certificateData.deviceSerialNo}</strong> in the vehicle having chassis no:{" "}
                     <strong>{certificateData.chassisNo}</strong> in the portal (https://skytron.in),
@@ -409,11 +533,19 @@ ${rows}
                 </Box>
 
                 {/* ── DEAR SIR ── */}
-                <T sx={{ mb: "12px" }}>Dear Sir,</T>
+                <T sx={{ mb: { xs: "10px", sm: "12px" } }}>Dear Sir,</T>
 
                 {/* ── BODY ── */}
-                <Box sx={{ mb: "32px" }}>
-                  <Typography component="p" sx={{ fontFamily: F, fontSize: FS, lineHeight: LH, color: "#000" }}>
+                <Box sx={{ mb: { xs: "20px", sm: "26px", md: "32px" } }}>
+                  <Typography
+                    component="p"
+                    sx={{
+                      fontFamily: F,
+                      fontSize: { xs: "13px", sm: FS },
+                      lineHeight: { xs: 1.6, sm: LH },
+                      color: "#000"
+                    }}
+                  >
                     This is to inform you that VLTD serial number:{" "}
                     <strong>{certificateData.deviceSerialNo}</strong>, model number:{" "}
                     <strong>{certificateData.vltdModel}</strong> of VLTD manufacturer{" "}
@@ -426,18 +558,27 @@ ${rows}
                 </Box>
 
                 {/* ── DETAILS LIST ── */}
-                <T sx={{ mb: "14px" }}>The details of VLTD shown below:</T>
-                <Box sx={{ mb: "32px" }}>
+                <T sx={{ mb: { xs: "10px", sm: "14px" } }}>The details of VLTD shown below:</T>
+                <Box sx={{ mb: { xs: "20px", sm: "26px", md: "32px" } }}>
                   {buildRows(certificateData).map(({ label, value }) => (
-                    <Typography key={label} component="p"
-                      sx={{ fontFamily: F, fontSize: FS, lineHeight: LH, mb: "4px", color: "#000" }}>
+                    <Typography
+                      key={label}
+                      component="p"
+                      sx={{
+                        fontFamily: F,
+                        fontSize: { xs: "13px", sm: FS },
+                        lineHeight: { xs: 1.6, sm: LH },
+                        mb: "4px",
+                        color: "#000"
+                      }}
+                    >
                       {label}: <strong>{value || ""}</strong>
                     </Typography>
                   ))}
                 </Box>
 
                 {/* ── THANKING YOU ── */}
-                <T bold sx={{ mb: "32px" }}>Thanking You</T>
+                <T bold sx={{ mb: { xs: "20px", sm: "26px", md: "32px" } }}>Thanking You</T>
 
                 {/* ── FITMENT CENTER ── */}
                 <Box sx={{ mt: "8px" }}>
@@ -449,7 +590,7 @@ ${rows}
                 </Box>
 
                 {/* ── REGISTERING OFFICE ── */}
-                <Box sx={{ mt: "16px" }}>
+                <Box sx={{ mt: { xs: "12px", sm: "16px" } }}>
                   <T bold>Registering Office: {certificateData.registeringOffice}</T>
                 </Box>
 

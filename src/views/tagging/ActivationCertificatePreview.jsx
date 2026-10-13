@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Grid, Button, Box, Paper, Typography, CircularProgress } from "@mui/material";
+import { Grid, Button, Box, Paper, Typography, CircularProgress, useTheme, useMediaQuery } from "@mui/material";
 import { Download, Print } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 import { jsPDF } from "jspdf";
@@ -39,7 +39,14 @@ const LH = 1.8;
 const T = ({ children, sx = {}, bold = false }) => (
   <Typography
     component="p"
-    sx={{ fontFamily: F, fontSize: FS, lineHeight: LH, fontWeight: bold ? 700 : 400, color: "#000", ...sx }}
+    sx={{
+      fontFamily: F,
+      fontSize: { xs: "13px", sm: "13.5px", md: FS },
+      lineHeight: { xs: 1.6, sm: 1.7, md: LH },
+      fontWeight: bold ? 700 : 400,
+      color: "#000",
+      ...sx
+    }}
   >
     {children}
   </Typography>
@@ -57,6 +64,11 @@ const buildRows = (d) => [
 
 const ActivationCertificatePreview = ({ deviceId }) => {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
+  const qrSize = isMobile ? 96 : isTablet ? 126 : 148;
+
   const [loading, setLoading] = useState(false);
   const [certificateData, setCertificateData] = useState(null);
   const qrCanvasRef = useRef(null);
@@ -86,9 +98,9 @@ const ActivationCertificatePreview = ({ deviceId }) => {
       const certNo = vd?.certNo || device?.cert_no || "";
       const imei = device?.imei || vd?.imeiNo || "";
       const serialNo = device?.serial_no || vd?.deviceSerialno || "";
-      const chassisNo = vehicle?.chassis_no || vd?.chassisNo || "";
+      const vehicleRegNo = vehicle?.vehicle_reg_no || vd?.regnNo || "";
       const activationDate = formatDate(vd?.activationDate || vehicle?.activation_date || new Date());
-      const qrData = `Sr No:${serialNo}\nIMEI:${imei}\nChassis No:${chassisNo}\nCertificate No:${certNo || ""}\nActivation Date:${activationDate}`;
+      const qrData = `https://skytron.in/activationcertificate/${vehicleRegNo}/${imei}/`;
 
       setCertificateData({
         certNo: certNo || "",
@@ -274,43 +286,126 @@ ${rows}
   }
 
   return (
-    <Box sx={{ mt: 4, width: '100%' }}>
-      <Box sx={{ display: "flex", gap: 2, justifyContent: "center", mb: 3 }}>
-        <Button variant="outlined" color="secondary" startIcon={<Print />}
+    <Box sx={{ mt: { xs: 2.5, sm: 3, md: 4 }, width: '100%' }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: { xs: 1.5, sm: 2 },
+          justifyContent: "center",
+          flexDirection: { xs: "column", sm: "row" },
+          mb: { xs: 2.5, sm: 3 },
+          px: { xs: 1, sm: 0 }
+        }}
+      >
+        <Button
+          variant="outlined"
+          color="secondary"
+          startIcon={<Print />}
           onClick={handlePrintCertificate}
-          sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}>
+          sx={{
+            borderRadius: 2,
+            textTransform: "none",
+            fontWeight: 600,
+            width: { xs: "100%", sm: "auto" }
+          }}
+        >
           Print Certificate
         </Button>
-        <Button variant="contained" color="primary" startIcon={<Download />}
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<Download />}
           onClick={handleDownloadPdf}
-          sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}>
+          sx={{
+            borderRadius: 2,
+            textTransform: "none",
+            fontWeight: 600,
+            width: { xs: "100%", sm: "auto" }
+          }}
+        >
           Download PDF
         </Button>
       </Box>
 
       <Grid container justifyContent="center">
         <Grid item xs={12} md={10} lg={12}>
-          <Paper elevation={2} sx={{ background: "#fff", border: "1px solid #ccc", borderRadius: "4px" }}>
-            <Box sx={{ p: { xs: "20px", sm: "40px", md: "52px 58px" }, fontFamily: F, fontSize: FS, lineHeight: LH, color: "#000" }}>
-              <Box sx={{ textAlign: "center", mb: "36px" }}>
-                <Typography sx={{ fontFamily: F, fontSize: "20px", fontWeight: 700, letterSpacing: ".5px", color: "#000" }}>
+          <Paper
+            elevation={2}
+            sx={{
+              background: "#fff",
+              border: "1px solid #ccc",
+              borderRadius: "4px",
+              width: "100%",
+              overflow: "hidden",
+              boxShadow: { xs: "0 1px 4px rgba(0,0,0,0.08)", sm: "0 2px 8px rgba(0,0,0,0.1)" }
+            }}
+          >
+            <Box
+              sx={{
+                p: { xs: "24px 16px", sm: "36px 32px", md: "52px 58px" },
+                fontFamily: F,
+                fontSize: { xs: "13px", sm: "13.5px", md: FS },
+                lineHeight: { xs: 1.6, sm: 1.7, md: LH },
+                color: "#000",
+                wordBreak: "break-word",
+                overflowWrap: "break-word"
+              }}
+            >
+              <Box sx={{ textAlign: "center", mb: { xs: "20px", sm: "28px", md: "36px" } }}>
+                <Typography
+                  sx={{
+                    fontFamily: F,
+                    fontSize: { xs: "16px", sm: "18px", md: "20px" },
+                    fontWeight: 700,
+                    letterSpacing: ".5px",
+                    color: "#000",
+                    lineHeight: 1.3
+                  }}
+                >
                   VLTD ACTIVATION CERTIFICATE
                 </Typography>
-                <Typography sx={{ fontFamily: F, fontSize: "12px", color: "#000" }}>
+                <Typography
+                  sx={{
+                    fontFamily: F,
+                    fontSize: { xs: "11px", sm: "11.5px", md: "12px" },
+                    color: "#000",
+                    mt: 0.5
+                  }}
+                >
                   (Generated Online in https://skytron.in)
                 </Typography>
               </Box>
 
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: "36px" }}>
-                <Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  gap: { xs: 1.5, sm: 2 },
+                  mb: { xs: "20px", sm: "28px", md: "36px" }
+                }}
+              >
+                <Box sx={{ flex: 1, minWidth: 0 }}>
                   <T>To,</T>
                   <T>The Registering Authority</T>
                   <T>State Transport Department, Govt. of Assam</T>
                 </Box>
-                <Box sx={{ flexShrink: 0, ml: 2 }}>
+                <Box
+                  sx={{
+                    flexShrink: 0,
+                    ml: { xs: 1, sm: 2 },
+                    p: 0.5,
+                    border: "1px solid #eaeaea",
+                    borderRadius: "4px",
+                    bgcolor: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}
+                >
                   <QRCodeSVG
                     value={certificateData.qrData || "VLTD-CERTIFICATE"}
-                    size={148}
+                    size={qrSize}
                     level="M"
                     includeMargin={false}
                   />
@@ -325,18 +420,34 @@ ${rows}
                 </Box>
               </Box>
 
-              <Box sx={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 1, mb: "20px" }}>
-                <Typography sx={{ fontFamily: F, fontSize: FS, color: "#000" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
+                  justifyContent: "space-between",
+                  gap: { xs: 0.8, sm: 1.5 },
+                  mb: { xs: "16px", sm: "20px" }
+                }}
+              >
+                <Typography sx={{ fontFamily: F, fontSize: { xs: "13px", sm: FS }, color: "#000" }}>
                   VLTD Certificate No: <strong>{certificateData.certNo}</strong>
                 </Typography>
-                <Typography sx={{ fontFamily: F, fontSize: FS, color: "#000" }}>
+                <Typography sx={{ fontFamily: F, fontSize: { xs: "13px", sm: FS }, color: "#000" }}>
                   VLTD Activation Date (In https://skytron.in):{" "}
                   <strong>{certificateData.activationDate}</strong>
                 </Typography>
               </Box>
 
-              <Box sx={{ mb: "12px" }}>
-                <Typography component="p" sx={{ fontFamily: F, fontSize: FS, lineHeight: LH, color: "#000" }}>
+              <Box sx={{ mb: { xs: "10px", sm: "12px" } }}>
+                <Typography
+                  component="p"
+                  sx={{
+                    fontFamily: F,
+                    fontSize: { xs: "13px", sm: FS },
+                    lineHeight: { xs: 1.6, sm: LH },
+                    color: "#000"
+                  }}
+                >
                   <strong>Subject:</strong>&nbsp;&nbsp; VLTD Serial No:{" "}
                   <strong>{certificateData.deviceSerialNo}</strong> in the vehicle having chassis no:{" "}
                   <strong>{certificateData.chassisNo}</strong> in the portal (https://skytron.in),
@@ -344,10 +455,18 @@ ${rows}
                 </Typography>
               </Box>
 
-              <T sx={{ mb: "12px" }}>Dear Sir,</T>
+              <T sx={{ mb: { xs: "10px", sm: "12px" } }}>Dear Sir,</T>
 
-              <Box sx={{ mb: "32px" }}>
-                <Typography component="p" sx={{ fontFamily: F, fontSize: FS, lineHeight: LH, color: "#000" }}>
+              <Box sx={{ mb: { xs: "20px", sm: "26px", md: "32px" } }}>
+                <Typography
+                  component="p"
+                  sx={{
+                    fontFamily: F,
+                    fontSize: { xs: "13px", sm: FS },
+                    lineHeight: { xs: 1.6, sm: LH },
+                    color: "#000"
+                  }}
+                >
                   This is to inform you that VLTD serial number:{" "}
                   <strong>{certificateData.deviceSerialNo}</strong>, model number:{" "}
                   <strong>{certificateData.vltdModel}</strong> of VLTD manufacturer{" "}
@@ -359,17 +478,26 @@ ${rows}
                 </Typography>
               </Box>
 
-              <T sx={{ mb: "14px" }}>The details of VLTD shown blow:</T>
-              <Box sx={{ mb: "32px" }}>
+              <T sx={{ mb: { xs: "10px", sm: "14px" } }}>The details of VLTD shown blow:</T>
+              <Box sx={{ mb: { xs: "20px", sm: "26px", md: "32px" } }}>
                 {buildRows(certificateData).map(({ label, value }) => (
-                  <Typography key={label} component="p"
-                    sx={{ fontFamily: F, fontSize: FS, lineHeight: LH, mb: "4px", color: "#000" }}>
+                  <Typography
+                    key={label}
+                    component="p"
+                    sx={{
+                      fontFamily: F,
+                      fontSize: { xs: "13px", sm: FS },
+                      lineHeight: { xs: 1.6, sm: LH },
+                      mb: "4px",
+                      color: "#000"
+                    }}
+                  >
                     {label}: <strong>{value || ""}</strong>
                   </Typography>
                 ))}
               </Box>
 
-              <T bold sx={{ mb: "32px" }}>Thanking You</T>
+              <T bold sx={{ mb: { xs: "20px", sm: "26px", md: "32px" } }}>Thanking You</T>
 
               <Box sx={{ mt: "8px" }}>
                 <T bold>(Name &amp; Address of Retro Fitment Center)</T>
@@ -379,7 +507,7 @@ ${rows}
                 )}
               </Box>
 
-              <Box sx={{ mt: "16px" }}>
+              <Box sx={{ mt: { xs: "12px", sm: "16px" } }}>
                 <T bold>Registering Office: {certificateData.registeringOffice}</T>
               </Box>
             </Box>

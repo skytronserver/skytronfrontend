@@ -67,17 +67,26 @@ import { openFile, getRole } from "../../helper";
 import DeviceDataHealthService from "../../services/DeviceDataHealth";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import bhugolLogo from "../../assets/images/Bhugol_ogo.png";
 import DeviceModelLiveMap from "../direct/DeviceModelLiveMap";
 import { Map as OlMap, View as OlView } from "ol";
-import { Tile as OlTileLayer } from "ol/layer";
-import { XYZ as OlXYZ, OSM as OlOSM } from "ol/source";
+import { Tile as OlTileLayer, Vector as OlVectorLayer } from "ol/layer";
+import { XYZ as OlXYZ, OSM as OlOSM, Vector as OlVectorSource } from "ol/source";
 import { fromLonLat } from "ol/proj";
+import Feature from "ol/Feature";
+import Point from "ol/geom/Point";
+import LineString from "ol/geom/LineString";
+import { Style as OlStyle, Icon as OlIcon, Stroke as OlStroke, Fill as OlFill, Text as OlText } from "ol/style";
 import "ol/ol.css";
 
 /* ═══════════════════════════════════════════════════
    DEVICE LOCATION MAP MODAL
 ═══════════════════════════════════════════════════ */
 const LOCATION_TEST_NOS = [15, 16, 20, 21, 22, 23];
+
+const isLocationTest = (testNo) => {
+    return LOCATION_TEST_NOS.includes(Number(testNo));
+};
 
 const parseCoordinate = (rawVal, dir) => {
     if (!rawVal) return null;
@@ -467,7 +476,7 @@ const processTestPointsForMap = (arg1, arg2, arg3, arg4, arg5) => {
     // ─────────────────────────────────────────────
     if (tNo === 20 || (testName && /(faraday|history.*storage|storage.*transmission)/i.test(testName))) {
         const coordsToUse = validCoords.length > 0 ? validCoords : [{ lat: fbLat, lng: fbLng, speed: 0, timestamp: null }];
-        
+
         // Ensure coordinates don't completely overlap on screen so each packet pin is visible
         const adjustedCoords = coordsToUse.map((c, idx) => {
             let lat = c.lat;
@@ -807,16 +816,127 @@ const processTestPointsForMap = (arg1, arg2, arg3, arg4, arg5) => {
     }];
 };
 
-const MiniLocationMap = ({ lat, lng, testNo, testName, onClick }) => {
+const getCustomPinSvg = (pinColor = "#1a237e", dotColor = "#ffffff") => `data:image/svg+xml;utf8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="34" height="42" viewBox="0 0 34 42">
+  <path d="M17 0C7.611 0 0 7.611 0 17c0 11.5 17 25 17 25s17-13.5 17-25C34 7.611 26.389 0 17 0z" fill="${pinColor}" stroke="#ffffff" stroke-width="2"/>
+  <circle cx="17" cy="16" r="6.5" fill="#ffffff"/>
+  <circle cx="17" cy="16" r="3.5" fill="${dotColor}"/>
+</svg>
+`)}`;
+
+const getShortLabel = (pt) => {
+    if (!pt) return '';
+    if (pt.pointType === 'start') return 'Start';
+    if (pt.pointType === 'end') return 'End';
+    if (pt.pointType === 'entry') return 'IN';
+    if (pt.pointType === 'exit') return 'OUT';
+    if (pt.pointType === 'loss') return 'Loss';
+    if (pt.pointType === 'recovered') return 'Restored';
+    if (pt.pointType === 'primary') return 'Primary';
+    if (pt.pointType === 'secondary') return 'Sec';
+    if (pt.markerId && /hist_(\d+)/.test(pt.markerId)) {
+        const m = pt.markerId.match(/hist_(\d+)/);
+        return `#${Number(m[1]) + 1}`;
+    }
+    if (pt.markerId && /net_(\d+)/.test(pt.markerId)) {
+        const m = pt.markerId.match(/net_(\d+)/);
+        return `#${Number(m[1]) + 1}`;
+    }
+    if (pt.markerId && /loc_(\d+)/.test(pt.markerId)) {
+        const m = pt.markerId.match(/loc_(\d+)/);
+        return `#${Number(m[1]) + 1}`;
+    }
+    if (pt.label) {
+        const firstLine = pt.label.split('\n')[0];
+        if (firstLine && firstLine.length <= 12) return firstLine;
+    }
+    return '';
+};
+
+const MiniLocationMap = ({ points = [], fallbackCoord, lat, lng, testNo, testName, onClick }) => {
     const mapRef = useRef(null);
     const mapInstanceRef = useRef(null);
 
+    const validPts = useMemo(() => {
+        let pts = Array.isArray(points) ? points : [];
+        if (pts.length === 0 && (Number.isFinite(lat) || Number.isFinite(fallbackCoord?.lat))) {
+            const useLat = Number.isFinite(lat) && lat !== 0 ? lat : fallbackCoord?.lat;
+            const useLng = Number.isFinite(lng) && lng !== 0 ? lng : fallbackCoord?.lng;
+            if (Number.isFinite(useLat) && Number.isFinite(useLng) && (useLat !== 0 || useLng !== 0)) {
+                pts = [{
+                    latitude: useLat,
+                    longitude: useLng,
+                    pinColor: '#1a237e',
+                    dotColor: '#ffffff',
+                    pointType: 'start'
+                }];
+            }
+        }
+        return pts.filter(p => Number.isFinite(p.latitude) && Number.isFinite(p.longitude) && (p.latitude !== 0 || p.longitude !== 0));
+    }, [points, fallbackCoord, lat, lng]);
+
     useEffect(() => {
-        if (!mapRef.current || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
+        if (!mapRef.current || validPts.length === 0) return;
 
         const tileSource = process.env.REACT_APP_TILE_SERVER_URL
             ? new OlXYZ({ url: process.env.REACT_APP_TILE_SERVER_URL, maxZoom: 20 })
             : new OlOSM();
+
+        const vectorSource = new OlVectorSource();
+
+        // 1. Draw Connecting Route Line if multiple points exist
+        if (validPts.length >= 2) {
+            const coords = validPts.map(p => fromLonLat([p.longitude, p.latitude]));
+            const isGeofence = validPts.some(p => p.testFeatureType === 'geofence' || p.pointType === 'entry' || p.pointType === 'exit');
+            const lineFeature = new Feature({
+                geometry: new LineString(coords)
+            });
+            lineFeature.setStyle(new OlStyle({
+                stroke: new OlStroke({
+                    color: isGeofence ? '#2e7d32' : '#1a237e',
+                    width: 2.5,
+                    lineDash: [6, 4]
+                })
+            }));
+            vectorSource.addFeature(lineFeature);
+        }
+
+        // 2. Add marker features with custom SVG pin, color and label
+        validPts.forEach((pt) => {
+            const feature = new Feature({
+                geometry: new Point(fromLonLat([pt.longitude, pt.latitude]))
+            });
+
+            const pinColor = pt.pinColor || '#1a237e';
+            const dotColor = pt.dotColor || '#ffffff';
+            const shortLabel = getShortLabel(pt);
+
+            feature.setStyle(new OlStyle({
+                image: new OlIcon({
+                    anchor: [0.5, 1.0],
+                    src: getCustomPinSvg(pinColor, dotColor),
+                    scale: 0.52,
+                }),
+                text: shortLabel ? new OlText({
+                    text: shortLabel,
+                    font: 'bold 8.5px "Roboto", Arial, sans-serif',
+                    fill: new OlFill({ color: pinColor }),
+                    stroke: new OlStroke({ color: '#ffffff', width: 2.2 }),
+                    backgroundFill: new OlFill({ color: 'rgba(255, 255, 255, 0.94)' }),
+                    padding: [1, 3, 1, 3],
+                    offsetY: -25,
+                }) : undefined
+            }));
+
+            vectorSource.addFeature(feature);
+        });
+
+        const vectorLayer = new OlVectorLayer({
+            source: vectorSource,
+            zIndex: 10
+        });
+
+        const initialCenter = fromLonLat([validPts[0].longitude, validPts[0].latitude]);
 
         const map = new OlMap({
             target: mapRef.current,
@@ -824,9 +944,10 @@ const MiniLocationMap = ({ lat, lng, testNo, testName, onClick }) => {
                 new OlTileLayer({
                     source: tileSource,
                 }),
+                vectorLayer
             ],
             view: new OlView({
-                center: fromLonLat([lng, lat]),
+                center: initialCenter,
                 zoom: 15,
                 maxZoom: 18,
             }),
@@ -836,63 +957,96 @@ const MiniLocationMap = ({ lat, lng, testNo, testName, onClick }) => {
 
         mapInstanceRef.current = map;
 
-        const timer = setTimeout(() => {
-            if (mapInstanceRef.current) {
-                mapInstanceRef.current.updateSize();
+        const fitOrCenter = () => {
+            if (!mapInstanceRef.current) return;
+            mapInstanceRef.current.updateSize();
+            if (validPts.length > 1) {
+                const extent = vectorSource.getExtent();
+                if (extent && Number.isFinite(extent[0]) && Number.isFinite(extent[2]) && extent[0] !== Infinity && extent[2] !== -Infinity) {
+                    mapInstanceRef.current.getView().fit(extent, {
+                        padding: [14, 14, 14, 14],
+                        maxZoom: 16
+                    });
+                }
+            } else if (validPts.length === 1) {
+                mapInstanceRef.current.getView().setCenter(fromLonLat([validPts[0].longitude, validPts[0].latitude]));
+                mapInstanceRef.current.getView().setZoom(15);
             }
-        }, 80);
+        };
+
+        const t1 = setTimeout(fitOrCenter, 60);
+        const t2 = setTimeout(fitOrCenter, 200);
 
         return () => {
-            clearTimeout(timer);
+            clearTimeout(t1);
+            clearTimeout(t2);
             map.setTarget(null);
             mapInstanceRef.current = null;
         };
-    }, [lat, lng]);
+    }, [validPts]);
 
     return (
-        <Box
-            onClick={onClick}
-            sx={{
-                width: '100%',
-                maxWidth: 115,
-                height: 70,
-                borderRadius: 1.5,
-                overflow: 'hidden',
-                border: '1.5px solid #1a237e',
-                position: 'relative',
-                cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
-                transition: 'all 0.2s ease-in-out',
-                my: 0.5,
-                bgcolor: '#e8eaf6',
-                '&:hover': {
-                    transform: 'scale(1.04)',
-                    boxShadow: '0 4px 12px rgba(26,35,126,0.25)',
-                    borderColor: '#283593'
-                }
-            }}
-        >
-            <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
-            {/* Center location marker pin */}
+        <Tooltip title="Click to view full interactive map" arrow placement="top">
             <Box
+                onClick={onClick}
                 sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -100%)',
-                    pointerEvents: 'none',
-                    lineHeight: 0
+                    width: '100%',
+                    maxWidth: 120,
+                    height: 75,
+                    borderRadius: 1.5,
+                    overflow: 'hidden',
+                    border: '1.5px solid #1a237e',
+                    position: 'relative',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                    transition: 'all 0.2s ease-in-out',
+                    my: 0.5,
+                    bgcolor: '#e8eaf6',
+                    '&:hover': {
+                        transform: 'scale(1.04)',
+                        boxShadow: '0 4px 12px rgba(26,35,126,0.25)',
+                        borderColor: '#283593'
+                    }
                 }}
             >
-                <LocationOnIcon
+                <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+
+                {/* Bhugol branding logo watermark in bottom right */}
+                <Box
+                    component="img"
+                    src={bhugolLogo}
+                    alt="Bhugol"
                     sx={{
-                        color: '#1a237e',
-                        fontSize: 22,
-                        filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.45))'
+                        position: 'absolute',
+                        bottom: 2,
+                        right: 3,
+                        height: 14,
+                        width: 'auto',
+                        pointerEvents: 'none',
+                        zIndex: 4,
+                        filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.25))'
                     }}
                 />
+
+                {/* Top-right fullscreen icon indicator */}
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        top: 3,
+                        right: 3,
+                        bgcolor: 'rgba(255, 255, 255, 0.88)',
+                        borderRadius: '3px',
+                        lineHeight: 0,
+                        p: '2px',
+                        pointerEvents: 'none',
+                        zIndex: 4,
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.15)'
+                    }}
+                >
+                    <FullscreenIcon sx={{ fontSize: 13, color: '#1a237e' }} />
+                </Box>
             </Box>
-        </Box>
+        </Tooltip>
     );
 };
 
@@ -1463,7 +1617,7 @@ const DeviceHistoryModal = ({ open, row, onClose }) => {
     const [customEnd, setCustomEnd] = useState("");
     const [specificTimestamp, setSpecificTimestamp] = useState("");
     const [selectedImei, setSelectedImei] = useState("ALL");
-    
+
     // Automatically fetch 1-hr data when opened (if filterType is 1hr)
     useEffect(() => {
         if (open && row?.id) {
@@ -1483,7 +1637,7 @@ const DeviceHistoryModal = ({ open, row, onClose }) => {
         setHistoryData([]);
         try {
             const payload = { onboarding_request_id: row.id };
-            
+
             if (type === "custom") {
                 if (!customStart || !customEnd) {
                     setError("Please select both start and end datetime.");
@@ -1501,9 +1655,9 @@ const DeviceHistoryModal = ({ open, row, onClose }) => {
                 payload.timestamp = new Date(specificTimestamp).toISOString();
             }
             // If type === '1hr', we just send onboarding_request_id (defaults to 1 hr)
-            
+
             const res = await DeviceModelServices.getDemoDeviceHistory(payload);
-            
+
             let fetchedData = [];
             if (Array.isArray(res.data)) {
                 fetchedData = res.data;
@@ -1514,7 +1668,7 @@ const DeviceHistoryModal = ({ open, row, onClose }) => {
                 const possibleArray = Object.values(res.data).find(val => Array.isArray(val));
                 if (possibleArray) fetchedData = possibleArray;
             }
-            
+
             setHistoryData(fetchedData);
         } catch (err) {
             setError(extractError(err));
@@ -1532,7 +1686,7 @@ const DeviceHistoryModal = ({ open, row, onClose }) => {
             <DialogContent dividers sx={{ p: 3, bgcolor: '#fdfdfd' }}>
                 <Stack spacing={3}>
                     <Paper variant="outlined" sx={{ p: 2, display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center', bgcolor: '#fff', borderRadius: 2 }}>
-                        
+
                         {imeis.length > 0 && (
                             <TextField
                                 select
@@ -1588,11 +1742,11 @@ const DeviceHistoryModal = ({ open, row, onClose }) => {
                                 />
                             </>
                         )}
-                        
-                        <Button 
-                            variant="contained" 
-                            color="primary" 
-                            onClick={() => fetchHistory()} 
+
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => fetchHistory()}
                             disabled={loading}
                             startIcon={loading ? <CircularProgress size={16} /> : <SearchIcon />}
                             sx={{ ml: 'auto' }}
@@ -1621,17 +1775,17 @@ const DeviceHistoryModal = ({ open, row, onClose }) => {
                                             </TableRow>
                                         );
                                     }
-                                    
+
                                     // Flatten the entries from all devices in the response
-                                    const allEntries = historyData.flatMap(device => 
+                                    const allEntries = historyData.flatMap(device =>
                                         (device.entries || []).map(entry => ({
                                             ...entry,
                                             device_imei: device.imei || device.device_serial_no || 'Unknown'
                                         }))
                                     ).sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0)); // Sort newest first
 
-                                    const filteredEntries = selectedImei === "ALL" 
-                                        ? allEntries 
+                                    const filteredEntries = selectedImei === "ALL"
+                                        ? allEntries
                                         : allEntries.filter(e => e.device_imei === selectedImei);
 
                                     if (filteredEntries.length === 0) {
@@ -2220,8 +2374,8 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                 if (isLocationTest) {
                     const mapItem = mapSnapshots.find(
                         (m) => (String(m.imei) === String(imei) || m.imeiIndex === index) &&
-                               Number(m.serial_no) === Number(step.serial_no) &&
-                               m.dataUrl
+                            Number(m.serial_no) === Number(step.serial_no) &&
+                            m.dataUrl
                     );
 
                     if (mapItem) {
@@ -2426,8 +2580,8 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
         // WATERMARK ON EACH PAGE (COMPLETE vs INCOMPLETE)
         // =====================================================
         const totalPages = doc.getNumberOfPages();
-        const isAllCompleted = testBoardCategories.length > 0 && testBoardCategories.every(cat => 
-            cat.executions && cat.executions.length > 0 && cat.executions.every(e => 
+        const isAllCompleted = testBoardCategories.length > 0 && testBoardCategories.every(cat =>
+            cat.executions && cat.executions.length > 0 && cat.executions.every(e =>
                 e.status === "pass" || e.status === "completed" || e.status === "complete"
             )
         );
@@ -2499,11 +2653,11 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                         Please complete all testing steps below before uploading the report and finalizing.
                     </Typography>
                 </Box>
-                <Button 
-                    variant="outlined" 
-                    color="secondary" 
-                    size="small" 
-                    startIcon={<SearchIcon />} 
+                <Button
+                    variant="outlined"
+                    color="secondary"
+                    size="small"
+                    startIcon={<SearchIcon />}
                     onClick={() => setHistoryModalOpen(true)}
                 >
                     View Device History
@@ -2674,7 +2828,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                 return (
                                                                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                                                         <Chip label="pass" size="small" color="success" sx={{ height: 20, fontSize: '0.65rem', mb: 1 }} />
-                                                                        {LOCATION_TEST_NOS.includes(Number(step.serial_no)) && (() => {
+                                                                        {isLocationTest(step.serial_no, step.name) && (() => {
                                                                             let lockedCoord = null;
                                                                             if (resolvedSamples && resolvedSamples.length > 0) {
                                                                                 const sorted = [...resolvedSamples].sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
@@ -2692,6 +2846,14 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                 lockedCoord = getDeviceFallbackCoord(deviceImei, idx);
                                                                             }
 
+                                                                            const testPoints = processTestPointsForMap({
+                                                                                sampleList: resolvedSamples,
+                                                                                testNo: step.serial_no,
+                                                                                testName: step.name,
+                                                                                imei: deviceImei,
+                                                                                fallbackCoord: lockedCoord
+                                                                            });
+
                                                                             const handleOpenBigMap = () => {
                                                                                 setLocationMapState({
                                                                                     open: true,
@@ -2705,11 +2867,13 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                 });
                                                                             };
 
-                                                                            if (lockedCoord) {
+                                                                            if ((testPoints && testPoints.length > 0) || lockedCoord) {
                                                                                 return (
                                                                                     <MiniLocationMap
-                                                                                        lat={lockedCoord.lat}
-                                                                                        lng={lockedCoord.lng}
+                                                                                        points={testPoints}
+                                                                                        fallbackCoord={lockedCoord}
+                                                                                        lat={lockedCoord?.lat}
+                                                                                        lng={lockedCoord?.lng}
                                                                                         testNo={step.serial_no}
                                                                                         testName={step.name}
                                                                                         onClick={handleOpenBigMap}
@@ -2721,104 +2885,104 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                         })()}
                                                                         {resolvedSamples.length > 0 ? (
                                                                             <Box sx={{ my: 1, lineHeight: 1.2 }}>
-                                                                                    {[...resolvedSamples].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)).map((sample, sIdx) => {
-                                                                                        let sampleFwVersion = "";
-                                                                                        let sampleVoltage = "";
-                                                                                        let sampleExtVoltage = "";
-                                                                                        let sampleSpeed = (sample.speed !== undefined && sample.speed !== null) ? String(sample.speed) : "";
-                                                                                        let sampleLocation = "";
-                                                                                        let sampleNetwork = "";
-                                                                                        let sampleOperator = "";
-                                                                                        if (sample.raw_data && typeof sample.raw_data === 'string') {
-                                                                                            const isComma = sample.raw_data.startsWith("$,PVT");
-                                                                                            const pParts = sample.raw_data.split(",");
-                                                                                            const offset = isComma ? 1 : 0;
-                                                                                            if ((sample.raw_data.startsWith("$PVT") || isComma) && pParts.length > 3 + offset) {
-                                                                                                sampleFwVersion = pParts[2 + offset];
-                                                                                            }
-                                                                                            if ((sample.raw_data.startsWith("$PVT") || isComma) && pParts.length > 14 + offset) {
-                                                                                                sampleLocation = `${pParts[11 + offset]} ${pParts[12 + offset]}, ${pParts[13 + offset]} ${pParts[14 + offset]}`;
-                                                                                            }
-                                                                                            if ((sample.raw_data.startsWith("$PVT") || isComma) && pParts.length > 15 + offset) {
-                                                                                                sampleSpeed = pParts[15 + offset];
-                                                                                            }
-                                                                                            if ((sample.raw_data.startsWith("$PVT") || isComma) && pParts.length > 25 + offset) {
-                                                                                                sampleVoltage = pParts[25 + offset];
-                                                                                                sampleExtVoltage = pParts[24 + offset];
-                                                                                            }
-                                                                                            if ((sample.raw_data.startsWith("$PVT") || isComma) && pParts.length > 32 + offset) {
-                                                                                                sampleNetwork = `${pParts[21 + offset]} (Sig:${pParts[28 + offset]} MCC:${pParts[29 + offset]} MNC:${pParts[30 + offset]} LAC:${pParts[31 + offset]} Cell:${pParts[32 + offset]})`;
-                                                                                                sampleOperator = pParts[21 + offset];
-                                                                                            }
+                                                                                {[...resolvedSamples].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)).map((sample, sIdx) => {
+                                                                                    let sampleFwVersion = "";
+                                                                                    let sampleVoltage = "";
+                                                                                    let sampleExtVoltage = "";
+                                                                                    let sampleSpeed = (sample.speed !== undefined && sample.speed !== null) ? String(sample.speed) : "";
+                                                                                    let sampleLocation = "";
+                                                                                    let sampleNetwork = "";
+                                                                                    let sampleOperator = "";
+                                                                                    if (sample.raw_data && typeof sample.raw_data === 'string') {
+                                                                                        const isComma = sample.raw_data.startsWith("$,PVT");
+                                                                                        const pParts = sample.raw_data.split(",");
+                                                                                        const offset = isComma ? 1 : 0;
+                                                                                        if ((sample.raw_data.startsWith("$PVT") || isComma) && pParts.length > 3 + offset) {
+                                                                                            sampleFwVersion = pParts[2 + offset];
                                                                                         }
-                                                                                        return (
-                                                                                            <Box key={sIdx} sx={{ mt: 1, p: 0.75, bgcolor: '#f8f9fa', border: '1px solid', borderColor: '#e0e0e0', borderRadius: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
-                                                                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.5, width: '100%' }}>
-                                                                                                    <Typography variant="caption" sx={{ fontSize: '0.62rem', fontWeight: 600, color: 'text.secondary', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
-                                                                                                        {sample.timestamp ? sample.timestamp.split('.')[0].replace('T', ' ') : 'N/A'}
-                                                                                                    </Typography>
-                                                                                                    <Button
-                                                                                                        variant="outlined"
-                                                                                                        size="small"
-                                                                                                        sx={{ fontSize: '0.5rem', p: '2px 4px', minWidth: 'auto', lineHeight: 1 }}
-                                                                                                        onClick={() => navigator.clipboard.writeText(sample.raw_data)}
-                                                                                                    >
-                                                                                                        Copy
-                                                                                                    </Button>
-                                                                                                </Box>
-                                                                                                {step.serial_no === 6 && sampleFwVersion && (
-                                                                                                    <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
-                                                                                                        FW: {sampleFwVersion}
-                                                                                                    </Typography>
-                                                                                                )}
-                                                                                                {step.serial_no === 7 && sampleVoltage && (
-                                                                                                    <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
-                                                                                                        Vol: {sampleVoltage}V
-                                                                                                    </Typography>
-                                                                                                )}
-                                                                                                {step.serial_no === 8 && sampleExtVoltage && (
-                                                                                                    <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
-                                                                                                        Ext Vol: {sampleExtVoltage}V
-                                                                                                    </Typography>
-                                                                                                )}
-                                                                                                {(step.serial_no === 14 || step.serial_no === 15) && sampleSpeed && (
-                                                                                                    <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
-                                                                                                        {resolvedSamples.length >= 2
-                                                                                                            ? (sIdx === 0 ? `Start Speed: ${sampleSpeed} km/h` : sIdx === resolvedSamples.length - 1 ? `End Speed: ${sampleSpeed} km/h` : `Speed: ${sampleSpeed} km/h`)
-                                                                                                            : `Speed: ${sampleSpeed} km/h`}
-                                                                                                    </Typography>
-                                                                                                )}
-                                                                                                {(LOCATION_TEST_NOS.includes(step.serial_no) || step.serial_no === 20) && sampleLocation && (
-                                                                                                    <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
-                                                                                                        {step.serial_no === 23
-                                                                                                            ? (resolvedSamples.length >= 2
-                                                                                                                ? (sIdx === 0 ? `Loss Point: ${sampleLocation}` : sIdx === resolvedSamples.length - 1 ? `Recovery Point: ${sampleLocation}` : `Lat/Lon: ${sampleLocation}`)
-                                                                                                                : `Recovery Point: ${sampleLocation}`)
-                                                                                                            : `Lat/Lon: ${sampleLocation}`}
-                                                                                                    </Typography>
-                                                                                                )}
-                                                                                                {(step.serial_no === 20 || step.serial_no === 21) && sampleNetwork && (
-                                                                                                    <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
-                                                                                                        Net: {sampleNetwork}
-                                                                                                    </Typography>
-                                                                                                )}
-                                                                                                {(step.serial_no === 23 || step.serial_no === 24) && sampleOperator && (
-                                                                                                    <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
-                                                                                                        Op: {sampleOperator}
-                                                                                                    </Typography>
-                                                                                                )}
+                                                                                        if ((sample.raw_data.startsWith("$PVT") || isComma) && pParts.length > 14 + offset) {
+                                                                                            sampleLocation = `${pParts[11 + offset]} ${pParts[12 + offset]}, ${pParts[13 + offset]} ${pParts[14 + offset]}`;
+                                                                                        }
+                                                                                        if ((sample.raw_data.startsWith("$PVT") || isComma) && pParts.length > 15 + offset) {
+                                                                                            sampleSpeed = pParts[15 + offset];
+                                                                                        }
+                                                                                        if ((sample.raw_data.startsWith("$PVT") || isComma) && pParts.length > 25 + offset) {
+                                                                                            sampleVoltage = pParts[25 + offset];
+                                                                                            sampleExtVoltage = pParts[24 + offset];
+                                                                                        }
+                                                                                        if ((sample.raw_data.startsWith("$PVT") || isComma) && pParts.length > 32 + offset) {
+                                                                                            sampleNetwork = `${pParts[21 + offset]} (Sig:${pParts[28 + offset]} MCC:${pParts[29 + offset]} MNC:${pParts[30 + offset]} LAC:${pParts[31 + offset]} Cell:${pParts[32 + offset]})`;
+                                                                                            sampleOperator = pParts[21 + offset];
+                                                                                        }
+                                                                                    }
+                                                                                    return (
+                                                                                        <Box key={sIdx} sx={{ mt: 1, p: 0.75, bgcolor: '#f8f9fa', border: '1px solid', borderColor: '#e0e0e0', borderRadius: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+                                                                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.5, width: '100%' }}>
+                                                                                                <Typography variant="caption" sx={{ fontSize: '0.62rem', fontWeight: 600, color: 'text.secondary', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                                                                                                    {sample.timestamp ? sample.timestamp.split('.')[0].replace('T', ' ') : 'N/A'}
+                                                                                                </Typography>
+                                                                                                <Button
+                                                                                                    variant="outlined"
+                                                                                                    size="small"
+                                                                                                    sx={{ fontSize: '0.5rem', p: '2px 4px', minWidth: 'auto', lineHeight: 1 }}
+                                                                                                    onClick={() => navigator.clipboard.writeText(sample.raw_data)}
+                                                                                                >
+                                                                                                    Copy
+                                                                                                </Button>
                                                                                             </Box>
-                                                                                        );
-                                                                                    })}
-                                                                                </Box>
-                                                                            ) : (
-                                                                                <Typography variant="caption" sx={{ color: 'text.secondary', fontStyle: 'italic', fontSize: '0.65rem', display: 'block', mt: 0.5 }}>
-                                                                                    Bypassed
-                                                                                </Typography>
-                                                                            )}
-                                                                        </Box>
-                                                                    );
-                                                                })() : execStatus === "in_progress" ? (
+                                                                                            {step.serial_no === 6 && sampleFwVersion && (
+                                                                                                <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                    FW: {sampleFwVersion}
+                                                                                                </Typography>
+                                                                                            )}
+                                                                                            {step.serial_no === 7 && sampleVoltage && (
+                                                                                                <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                    Vol: {sampleVoltage}V
+                                                                                                </Typography>
+                                                                                            )}
+                                                                                            {step.serial_no === 8 && sampleExtVoltage && (
+                                                                                                <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                    Ext Vol: {sampleExtVoltage}V
+                                                                                                </Typography>
+                                                                                            )}
+                                                                                            {(step.serial_no === 14 || step.serial_no === 15) && sampleSpeed && (
+                                                                                                <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                    {resolvedSamples.length >= 2
+                                                                                                        ? (sIdx === 0 ? `Start Speed: ${sampleSpeed} km/h` : sIdx === resolvedSamples.length - 1 ? `End Speed: ${sampleSpeed} km/h` : `Speed: ${sampleSpeed} km/h`)
+                                                                                                        : `Speed: ${sampleSpeed} km/h`}
+                                                                                                </Typography>
+                                                                                            )}
+                                                                                            {(isLocationTest(step.serial_no, step.name) || step.serial_no === 20) && sampleLocation && (
+                                                                                                <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                    {step.serial_no === 23
+                                                                                                        ? (resolvedSamples.length >= 2
+                                                                                                            ? (sIdx === 0 ? `Loss Point: ${sampleLocation}` : sIdx === resolvedSamples.length - 1 ? `Recovery Point: ${sampleLocation}` : `Lat/Lon: ${sampleLocation}`)
+                                                                                                            : `Recovery Point: ${sampleLocation}`)
+                                                                                                        : `Lat/Lon: ${sampleLocation}`}
+                                                                                                </Typography>
+                                                                                            )}
+                                                                                            {(step.serial_no === 20 || step.serial_no === 21) && sampleNetwork && (
+                                                                                                <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                    Net: {sampleNetwork}
+                                                                                                </Typography>
+                                                                                            )}
+                                                                                            {(step.serial_no === 23 || step.serial_no === 24) && sampleOperator && (
+                                                                                                <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
+                                                                                                    Op: {sampleOperator}
+                                                                                                </Typography>
+                                                                                            )}
+                                                                                        </Box>
+                                                                                    );
+                                                                                })}
+                                                                            </Box>
+                                                                        ) : (
+                                                                            <Typography variant="caption" sx={{ color: 'text.secondary', fontStyle: 'italic', fontSize: '0.65rem', display: 'block', mt: 0.5 }}>
+                                                                                Bypassed
+                                                                            </Typography>
+                                                                        )}
+                                                                    </Box>
+                                                                );
+                                                            })() : execStatus === "in_progress" ? (
                                                                 <>
                                                                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1, gap: 0.5 }}>
                                                                         <Chip label="In progress" size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#fff9c4', color: '#f57f17', borderRadius: 1 }} />
@@ -2910,7 +3074,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                                                     : `Speed: ${speed} km/h`}
                                                                                                             </Typography>
                                                                                                         )}
-                                                                                                        {(LOCATION_TEST_NOS.includes(step.serial_no) || step.serial_no === 20) && location && (
+                                                                                                        {(isLocationTest(step.serial_no, step.name) || step.serial_no === 20) && location && (
                                                                                                             <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
                                                                                                                 {step.serial_no === 23
                                                                                                                     ? (snapshotObj.samples && snapshotObj.samples.length >= 2
@@ -3051,32 +3215,32 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                     </Box>
                 </Box>
                 {/* Online Report Note */}
-<Box
-    sx={{
-        mt: 1,
-        pt: 2,
-        borderTop: "1px solid #e0e0e0",
-        textAlign: "center",
-    }}
->
-    <Typography
-        variant="caption"
-        color="text.secondary"
-        sx={{
-            fontStyle: "italic",
-            display: "block",
-        }}
-    >
-        This platform integration test report is generated online and hence does not require any signature.
-    </Typography>
-</Box>
+                <Box
+                    sx={{
+                        mt: 1,
+                        pt: 2,
+                        borderTop: "1px solid #e0e0e0",
+                        textAlign: "center",
+                    }}
+                >
+                    <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{
+                            fontStyle: "italic",
+                            display: "block",
+                        }}
+                    >
+                        This platform integration test report is generated online and hence does not require any signature.
+                    </Typography>
+                </Box>
             </DialogContent>
 
             {/* Device History Modal */}
-            <DeviceHistoryModal 
-                open={historyModalOpen} 
-                row={row} 
-                onClose={() => setHistoryModalOpen(false)} 
+            <DeviceHistoryModal
+                open={historyModalOpen}
+                row={row}
+                onClose={() => setHistoryModalOpen(false)}
             />
 
             {/* Device Location Map Modal */}
@@ -3125,12 +3289,12 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
     // Real test board progress for ongoing_evaluation (calculated locally from demo_devices to save API calls)
     const tbProgress = useMemo(() => {
         if (!demoDevices || demoDevices.length === 0) return null;
-        
+
         let hasAnyProgress = false;
         let completed = 41;
         let currentTestName = "";
         let lastCompletedName = "";
-        
+
         demoDevices.forEach(d => {
             const cp = d.checkpoint_status;
             if (cp && (cp.last_completed_test_no !== null || cp.next_test_no !== null || cp.next_test_name || cp.last_completed_test_name)) {
@@ -3145,9 +3309,9 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
                 completed = 0; // If any device hasn't started, overall completed is 0
             }
         });
-        
+
         if (!hasAnyProgress) return null;
-        
+
         return {
             total: 41,
             completed,
@@ -3163,7 +3327,7 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
         if (statusKey === "technically_compatible" || statusKey === "accepted" || statusKey === "approved" || statusKey === "stateadminapproved" || isFailed) {
             return {
                 label: isFailed ? "Platform Integration Testing Not Completed" : "Platform IntegrationTesting Completed",
-                
+
                 pct: isFailed ? null : 100,
                 pending: isFailed ? "Not Compatible" : "All tests completed",
                 color: isFailed ? "error" : "success",
@@ -3276,19 +3440,19 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
                                     {stepsDisplay.label}
                                 </Typography>
                                 {stepsDisplay.pct !== null && (
-    <Typography variant="caption" color="text.secondary" fontWeight={600}>
-        {stepsDisplay.pct}%
-    </Typography>
-)}
+                                    <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                                        {stepsDisplay.pct}%
+                                    </Typography>
+                                )}
                             </Stack>
                             {stepsDisplay.pct !== null && (
-    <LinearProgress
-        variant="determinate"
-        value={stepsDisplay.pct}
-        color={stepsDisplay.color}
-        sx={{ height: 6, borderRadius: 3 }}
-    />
-)}
+                                <LinearProgress
+                                    variant="determinate"
+                                    value={stepsDisplay.pct}
+                                    color={stepsDisplay.color}
+                                    sx={{ height: 6, borderRadius: 3 }}
+                                />
+                            )}
                             <Typography variant="caption" color="text.secondary">
                                 {stepsDisplay.pending}
                             </Typography>
