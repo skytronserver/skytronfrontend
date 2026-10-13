@@ -687,7 +687,7 @@ const api = {
   },
   addStop(routeId, data) {
     const http = getAxiosInstance();
-    return http.post(`api/admin/routes//${routeId}/stops/add/`, data);
+    return http.post(`api/admin/routes/${routeId}/stops/add/`, data);
   },
   updateStop(stopId, data) {
     const http = getAxiosInstance();

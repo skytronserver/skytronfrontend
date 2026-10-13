@@ -169,6 +169,7 @@ const TripViewer = () => {
       console.log('Initializing map...');
       const initialMap = new Map({
         target: mapRef.current,
+        pixelRatio: 1,
         layers: [],
         view: new View({
           center: fromLonLat([78.9629, 20.5937]), // Center of India

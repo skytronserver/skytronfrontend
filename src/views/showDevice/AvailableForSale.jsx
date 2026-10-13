@@ -26,15 +26,22 @@ const AvailableForSale = () => {
     const retrievePosts = async () => {
       try {
         const retriveData = await StockServices.getAvailableDeviceList();
-        dispatch(getDeviceListAvailable(retriveData.data.data));
-        setLoad(true)
+        const raw = retriveData?.data;
+        const list = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.data)
+          ? raw.data
+          : [];
+        dispatch(getDeviceListAvailable(list));
       } catch (error) {
-        console.log(error?.status)
+        console.log(error?.status);
+        dispatch(getDeviceListAvailable([]));
+      } finally {
+        setLoad(true);
       }
-
     };
     retrievePosts();
-  }, [dispatch])
+  }, [dispatch]);
 
   const handleMarkDefective = async (e, id) => {
     e.preventDefault();
@@ -94,7 +101,7 @@ const AvailableForSale = () => {
         <PageHeader title={t('device.reportTitle')} />
       </Grid>
       <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle={t('device.availableDevices')} rows={availableDeviceList} columns={columns} />}
+        {load && <DynamicDatatables tableTitle={t('device.availableDevices')} rows={availableDeviceList || []} columns={columns} />}
       </Grid>
     </Grid>
   );

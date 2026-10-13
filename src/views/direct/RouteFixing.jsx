@@ -474,7 +474,7 @@ const RouteFixing = () => {
 
       // Check if we have valid paths data (API returns data.paths[0].points.coordinates)
       if (!routeData?.paths?.[0]?.points?.coordinates) {
-        throw new Error('Invalid route data received');
+        throw new Error(routeData?.message || routeData?.error || 'Invalid route data received');
       }
 
       const firstPath = routeData.paths[0];
@@ -497,9 +497,15 @@ const RouteFixing = () => {
       });
     } catch (error) {
       console.error("Error adding new route:", error);
+      const serverMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.response?.data?.detail ||
+        (typeof error.response?.data === 'string' && error.response.data.trim() ? error.response.data : null);
+
       setAlert({
         open: true,
-        message: error.message || "Failed to add route. Please try again.",
+        message: serverMessage || error.message || "Failed to add route. Please try again.",
         type: "error"
       });
     }

@@ -60,6 +60,8 @@ export const dashboardInitialState = {
     // monthlyRequests: 0,
   },
   deviceStatusInfo: {
+    online: 0,
+    todayOffline: 0,
     onlineNow: 0,
     onlineToday: 0,
     sevenDaysOffline: 0,

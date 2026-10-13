@@ -77,7 +77,7 @@ const devicePatch = (id, action) => {
     device_id: id,
   };
   switch (action) {
-    case 'defective': return http.patch("/api/sell/mark_device_defective/", device);
+    case 'defective': return http.post("/api/sell/mark_device_defective/", device);
     case 'return': return http.patch("/api/sell/return_to_manufacturer/", device);
     case 'fitment': return http.patch("/api/sell/SellFitDevice/", device);
     case 'configSMS': return http.patch("/api/sell/configure_sms_gateway/", device);
@@ -93,7 +93,7 @@ const markAsDefective = (id) => {
   const device = {
     device_id: id,
   };
-  return http.patch("/api/sell/mark_device_defective/", device);
+  return http.post("/api/sell/mark_device_defective/", device);
 };
 const returnToManufacturer = (id) => {
   const http = getAxiosInstance();

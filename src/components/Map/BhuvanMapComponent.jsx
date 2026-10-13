@@ -68,7 +68,8 @@ const BhuvanMapComponent = ({
     showMapTypeToggle = true,
     showDrawControls = true,
     showLogos = true,
-    showSoiLayerPanel = true,
+    showSoiOption = false,
+    showSoiLayerPanel = false,
     defaultMapType = "normal",
     center = [91.7362, 26.1445], // Guwahati, Assam
     zoom = 10,
@@ -194,7 +195,7 @@ const BhuvanMapComponent = ({
     }, []);
 
     // Map type state: 'normal' | 'satellite' | 'soi'
-    const [mapType, setMapType] = useState(defaultMapType);
+    const [mapType, setMapType] = useState(defaultMapType === "soi" && !showSoiOption ? "normal" : defaultMapType);
     const normalMapRef = useRef(null);
     const satelliteMapRef = useRef(null);
     const soiMapRef = useRef(null);
@@ -2852,22 +2853,24 @@ ${trailerHtml}
                                     Satellite
                                 </Button>
                             </Tooltip>
-                            <Tooltip title="SOI Map - Bhuvan base + SOI overlays">
-                                <Button
-                                    onClick={() => setMapType("soi")}
-                                    variant={mapType === "soi" ? "contained" : "outlined"}
-                                    sx={{
-                                        backgroundColor:
-                                            mapType === "soi" ? "#1976d2" : "transparent",
-                                        color: mapType === "soi" ? "white" : "inherit",
-                                    }}
-                                >
-                                    SOI
-                                </Button>
-                            </Tooltip>
+                            {showSoiOption && (
+                                <Tooltip title="SOI Map - Bhuvan base + SOI overlays">
+                                    <Button
+                                        onClick={() => setMapType("soi")}
+                                        variant={mapType === "soi" ? "contained" : "outlined"}
+                                        sx={{
+                                            backgroundColor:
+                                                mapType === "soi" ? "#1976d2" : "transparent",
+                                            color: mapType === "soi" ? "white" : "inherit",
+                                        }}
+                                    >
+                                        SOI
+                                    </Button>
+                                </Tooltip>
+                            )}
                         </ButtonGroup>
 
-                        {mapType === "soi" && showSoiLayerPanel && (
+                        {showSoiOption && mapType === "soi" && showSoiLayerPanel && (
                             <Paper
                                 elevation={3}
                                 sx={{ mt: 1, p: 1, borderRadius: 1, width: 220, maxHeight: 320, overflowY: "auto" }}

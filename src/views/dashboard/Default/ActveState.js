@@ -638,6 +638,8 @@ const ActiveState = () => {
           ...prev,
           online: data.Total_Online_Device,
           todayOffline: data.Total_Offline_Device_today,
+          onlineNow: data.Total_Online_Device,
+          onlineToday: data.Total_Online_Device,
           sevenDaysOffline: data.Total_Offline_Device_7day,
           thirtyDaysOffline: data.Total_Offline_Device_30day,
         }));
@@ -727,11 +729,19 @@ const ActiveState = () => {
         ),
       });
         setDeviceStatusInfo({
-        onlineNow: Number(data.Total_Online_now ?? 0),
-        onlineToday: Number(data.Total_Online_today ?? 0),
-        sevenDaysOffline: Number(data.Total_Offline_7_days ?? 0),
-        thirtyDaysOffline: Number(data.Total_Offline_30_days ?? 0),
-      });
+          online: Number(data.Total_Online_now ?? 0),
+          todayOffline: Number(data.Total_Online_today ?? 0),
+          onlineNow: Number(data.Total_Online_now ?? 0),
+          onlineToday: Number(data.Total_Online_today ?? 0),
+          sevenDaysOffline: Number(data.Total_Offline_7_days ?? 0),
+          thirtyDaysOffline: Number(data.Total_Offline_30_days ?? 0),
+        });
+        setDeviceHealthInfo({
+          totalActivatedDevice: Number(data.TotalTaggedDevice ?? 0),
+          todayActive: Number(data.Total_Online_now ?? 0),
+          inActiveFor7Days: Number(data.Total_Offline_7_days ?? 0),
+          inActiveFor30Days: Number(data.Total_Offline_30_days ?? 0),
+        });
       })();
     }
     if (userRoles === 'desk_ex') {
