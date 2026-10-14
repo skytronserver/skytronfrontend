@@ -546,7 +546,7 @@
     "assignStock": "Assign Stock",
     "taggingActivation": "Tagging & Activation",
     "tagDeviceToVehicle": "Tag Device to Vehicle",
-    "untaggedDevice": "UnTagged Device",
+    "untaggedDevice": "UnTag Device",
     "downloadFitmentReceipt": "Download Tagging and Activation Certificate",
     "sosUsers": "SOS Users",
     "notices": "Notices",
@@ -618,7 +618,7 @@
     "mobileRequired": "Mobile number is required",
     "passwordRequired": "Password is required",
     "required": "Required Field",
-    "fileTooLarge": "File too large. Max size is 512KB",
+    "fileTooLarge": "File too large. Max size is 520KB",
     "unsupportedFormat": "Unsupported Format"
   },
   "stateAdmin": {
@@ -637,8 +637,8 @@
       "lon": "Longitude"
     },
     "messages": {
-      "file_idProof": "Only JPG, PDF, PNG files are allowed and must be below 512KB.",
-      "file_authorisation_letter": "Only JPG, PDF, PNG files are allowed and must be below 512KB."
+      "file_idProof": "Only JPG, PDF, PNG files are allowed and must be below 520KB.",
+      "file_authorisation_letter": "Only JPG, PDF, PNG files are allowed and must be below 520KB."
     },
     "validation": {
       "nameRequired": "Name is required",
@@ -701,7 +701,7 @@
         "auth_letter_required": "Authorization Letter is required",
         "company_reg_required": "Company Registration Certificate is required",
         "gst_certificate_required": "GST Certificate is required",
-        "file_restrictions": "Only JPG, PDF, PNG files are allowed and must be below 512KB",
+        "file_restrictions": "Only JPG, PDF, PNG files are allowed and must be below 520KB",
         "file_size": "Max size is 520KB and supported files are pdf/png/jpg",
         "file_format": "Max size is 520KB and supported files are pdf/png/jpg"
       }
@@ -748,7 +748,7 @@
         "auth_letter_required": "Authorization letter is required",
         "company_reg_required": "Company registration certificate is required",
         "gst_certificate_required": "GST certificate is required",
-        "file_restrictions": "Only JPG, PDF, PNG files are allowed and must be less than 512KB",
+        "file_restrictions": "Only JPG, PDF, PNG files are allowed and must be less than 520KB",
         "file_size": "Maximum size 520KB and supported files pdf/png/jpg",
         "file_format": "Maximum size 520KB and supported files pdf/png/jpg"
       }
@@ -793,7 +793,7 @@
         "auth_letter_required": "Authorization Letter is required",
         "company_reg_required": "Company Registration Certificate is required",
         "gst_certificate_required": "GST Certificate is required",
-        "file_restrictions": "Only JPG, PDF, PNG files are allowed and must be below 512KB",
+        "file_restrictions": "Only JPG, PDF, PNG files are allowed and must be below 520KB",
         "file_size": "Max size is 520KB and supported files are pdf/png/jpg",
         "file_format": "Max size is 520KB and supported files are pdf/png/jpg"
       }
@@ -953,7 +953,7 @@
       "expiryDateRequired": "Expiry date is required",
       "dtoRtoRequired": "DTO/RTO selection is required",
       "fileRequired": "File is required",
-      "fileSize": "File size must be less than 512KB",
+      "fileSize": "File size must be less than 520KB",
       "fileFormat": "Unsupported file format"
     },
     "options": {
@@ -961,7 +961,7 @@
       "rto": "RTO"
     },
     "messages": {
-      "fileRestrictions": "Supported formats: JPG, JPEG, PNG, PDF. Max size: 512KB"
+      "fileRestrictions": "Supported formats: JPG, JPEG, PNG, PDF. Max size: 520KB"
     }
   },
   "bulkUploadForm": {
@@ -1039,7 +1039,7 @@
       "fileFormat": "Max size is 520KB and supported files are pdf/png/jpg"
     },
     "messages": {
-      "fileRestrictions": "Only JPG, PDF, PNG files are allowed and must be below 512KB."
+      "fileRestrictions": "Only JPG, PDF, PNG files are allowed and must be below 520KB."
     }
   },
   "tagDeviceForm": {
@@ -1100,7 +1100,7 @@
       "sosAlertReceived": "SOS alert received",
       "sosButtonPressed": "SOS button pressed successfully",
       "sosButtonProceed": "SOS button pressed! Proceeding to next step...",
-      "fileRestrictions": "Only JPG, PDF, PNG files are allowed and must be less than 512KB."
+      "fileRestrictions": "Only JPG, PDF, PNG files are allowed and must be less than 520KB."
     }
   },
   "vehicleOwnerForm": {
@@ -1114,7 +1114,7 @@
       "expiryDate": "Expiry Date",
       "idProofNo": "ID Proof Number (Voter ID, Passport, Driving License, AADHAR)",
       "idProof": "Upload ID Proof (Voter ID, Passport, Driving License, AADHAR)",
-      "fileMessage": "Only JPG, PNG, PDF files are allowed and size should be less than 512KB"
+      "fileMessage": "Only JPG, PNG, PDF files are allowed and size should be less than 520KB"
     },
     "validation": {
       "nameRequired": "Name is required",
@@ -1128,7 +1128,7 @@
       "idProofNoRequired": "ID proof number is required",
       "idProofNoLength": "ID proof number must be at least 5 characters",
       "idProofRequired": "ID proof document is required",
-      "fileSize": "File size must be less than 512KB",
+      "fileSize": "File size must be less than 520KB",
       "fileFormat": "Only JPG, PNG, PDF files are allowed"
     }
   },
@@ -1144,7 +1144,7 @@
       "idProof": "Upload ID Proof",
       "authLetter": "Upload Authorization Letter",
       "userType": "User Type",
-      "fileMessage": "Only JPG, PDF, PNG files are allowed and must be below 512KB"
+      "fileMessage": "Only JPG, PDF, PNG files are allowed and must be below 520KB"
     },
     "validation": {
       "nameRequired": "Name is required",
@@ -1159,7 +1159,7 @@
       "idProofRequired": "ID proof document is required",
       "authLetterRequired": "Authorization letter is required",
       "userTypeRequired": "User type is required",
-      "fileSize": "File too large. Maximum size is 512KB",
+      "fileSize": "File too large. Maximum size is 520KB",
       "fileFormat": "Unsupported format. Only JPG, PDF and PNG files are allowed"
     },
     "options": {
@@ -1224,8 +1224,8 @@
     "file": {
       "label": "Select File",
       "required": "File is required",
-      "message": "Only JPG, PDF, PNG files are allowed and must be under 512KB",
-      "sizeError": "File is too large. Maximum size is 512KB",
+      "message": "Only JPG, PDF, PNG files are allowed and must be under 520KB",
+      "sizeError": "File is too large. Maximum size is 520KB",
       "formatError": "Unsupported file format"
     },
     "newTitle": "New Notice",
@@ -1342,7 +1342,7 @@
     "listTitle": "DTO List"
   },
   "tagged": {
-    "title": "Tagged Devices",
+    "title": "Tag Devices",
     "untag": "Untag",
     "confirmUntag": "Are you sure you want to untag this device?"
   },

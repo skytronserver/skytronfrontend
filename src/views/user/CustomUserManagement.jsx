@@ -99,7 +99,7 @@ const CustomUserManagement = () => {
     const fieldName = event.target.name;
     if (file) {
       if (file.size > FILE_SIZE) {
-        formik.setFieldError(fieldName, 'File size must be under 512 KB');
+        formik.setFieldError(fieldName, 'File size must be under 520 KB');
       } else if (!SUPPORTED_FORMATS.includes(file.type)) {
         formik.setFieldError(fieldName, 'Only PDF, JPG, PNG supported');
       } else {

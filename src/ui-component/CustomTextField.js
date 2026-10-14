@@ -220,6 +220,7 @@ const FormField = ({
             variant="outlined"
             size="small"
             type="text"
+            required={isMandatory}
             disabled={disabled ? true : false}
             {...formik.getFieldProps("lat")}
             error={formik.touched["lat"] && Boolean(formik.errors["lat"])}
@@ -234,6 +235,7 @@ const FormField = ({
             variant="outlined"
             size="small"
             type="text"
+            required={isMandatory}
             disabled={disabled ? true : false}
             {...formik.getFieldProps("lon")}
             error={formik.touched["lon"] && Boolean(formik.errors["lon"])}

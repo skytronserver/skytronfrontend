@@ -28,13 +28,13 @@ const systemAdminFormFields = {
       .required("Email is required"),
   },
   mobile: {
-    name: "mobile",
-    type: "tel",
-    label: "Mobile",
-    validation: Yup.string()
-      .matches(/^\d{10}$/, "Mobile Number must be a 10-digit number")
-      .required("Mobile Number is required"),
-  },
+  name: "mobile",
+  type: "tel",
+  label: "Mobile",
+  validation: Yup.string()
+    .matches(/^[1-9]\d{9}$/, "Mobile Number must be 10 digits and must not start with 0")
+    .required("Mobile Number is required"),
+},
   dob: {
     name: "dob",
     type: "date",
@@ -110,21 +110,20 @@ const SystemAdmin = () => {
       resetForm();
       setShowResend(true);
     } catch (error) {
-      setAlert((prevAlert) => ({
-        ...prevAlert,
-        error: true,
-        errorList: {
-          code: "400",
-          message: error.message,
-          errors: error.response?.data,
-        },
-      }));
-      handleAlert("Failed to create System Admin");
-      setShowResend(false);
-    } finally {
-      setSubmitting(false);
-      setLoading(false);
-    }
+  const backendMessage = error?.response?.data?.error;
+
+  setAlert({
+    error: true,
+    message: backendMessage || "",
+    errorList: [],
+  });
+
+  setOpen(true);
+  setShowResend(false);
+} finally {
+  setSubmitting(false);
+  setLoading(false);
+}
   };
 
   const handleResend = (resetForm) => {

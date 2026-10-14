@@ -24,7 +24,7 @@ import MainCard from '../../ui-component/cards/MainCard';
 import CustomLoader from '../../ui-component/CustomLoader';
 import showDeviceApi from '../../services/showDeviceApi';
 import { retriveStateList, retriveManufacturerList, retriveDeviceModelList } from '../../helper';
-
+import DeviceModelServices from '../../services/DeviceModelServices';
 const DeviceHealthReport = () => {
   // Filter states
   const [filters, setFilters] = useState({
@@ -135,11 +135,11 @@ const DeviceHealthReport = () => {
       sortable: true,
       renderCell: (params) => {
         const status = params.row?.device_status || 'Unknown';
-        const color = status === 'online' ? 'success' : 
-                     status === 'offline' ? 'warning' : 
-                     status === 'no_data' ? 'error' : 'default';
-        const label = status === 'no_data' ? 'No Data' : 
-                     status.charAt(0).toUpperCase() + status.slice(1);
+        const color = status === 'online' ? 'success' :
+          status === 'offline' ? 'warning' :
+            status === 'no_data' ? 'error' : 'default';
+        const label = status === 'no_data' ? 'No Data' :
+          status.charAt(0).toUpperCase() + status.slice(1);
         return <Chip label={label} color={color} size="small" />;
       }
     },
@@ -182,24 +182,55 @@ const DeviceHealthReport = () => {
   useEffect(() => {
     fetchDropdownData();
     fetchHealthData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchDropdownData = async () => {
-    try {
-      const [states, manufacturers, deviceModels] = await Promise.all([
-        retriveStateList(),
-        retriveManufacturerList(),
-        retriveDeviceModelList()
-      ]);
-      
-      setStatesList(states || []);
-      setManufacturersList(manufacturers || []);
-      setDeviceModelsList(deviceModels || []);
-    } catch (error) {
-      console.error('Error fetching dropdown data:', error);
-    }
-  };
+ 
+const fetchDropdownData = async () => {
+  try {
+    const [states, manufacturers, deviceResponse] = await Promise.all([
+      retriveStateList(),
+      retriveManufacturerList(),
+      DeviceModelServices.getDeviceList({})
+    ]);
+
+    setStatesList(states || []);
+    setManufacturersList(manufacturers || []);
+
+    // API response structure: response.data.data
+    const deviceRows = deviceResponse?.data?.data || [];
+
+    // Extract unique device models using model ID and model name
+    const uniqueModels = new Map();
+
+    deviceRows.forEach((item) => {
+      const model = item?.model;
+
+      if (model?.id != null && model?.model_name) {
+        uniqueModels.set(model.id, {
+          value: model.id,
+          label: model.model_name
+        });
+      }
+    });
+
+    const formattedDeviceModels = Array.from(uniqueModels.values());
+
+    setDeviceModelsList(formattedDeviceModels);
+
+    console.log('Device API response:', deviceResponse?.data);
+    console.log('Device rows:', deviceRows);
+    console.log('Device model dropdown:', formattedDeviceModels);
+  } catch (error) {
+    console.error(
+      'Error fetching dropdown data:',
+      error.response?.data || error.message
+    );
+
+    setDeviceModelsList([]);
+  }
+};
+
 
   const fetchHealthData = async (filterParams = {}) => {
     setLoading(true);
@@ -217,7 +248,7 @@ const DeviceHealthReport = () => {
       });
 
       const response = await showDeviceApi.getDeviceHealthStatus(params);
-      
+
       if (response.data && response.data.status === 'success') {
         const devices = response.data.devices || [];
         // Add unique IDs for DataGrid (required by MUI DataGrid)
@@ -225,10 +256,10 @@ const DeviceHealthReport = () => {
           ...device,
           id: device.device_tag_id || index
         }));
-        
+
         setHealthData(devicesWithIds);
         setTotalRows(response.data.total_devices || 0);
-        
+
         // Update health statistics
         setHealthStats({
           total_devices: response.data.total_devices || 0,
@@ -263,23 +294,23 @@ const DeviceHealthReport = () => {
   };
 
   useEffect(() => {
-  const timer = setTimeout(() => {
-    setPage(0);
-    fetchHealthData();
-  }, 3000); // 3 sec delay
+    const timer = setTimeout(() => {
+      setPage(0);
+      fetchHealthData();
+    }, 3000); // 3 sec delay
 
-  return () => clearTimeout(timer);
-// eslint-disable-next-line react-hooks/exhaustive-deps
-}, [
-  filters.vehicle_reg_no,
-  filters.device_tag_id,
-  filters.imei,
-  filters.device_stock_id,
-  filters.device_model_id,
-  filters.district_id,
-  filters.manufacturer_id,
-  filters.vehicle_owner_id
-]);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    filters.vehicle_reg_no,
+    filters.device_tag_id,
+    filters.imei,
+    filters.device_stock_id,
+    filters.device_model_id,
+    filters.district_id,
+    filters.manufacturer_id,
+    filters.vehicle_owner_id
+  ]);
 
   const handleApplyFilters = () => {
     setPage(0);
@@ -377,7 +408,7 @@ const DeviceHealthReport = () => {
 
   const getActiveFiltersCount = () => {
     const excludeFields = ['page', 'page_size'];
-    return Object.entries(filters).filter(([key, value]) => 
+    return Object.entries(filters).filter(([key, value]) =>
       !excludeFields.includes(key) && value !== '' && value !== null && value !== undefined
     ).length;
   };
@@ -531,11 +562,11 @@ const DeviceHealthReport = () => {
         {/* Collapsible Filters Section */}
         <Card sx={{ mb: 3 }}>
           <CardContent>
-            <Box 
+            <Box
               onClick={toggleFiltersExpanded}
-              sx={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
                 cursor: 'pointer'
               }}
@@ -543,10 +574,10 @@ const DeviceHealthReport = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Typography variant="h6">Filter Options</Typography>
                 {!filtersExpanded && getActiveFiltersCount() > 0 && (
-                  <Chip 
-                    label={`${getActiveFiltersCount()} active`} 
-                    color="primary" 
-                    size="small" 
+                  <Chip
+                    label={`${getActiveFiltersCount()} active`}
+                    color="primary"
+                    size="small"
                   />
                 )}
               </Box>
@@ -554,7 +585,7 @@ const DeviceHealthReport = () => {
                 {filtersExpanded ? <ExpandLess /> : <ExpandMore />}
               </IconButton>
             </Box>
-            
+
             <Collapse in={filtersExpanded}>
               <Box sx={{ mt: 2 }}>
                 <Grid container spacing={2}>
@@ -567,7 +598,7 @@ const DeviceHealthReport = () => {
                       size="small"
                     />
                   </Grid>
-                  
+
                   <Grid item xs={12} sm={6} md={3}>
                     <TextField
                       fullWidth
@@ -577,7 +608,7 @@ const DeviceHealthReport = () => {
                       size="small"
                     />
                   </Grid>
-                  
+
                   <Grid item xs={12} sm={6} md={3}>
                     <TextField
                       fullWidth
@@ -587,7 +618,7 @@ const DeviceHealthReport = () => {
                       size="small"
                     />
                   </Grid>
-                  
+
                   <Grid item xs={12} sm={6} md={3}>
                     <TextField
                       fullWidth
@@ -597,7 +628,7 @@ const DeviceHealthReport = () => {
                       size="small"
                     />
                   </Grid>
-                  
+
                   <Grid item xs={12} sm={6} md={3}>
                     <FormControl fullWidth size="small">
                       <InputLabel>Device Model</InputLabel>
@@ -615,7 +646,7 @@ const DeviceHealthReport = () => {
                       </Select>
                     </FormControl>
                   </Grid>
-                  
+
                   <Grid item xs={12} sm={6} md={3}>
                     <TextField
                       fullWidth
@@ -625,7 +656,7 @@ const DeviceHealthReport = () => {
                       size="small"
                     />
                   </Grid>
-                  
+
                   <Grid item xs={12} sm={6} md={3}>
                     <FormControl fullWidth size="small">
                       <InputLabel>Manufacturer</InputLabel>
@@ -643,7 +674,7 @@ const DeviceHealthReport = () => {
                       </Select>
                     </FormControl>
                   </Grid>
-                  
+
                   <Grid item xs={12} sm={6} md={3}>
                     <TextField
                       fullWidth
@@ -713,7 +744,7 @@ const DeviceHealthReport = () => {
                     </FormControl>
                   </Grid>
                 </Grid>
-                
+
                 <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                   <Button
                     variant="contained"
@@ -723,7 +754,7 @@ const DeviceHealthReport = () => {
                   >
                     Apply Filters
                   </Button>
-                  
+
                   <Button
                     variant="outlined"
                     onClick={handleClearFilters}
@@ -732,7 +763,7 @@ const DeviceHealthReport = () => {
                   >
                     Clear Filters
                   </Button>
-                  
+
                   <Button
                     variant="outlined"
                     onClick={handleRefresh}
@@ -741,7 +772,7 @@ const DeviceHealthReport = () => {
                   >
                     Refresh
                   </Button>
-                  
+
                   <Tooltip title="Export to CSV">
                     <Button
                       variant="outlined"

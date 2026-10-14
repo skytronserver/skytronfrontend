@@ -53,6 +53,7 @@ const createBhuvanSource = (layerName) => {
     serverType: "geoserver",
     projection: "EPSG:4326",
     transition: 0,
+    hidpi: false, // Only new setting
   };
 
   if (process.env.REACT_APP_BHUVAN_ENABLE_CORS === "true") {
@@ -240,6 +241,14 @@ const TripViewer = () => {
 
       map.current = initialMap;
 
+      // Make the map ready even when no trip is available.
+setIsMapReady(true);
+
+// Ensure OpenLayers calculates the correct container dimensions.
+requestAnimationFrame(() => {
+  initialMap.updateSize();
+});
+
       // Add load event handler
       initialMap.once('loadend', () => {
         console.log('Map loaded successfully');
@@ -351,6 +360,31 @@ const TripViewer = () => {
     });
   };
 
+  const resetMapView = () => {
+  if (!map.current) return;
+
+  const view = map.current.getView();
+
+  // Center the map on India when no trip is available.
+  view.animate({
+    center: fromLonLat([78.9629, 20.5937]),
+    zoom: 5,
+    duration: 500,
+  });
+
+  // Remove only trip-related markers and route lines.
+  vectorSourceRef.current.clear();
+
+  // Hide any popup belonging to the previous trip.
+  if (overlayRef.current) {
+    overlayRef.current.setPosition(undefined);
+    overlayRef.current.getElement().style.display = 'none';
+  }
+
+  // Refresh the map's rendering dimensions.
+  map.current.updateSize();
+};
+
   // Fetch trip data using new ET trip list API
   const fetchTripData = async () => {
     if (!selectedVehicle) {
@@ -442,7 +476,8 @@ const TripViewer = () => {
           setSelectedTrip(null);
           setSliderValue(0);
           setMaxSliderValue(0);
-          vectorSourceRef.current.clear();
+          // vectorSourceRef.current.clear();
+          resetMapView();
         }
       } else {
         setTripSummary(null);
@@ -455,7 +490,8 @@ const TripViewer = () => {
       setTripSummary(null);
       setTrips([]);
       setSelectedTrip(null);
-      vectorSourceRef.current.clear();
+      // vectorSourceRef.current.clear();
+      resetMapView();
     } finally {
       setLoadingTrips(false);
     }
