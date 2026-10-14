@@ -103,12 +103,12 @@ export const stateAdminInitialValues = {
       name: "lat",
       type: "number",
       label: "Latitude",
-      validation: goldLatValidation("Latitude").nullable(),
+      validation: goldLatValidation("Latitude"),
     },
     lon: {
       name: "lon",
       type: "number",
       label: "Longitude",
-      validation: goldLonValidation("Longitude").nullable(),
+      validation: goldLonValidation("Longitude"),
     },
   };

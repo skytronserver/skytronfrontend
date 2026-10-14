@@ -86,7 +86,7 @@ export const customUserFields = {
     label: 'ID Card (PDF/Image)',
     validation: Yup.mixed()
       .nullable()
-      .test('fileSize', 'File must be less than 512 KB', (v) => !v || v.size <= FILE_SIZE)
+      .test('fileSize', 'File must be less than 520 KB', (v) => !v || v.size <= FILE_SIZE)
       .test('fileFormat', 'Only PDF, JPG, PNG allowed', (v) => !v || SUPPORTED_FORMATS.includes(v.type)),
   },
   file_authorisation_letter: {
@@ -95,7 +95,7 @@ export const customUserFields = {
     label: 'Authorisation Letter (PDF/Image)',
     validation: Yup.mixed()
       .nullable()
-      .test('fileSize', 'File must be less than 512 KB', (v) => !v || v.size <= FILE_SIZE)
+      .test('fileSize', 'File must be less than 520 KB', (v) => !v || v.size <= FILE_SIZE)
       .test('fileFormat', 'Only PDF, JPG, PNG allowed', (v) => !v || SUPPORTED_FORMATS.includes(v.type)),
   },
 };

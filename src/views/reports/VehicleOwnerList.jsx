@@ -2,6 +2,8 @@ import React from 'react';
 import { Alert, Snackbar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, TextField } from '@mui/material';
 // project imports
 import Grid from "@mui/material/Grid";
+import { Link } from "@mui/material";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import { gridSpacing } from "../../store/constant";
 import UserServices from '../../services/UserServices';
 import { useEffect, useState } from 'react';
@@ -125,6 +127,33 @@ const VehicleOwnerList = () => {
       }
       return col;
     }),
+    {
+  name: "file_idProof",
+  label: "ID Proof",
+  options: {
+    filter: false,
+    sort: false,
+    customBodyRender: (value) => {
+      if (!value) return "N/A";
+
+      const baseUrl = process.env.REACT_APP_BASE_URL;
+      const fileUrl = `${baseUrl.replace(/\/$/, "")}/${value.replace(/^\//, "")}`;
+
+      return (
+        <Link
+          href={fileUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          underline="none"
+          sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}
+        >
+          <VisibilityIcon fontSize="small" />
+          View ID Proof
+        </Link>
+      );
+    },
+  },
+},
     {
       name: "actions",
       label: "Actions",

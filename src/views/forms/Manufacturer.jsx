@@ -91,7 +91,7 @@ const Manufacturer = () => {
     const errors = {};
     if (selectedFile) {
       if (selectedFile.size > FILE_SIZE) {
-        errors[fieldName] = "File too large. Max size is 512KB";
+        errors[fieldName] = "File too large. Max size is 520KB";
       } else if (!SUPPORTED_FORMATS.includes(selectedFile.type)) {
         errors[fieldName] = "Unsupported Format";
       } else {

@@ -99,33 +99,22 @@ const SOSAdmin = () => {
         resetForm();
         setShowResend(true);
       }
-    } catch (error) {
-      let emailError = "",
-        mobileError = "";
-      const errorMessage = error?.response?.data?.error || "";
-      if (errorMessage) {
-        emailError = errorMessage.includes("email")
-          ? t("sosAdmin.form.validation.email_exists")
-          : "";
-        mobileError = errorMessage.includes("mobile")
-          ? t("sosAdmin.form.validation.mobile_exists")
-          : "";
-      }
-      setAlert((prevAlert) => ({
-        ...prevAlert,
-        error: true,
-        errorList: {
-          code: "400",
-          message: error.message,
-          errors: error.response?.data,
-        },
-      }));
-      handleAlert(t("sosAdmin.form.error") + " " + emailError + " " + mobileError);
-      setShowResend(false);
-    } finally {
-      setSubmitting(false);
-      setLoading(false);
-    }
+} catch (error) {
+  const backendMessage = error?.response?.data?.error;
+
+  setAlert({
+    error: true,
+    message: backendMessage || "",
+    errorList: [],
+  });
+
+  setOpen(true);
+  setShowResend(false);
+} finally {
+  setSubmitting(false);
+  setLoading(false);
+}
+
   };
 
   const handleResend = (resetForm) => {

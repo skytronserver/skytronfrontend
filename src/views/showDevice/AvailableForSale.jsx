@@ -94,7 +94,7 @@ const AvailableForSale = () => {
         <PageHeader title={t('device.reportTitle')} />
       </Grid>
       <Grid item xs={12}>
-        {load && <DynamicDatatables tableTitle={t('device.availableDevices')} rows={availableDeviceList} columns={columns} />}
+        {load && <DynamicDatatables  rows={availableDeviceList} columns={columns} />}
       </Grid>
     </Grid>
   );

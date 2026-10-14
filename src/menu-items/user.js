@@ -564,7 +564,7 @@ const user = {
         },
         {
           id: "tagged-device",
-          title: "UnTagged Device",
+          title: "UnTag Device",
           type: "item",
           url: "/device/show-tagged-device",
           breadcrumbs: false,

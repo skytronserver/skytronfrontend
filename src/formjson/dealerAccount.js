@@ -1,6 +1,6 @@
 import * as Yup from "yup";
 import { goldNameValidation, goldMobileValidation, goldEmailValidation, goldDobValidation, goldGstValidation, goldIdProofValidation, goldLatValidation, goldLonValidation } from "./validationHelpers";
-const FILE_SIZE = 512 * 1024; // 512 MB
+const FILE_SIZE = 520 * 1024; // 512 MB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);

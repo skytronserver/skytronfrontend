@@ -112,22 +112,20 @@ const SOSUser = () => {
       resetForm();
       setShowResend(true);
     } catch (error) {
-      console.error("Error creating user:", error?.message);
-      setAlert((prevAlert) => ({
-        ...prevAlert,
-        error: true,
-        errorList: {
-          code: "400",
-          message: error?.message,
-          errors: error?.response?.data,
-        },
-      }));
-      handleAlert(t("common.formNotSubmitted"));
-      setShowResend(false);
-    } finally {
-      setSubmitting(false);
-      setLoading(false);
-    }
+  const backendMessage = error?.response?.data?.error;
+
+  setAlert({
+    error: true,
+    message: backendMessage || "",
+    errorList: [],
+  });
+
+  setOpen(true);
+  setShowResend(false);
+} finally {
+  setSubmitting(false);
+  setLoading(false);
+}
   };
 
   const handleResend = (resetForm) => {
