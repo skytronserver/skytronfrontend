@@ -1853,6 +1853,47 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
         try { return JSON.parse(row.demo_devices); } catch { return []; }
     }, [row?.demo_devices]);
 
+    const ACTIVATION_PHONE = "9181016497";
+
+    const generateUniqueActivationCodes = (devices, reqId) => {
+        const codes = {};
+        const used = new Set();
+        const count = Math.max(devices?.length || 0, 5);
+        for (let i = 0; i < count; i++) {
+            const dev = devices && devices[i];
+            const imei = dev?.imei || dev?.device_serial_no || `Device ${i + 1}`;
+
+            // Deterministic hash based on request ID and device IMEI so each device has one fixed unique code
+            const seedStr = `${reqId || ''}_${imei}_${i}`;
+            let hash = 0;
+            for (let c = 0; c < seedStr.length; c++) {
+                hash = (hash * 31 + seedStr.charCodeAt(c)) >>> 0;
+            }
+            let codeNum = 100000 + (hash % 900000);
+            // Strict uniqueness guarantee: no two devices can ever share the same 6-digit number
+            while (used.has(String(codeNum))) {
+                codeNum = 100000 + ((codeNum + 13579) % 900000);
+            }
+            const code = String(codeNum);
+            used.add(code);
+            codes[imei] = code;
+            codes[i] = code;
+        }
+        return codes;
+    };
+
+    const [activationCodes, setActivationCodes] = useState({});
+
+    useEffect(() => {
+        if (open) {
+            setActivationCodes(generateUniqueActivationCodes(demoDevices, row?.id));
+        }
+    }, [open, row?.id, demoDevices]);
+
+    const getActivationCode = (imei, idx) => {
+        return activationCodes[imei] || activationCodes[idx] || "123456";
+    };
+
     const fetchTestBoard = useCallback(async (showLoading = true) => {
         if (showLoading) setLoadingBoard(true);
         try {
@@ -2357,6 +2398,9 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                 let pdfDescription = step.description;
                 if (step.serial_no === 7) {
                     pdfDescription = "Confirm the internal battery voltage reading at three distinct voltage levels.\n\nScans GPSDataLog for ,PVT,|$PVT, · needs >=1 match within a 5 min window.\nTester still confirms the reported voltage matches a reference meter, at all 3 levels.";
+                } else if (step.serial_no === 40) {
+                    const code = getActivationCode(imei, index);
+                    pdfDescription = `${step.description ? step.description + "\n\n" : ""}Command: ACTV,${code},${ACTIVATION_PHONE}`;
                 }
                 tableData.push([
                     step.serial_no,
@@ -2800,10 +2844,37 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                             step.description
                                                         )}
                                                     </Typography>
-                                                    {step.serial_no === 41 && (
-                                                        <Typography variant="caption" sx={{ mt: 1, display: 'inline-block', fontWeight: 600, color: 'primary.main', bgcolor: '#e3f2fd', p: 0.5, px: 1, borderRadius: 1 }}>
-                                                            Command: ACTV,123456,1234567891
-                                                        </Typography>
+                                                    {step.serial_no === 40 && (
+                                                        <Box sx={{ mt: 1, p: 1, bgcolor: '#f0f7ff', border: '1px solid #bbdefb', borderRadius: 1.5, textAlign: 'left' }}>
+                                                            <Typography variant="caption" sx={{ fontWeight: 700, color: '#1565c0', fontSize: '0.72rem', display: 'block', mb: 0.75 }}>
+                                                                Activation Commands (Phone: {ACTIVATION_PHONE})
+                                                            </Typography>
+                                                            <Stack spacing={0.5}>
+                                                                {imeis.map((imei, idx) => {
+                                                                    const code = getActivationCode(imei, idx);
+                                                                    const cmd = `ACTV,${code},${ACTIVATION_PHONE}`;
+                                                                    const devLabel = demoDevices[idx]?.device_serial_no || demoDevices[idx]?.imei || `Device ${idx + 1}`;
+                                                                    return (
+                                                                        <Box key={idx} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.5, bgcolor: '#fff', px: 0.75, py: 0.35, borderRadius: 1, border: '1px solid #e0e0e0' }}>
+                                                                            <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.65rem', whiteSpace: 'nowrap' }}>
+                                                                                {`D${idx + 1} (${String(devLabel).slice(-4)}):`}
+                                                                            </Typography>
+                                                                            <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700, color: '#0d47a1', fontSize: '0.7rem' }}>
+                                                                                {cmd}
+                                                                            </Typography>
+                                                                            <Button
+                                                                                size="small"
+                                                                                variant="text"
+                                                                                sx={{ fontSize: '0.6rem', p: '1px 6px', minWidth: 'auto', textTransform: 'none', lineHeight: 1 }}
+                                                                                onClick={() => navigator.clipboard.writeText(cmd)}
+                                                                            >
+                                                                                Copy
+                                                                            </Button>
+                                                                        </Box>
+                                                                    );
+                                                                })}
+                                                            </Stack>
+                                                        </Box>
                                                     )}
                                                 </TableCell>
                                                 {imeis.map((imei, idx) => {
