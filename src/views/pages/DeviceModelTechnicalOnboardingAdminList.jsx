@@ -2853,11 +2853,10 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                 {imeis.map((imei, idx) => {
                                                                     const code = getActivationCode(imei, idx);
                                                                     const cmd = `ACTV,${code},${ACTIVATION_PHONE}`;
-                                                                    const devLabel = demoDevices[idx]?.device_serial_no || demoDevices[idx]?.imei || `Device ${idx + 1}`;
                                                                     return (
                                                                         <Box key={idx} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.5, bgcolor: '#fff', px: 0.75, py: 0.35, borderRadius: 1, border: '1px solid #e0e0e0' }}>
-                                                                            <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.65rem', whiteSpace: 'nowrap' }}>
-                                                                                {`D${idx + 1} (${String(devLabel).slice(-4)}):`}
+                                                                            <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.68rem', whiteSpace: 'nowrap', minWidth: 60 }}>
+                                                                                {`Device ${idx + 1}:`}
                                                                             </Typography>
                                                                             <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700, color: '#0d47a1', fontSize: '0.7rem' }}>
                                                                                 {cmd}
