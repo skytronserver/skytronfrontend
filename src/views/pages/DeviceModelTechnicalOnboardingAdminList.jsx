@@ -59,6 +59,7 @@ import GavelIcon from "@mui/icons-material/Gavel";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import SendIcon from "@mui/icons-material/Send";
 import MainCard from "../../ui-component/cards/MainCard";
 import { gridSpacing } from "../../store/constant";
 import DeviceModelServices from "../../services/DeviceModelServices";
@@ -82,10 +83,20 @@ import "ol/ol.css";
 /* ═══════════════════════════════════════════════════
    DEVICE LOCATION MAP MODAL
 ═══════════════════════════════════════════════════ */
-const LOCATION_TEST_NOS = [15, 16, 20, 21, 22, 23];
+// Map is strictly needed only for: 11, 12, 13, 15, 16, 21, 22, 39 (PVT drop test #40 in DB)
+const LOCATION_TEST_NOS = [11, 12, 13, 15, 16, 21, 22, 39, 40];
 
-const isLocationTest = (testNo) => {
+const isLocationTest = (testNo, testName, step) => {
+    if (step && typeof step.requires_map === 'boolean') {
+        return step.requires_map;
+    }
     return LOCATION_TEST_NOS.includes(Number(testNo));
+};
+
+const getDisplaySerialNo = (serialNo) => {
+    const sNo = Number(serialNo);
+    if (!sNo) return "";
+    return sNo > 23 ? sNo - 1 : sNo;
 };
 
 const parseCoordinate = (rawVal, dir) => {
@@ -1337,7 +1348,12 @@ const generateMapSnapshot = async (points, width = 640, height = 360) => {
     }
 };
 
-const DeviceLocationMapModal = ({ open, onClose, imei, testNo, testName, rowId, samples, execution, fallbackCoord }) => {
+const DeviceLocationMapModal = ({ open, onClose, imei, testNo, testName, rowId, samples, execution, fallbackCoord, onRefreshTestBoard }) => {
+    const isGeofenceTest = Number(testNo) === 16 || (testName && /geofence/i.test(testName));
+    const [selectedInIdx, setSelectedInIdx] = useState(0);
+    const [selectedOutIdx, setSelectedOutIdx] = useState(0);
+    const [savingGeofence, setSavingGeofence] = useState(false);
+    const [geofenceFeedback, setGeofenceFeedback] = useState(null);
     const [points, setPoints] = useState([]);
     const [loading, setLoading] = useState(false);
     const [lockedCoord, setLockedCoord] = useState(null);
@@ -1352,9 +1368,23 @@ const DeviceLocationMapModal = ({ open, onClose, imei, testNo, testName, rowId, 
 
         const sampleList = Array.isArray(samples) && samples.length > 0
             ? samples
-            : (Array.isArray(execution?.test_log_snapshot?.samples) ? execution.test_log_snapshot.samples : []);
+            : (() => {
+                let snap = execution?.test_log_snapshot;
+                if (typeof snap === 'string') {
+                    try { snap = JSON.parse(snap); } catch (e) { snap = null; }
+                }
+                if (snap && Array.isArray(snap.samples) && snap.samples.length > 0) return snap.samples;
+                if (snap && Array.isArray(snap.route) && snap.route.length > 0) return snap.route;
+                return [];
+            })();
 
-        const mappedPoints = processTestPointsForMap({ sampleList, testNo, testName, imei, fallbackCoord });
+        let mappedPoints = processTestPointsForMap({ sampleList, testNo, testName, imei, fallbackCoord });
+
+        // If geofence test and tester marked custom IN/OUT points
+        if (isGeofenceTest && sampleList.length >= 2) {
+            setSelectedInIdx(0);
+            setSelectedOutIdx(sampleList.length - 1);
+        }
 
         if (mappedPoints.length > 0) {
             setPoints(mappedPoints);
@@ -1367,7 +1397,7 @@ const DeviceLocationMapModal = ({ open, onClose, imei, testNo, testName, rowId, 
         }
 
         setLoading(false);
-    }, [open, imei, samples, execution, testNo, testName, fallbackCoord]);
+    }, [open, imei, samples, execution, testNo, testName, fallbackCoord, isGeofenceTest]);
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
@@ -1399,7 +1429,89 @@ const DeviceLocationMapModal = ({ open, onClose, imei, testNo, testName, rowId, 
                     </Box>
                 ) : (
                     <Box sx={{ flex: 1, position: 'relative' }}>
-                        <DeviceModelLiveMap gpsData={points} autoFit={true} height="600px" />
+                        <DeviceModelLiveMap gpsData={isGeofenceTest && points.length >= 2 ? points.map((p, pIdx) => {
+                            if (pIdx === selectedInIdx) return { ...p, pointType: 'geofence_in', label: `Geofence IN (#${pIdx + 1})`, pinColor: '#2e7d32' };
+                            if (pIdx === selectedOutIdx) return { ...p, pointType: 'geofence_out', label: `Geofence OUT (#${pIdx + 1})`, pinColor: '#c62828' };
+                            return p;
+                        }) : points} autoFit={true} height={isGeofenceTest && execution?.status === 'in_progress' ? "520px" : "600px"} />
+                    </Box>
+                )}
+                {isGeofenceTest && points.length >= 2 && execution?.status === 'in_progress' && (
+                    <Box sx={{ p: 2, bgcolor: '#f8f9fa', borderTop: '1px solid #e0e0e0' }}>
+                        {geofenceFeedback && (
+                            <Alert severity={geofenceFeedback.type} sx={{ mb: 1.5, py: 0.5 }} onClose={() => setGeofenceFeedback(null)}>
+                                {geofenceFeedback.text}
+                            </Alert>
+                        )}
+                        <Grid container spacing={2} alignItems="center">
+                            <Grid item xs={12} sm={4}>
+                                <TextField
+                                    select
+                                    size="small"
+                                    fullWidth
+                                    label="Geofence IN (Entry Point)"
+                                    value={selectedInIdx}
+                                    onChange={(e) => {
+                                        setSelectedInIdx(Number(e.target.value));
+                                    }}
+                                >
+                                    {points.map((pt, pIdx) => (
+                                        <MenuItem key={pIdx} value={pIdx}>
+                                            #{pIdx + 1} - {pt.timestamp ? formatDateTime(pt.timestamp) : 'Point ' + (pIdx + 1)} ({pt.latitude?.toFixed(4)}, {pt.longitude?.toFixed(4)})
+                                        </MenuItem>
+                                    ))}
+                                </TextField>
+                            </Grid>
+                            <Grid item xs={12} sm={4}>
+                                <TextField
+                                    select
+                                    size="small"
+                                    fullWidth
+                                    label="Geofence OUT (Exit Point)"
+                                    value={selectedOutIdx}
+                                    onChange={(e) => {
+                                        setSelectedOutIdx(Number(e.target.value));
+                                    }}
+                                >
+                                    {points.map((pt, pIdx) => (
+                                        <MenuItem key={pIdx} value={pIdx}>
+                                            #{pIdx + 1} - {pt.timestamp ? formatDateTime(pt.timestamp) : 'Point ' + (pIdx + 1)} ({pt.latitude?.toFixed(4)}, {pt.longitude?.toFixed(4)})
+                                        </MenuItem>
+                                    ))}
+                                </TextField>
+                            </Grid>
+                            <Grid item xs={12} sm={4} sx={{ textAlign: 'right' }}>
+                                <Button
+                                    variant="contained"
+                                    size="small"
+                                    startIcon={savingGeofence ? <CircularProgress size={14} color="inherit" /> : <CheckCircleIcon />}
+                                    disabled={savingGeofence || !execution?.id}
+                                    onClick={async () => {
+                                        if (!execution?.id) return;
+                                        setSavingGeofence(true);
+                                        try {
+                                            const inPt = points[selectedInIdx];
+                                            const outPt = points[selectedOutIdx];
+                                            await DeviceModelServices.refreshLogTestBoard({
+                                                execution_id: execution.id,
+                                                geofence_in: inPt ? { latitude: inPt.latitude, longitude: inPt.longitude, timestamp: inPt.timestamp } : undefined,
+                                                geofence_out: outPt ? { latitude: outPt.latitude, longitude: outPt.longitude, timestamp: outPt.timestamp } : undefined
+                                            });
+                                            setGeofenceFeedback({ type: 'success', text: 'Geofence IN & OUT points marked and evaluated successfully!' });
+                                            if (onRefreshTestBoard) onRefreshTestBoard();
+                                        } catch (err) {
+                                            const msg = err?.response?.data?.message || err?.message || 'Failed to update geofence points';
+                                            setGeofenceFeedback({ type: 'error', text: msg });
+                                        } finally {
+                                            setSavingGeofence(false);
+                                        }
+                                    }}
+                                    sx={{ bgcolor: '#1a237e', color: '#fff', textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: '#283593' } }}
+                                >
+                                    {savingGeofence ? 'Saving...' : 'Save Geofence & Refresh'}
+                                </Button>
+                            </Grid>
+                        </Grid>
                     </Box>
                 )}
             </DialogContent>
@@ -1822,6 +1934,512 @@ const DeviceHistoryModal = ({ open, row, onClose }) => {
 };
 
 /* ═══════════════════════════════════════════════════
+   DEVICE COMMAND MODAL (MQTT COMMANDS & REPLIES)
+   ═══════════════════════════════════════════════════ */
+const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSent }) => {
+    const [loading, setLoading] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+    const [commands, setCommands] = useState([]);
+    const [history, setHistory] = useState([]);
+    const [paramValues, setParamValues] = useState({});
+    const [customCmd, setCustomCmd] = useState("");
+    const [sendingKey, setSendingKey] = useState(null);
+    const [sendingCustom, setSendingCustom] = useState(false);
+    const [feedback, setFeedback] = useState(null);
+
+    const fetchCommands = useCallback(async (isInitial = false) => {
+        if (!execution?.id) return;
+        if (isInitial) setLoading(true);
+        else setRefreshing(true);
+        try {
+            const res = await DeviceModelServices.listTestCommands({ execution_id: execution.id });
+            const data = res?.data?.data || res?.data || {};
+            const cmdList = data.commands || data.available_commands || (Array.isArray(data) ? data : []);
+            const histList = data.history || data.sent_commands || data.logs || [];
+            setCommands(cmdList);
+            setHistory(histList);
+        } catch (err) {
+            console.error("Failed to fetch test commands:", err);
+        } finally {
+            if (isInitial) setLoading(false);
+            else setRefreshing(false);
+        }
+    }, [execution?.id]);
+
+    useEffect(() => {
+        if (open && execution?.id) {
+            setFeedback(null);
+            setCustomCmd("");
+            setParamValues({});
+            fetchCommands(true);
+        }
+    }, [open, execution?.id, fetchCommands]);
+
+    const handleSendConfigured = async (cmd) => {
+        if (execution?.status !== 'in_progress') {
+            setFeedback({ type: 'error', text: 'Commands can only be sent while test is actively in progress.' });
+            return;
+        }
+        const key = cmd.command_key || cmd.key || cmd.name;
+        const val = paramValues[key] || "";
+
+        if (cmd.value_regex && val) {
+            try {
+                const re = new RegExp(cmd.value_regex);
+                if (!re.test(val)) {
+                    setFeedback({
+                        type: 'error',
+                        text: `Invalid format: ${cmd.value_hint || cmd.value_regex}`
+                    });
+                    return;
+                }
+            } catch (e) {}
+        }
+
+        setSendingKey(key);
+        setFeedback(null);
+        try {
+            const res = await DeviceModelServices.sendTestCommand({
+                execution_id: execution.id,
+                command_key: key,
+                value: val
+            });
+            const resData = res?.data?.data || res?.data || {};
+            setFeedback({
+                type: 'success',
+                text: resData.message || `Command "${key}" dispatched via MQTT. Status: ${resData.send_status || 'queued'}`
+            });
+            setParamValues(prev => ({ ...prev, [key]: '' }));
+            fetchCommands(false);
+            if (onCommandSent) onCommandSent();
+        } catch (err) {
+            const msg = err?.response?.data?.message || err?.response?.data?.error || err.message || "Failed to send command";
+            setFeedback({ type: 'error', text: msg });
+        } finally {
+            setSendingKey(null);
+        }
+    };
+
+    const handleSendCustom = async () => {
+        if (execution?.status !== 'in_progress') {
+            setFeedback({ type: 'error', text: 'Commands can only be sent while test is actively in progress.' });
+            return;
+        }
+        if (!customCmd.trim()) return;
+        setSendingCustom(true);
+        setFeedback(null);
+        try {
+            const res = await DeviceModelServices.sendTestCommand({
+                execution_id: execution.id,
+                command: customCmd.trim()
+            });
+            const resData = res?.data?.data || res?.data || {};
+            setFeedback({
+                type: 'success',
+                text: resData.message || `Custom command dispatched via MQTT. Status: ${resData.send_status || 'queued'}`
+            });
+            setCustomCmd("");
+            fetchCommands(false);
+            if (onCommandSent) onCommandSent();
+        } catch (err) {
+            const msg = err?.response?.data?.message || err?.response?.data?.error || err.message || "Failed to send custom command";
+            setFeedback({ type: 'error', text: msg });
+        } finally {
+            setSendingCustom(false);
+        }
+    };
+
+    return (
+        <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+            <DialogTitle sx={{ m: 0, p: 2, bgcolor: '#0d1b2a', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <SendIcon sx={{ color: '#00e5ff' }} />
+                    <Box>
+                        <Typography variant="subtitle1" sx={{ color: '#fff', fontWeight: 700, lineHeight: 1.2 }}>
+                            Device MQTT Commands & Live Replies
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#b0bec5', fontSize: '0.72rem' }}>
+                            Test #{getDisplaySerialNo(step?.serial_no)}: {step?.name} • IMEI: {imei || 'N/A'}
+                        </Typography>
+                    </Box>
+                </Box>
+                <IconButton onClick={onClose} sx={{ color: '#fff' }} size="small">
+                    <CancelIcon />
+                </IconButton>
+            </DialogTitle>
+            <DialogContent dividers sx={{ p: 2.5, bgcolor: '#fbfbfb' }}>
+                {execution?.status !== 'in_progress' && (
+                    <Alert severity="warning" sx={{ mb: 2, py: 0.5, fontSize: '0.78rem' }}>
+                        Test is currently <b>{execution?.status || 'inactive'}</b>. Commands can only be sent while the test is actively running.
+                    </Alert>
+                )}
+                {feedback && (
+                    <Alert
+                        severity={feedback.type}
+                        onClose={() => setFeedback(null)}
+                        sx={{ mb: 2 }}
+                    >
+                        {feedback.text}
+                    </Alert>
+                )}
+
+                {loading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 6 }}>
+                        <CircularProgress size={32} />
+                        <Typography sx={{ ml: 2, color: 'text.secondary' }}>Loading commands...</Typography>
+                    </Box>
+                ) : (
+                    <Stack spacing={3}>
+                        {/* Section 1: Configured Commands */}
+                        <Box>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1a237e', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <span>Configured Test Commands</span>
+                                {commands.length > 0 && (
+                                    <Chip label={`${commands.length} Available`} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#e8eaf6', color: '#1a237e' }} />
+                                )}
+                            </Typography>
+                            {commands.length === 0 ? (
+                                <Paper variant="outlined" sx={{ p: 2, bgcolor: '#fff', textAlign: 'center' }}>
+                                    <Typography variant="caption" color="text.secondary">
+                                        No predefined command templates found for this test step. You can use the custom command sender below.
+                                    </Typography>
+                                </Paper>
+                            ) : (
+                                <Stack spacing={1.5}>
+                                    {commands.map((cmd, idx) => {
+                                        const key = cmd.command_key || cmd.key || cmd.name || `cmd_${idx}`;
+                                        const requiresVal = Boolean(cmd.command_template && cmd.command_template.includes("{value}")) || Boolean(cmd.value_hint);
+                                        const isSending = sendingKey === key;
+
+                                        return (
+                                            <Paper key={idx} variant="outlined" sx={{ p: 1.5, bgcolor: '#fff', borderRadius: 1.5, border: '1px solid #e0e0e0' }}>
+                                                <Grid container spacing={1.5} alignItems="center">
+                                                    <Grid item xs={12} sm={requiresVal ? 4 : 8}>
+                                                        <Typography variant="body2" sx={{ fontWeight: 600, color: '#0d1b2a' }}>
+                                                            {cmd.command_name || cmd.name || key}
+                                                        </Typography>
+                                                        {cmd.description && (
+                                                            <Typography variant="caption" color="text.secondary" display="block">
+                                                                {cmd.description}
+                                                            </Typography>
+                                                        )}
+                                                        {cmd.command_template && (
+                                                            <Typography variant="caption" sx={{ fontFamily: 'monospace', color: '#0277bd', display: 'block', mt: 0.25 }}>
+                                                                Template: {cmd.command_template}
+                                                            </Typography>
+                                                        )}
+                                                    </Grid>
+                                                    {requiresVal && (
+                                                        <Grid item xs={12} sm={5}>
+                                                            <TextField
+                                                                size="small"
+                                                                fullWidth
+                                                                placeholder={cmd.value_hint || "Enter parameter value"}
+                                                                helperText={cmd.value_hint ? `Format: ${cmd.value_hint}` : undefined}
+                                                                value={paramValues[key] || ""}
+                                                                onChange={(e) => setParamValues(prev => ({ ...prev, [key]: e.target.value }))}
+                                                                inputProps={{ style: { fontSize: '0.85rem' } }}
+                                                            />
+                                                        </Grid>
+                                                    )}
+                                                    <Grid item xs={12} sm={requiresVal ? 3 : 4} sx={{ textAlign: 'right' }}>
+                                                        <Button
+                                                            variant="contained"
+                                                            size="small"
+                                                            startIcon={isSending ? <CircularProgress size={14} color="inherit" /> : <SendIcon sx={{ fontSize: '0.85rem !important' }} />}
+                                                            disabled={execution?.status !== 'in_progress' || isSending || sendingCustom}
+                                                            onClick={() => handleSendConfigured(cmd)}
+                                                            sx={{
+                                                                bgcolor: '#0288d1',
+                                                                color: '#fff',
+                                                                textTransform: 'none',
+                                                                fontWeight: 600,
+                                                                '&:hover': { bgcolor: '#01579b' }
+                                                            }}
+                                                        >
+                                                            {isSending ? "Sending..." : "Send Command"}
+                                                        </Button>
+                                                    </Grid>
+                                                </Grid>
+                                            </Paper>
+                                        );
+                                    })}
+                                </Stack>
+                            )}
+                        </Box>
+
+                        {/* Section 2: Custom Command */}
+                        <Box>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#37474f', mb: 1 }}>
+                                Send Custom / Raw Command
+                            </Typography>
+                            <Paper variant="outlined" sx={{ p: 1.5, bgcolor: '#fff', borderRadius: 1.5 }}>
+                                <Grid container spacing={1.5} alignItems="center">
+                                    <Grid item xs={12} sm={9}>
+                                        <TextField
+                                            size="small"
+                                            fullWidth
+                                            placeholder="e.g. OT,12,0,192.168.1.1,5000 or FACTORY_RESET"
+                                            value={customCmd}
+                                            onChange={(e) => setCustomCmd(e.target.value)}
+                                            helperText="Backend automatically wraps command delimiters and delivers to device via MQTT."
+                                            inputProps={{ style: { fontFamily: 'monospace', fontSize: '0.85rem' } }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' && !sendingCustom && customCmd.trim()) {
+                                                    e.preventDefault();
+                                                    handleSendCustom();
+                                                }
+                                            }}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={3} sx={{ textAlign: 'right' }}>
+                                        <Button
+                                            variant="contained"
+                                            size="small"
+                                            fullWidth
+                                            startIcon={sendingCustom ? <CircularProgress size={14} color="inherit" /> : <SendIcon sx={{ fontSize: '0.85rem !important' }} />}
+                                            disabled={execution?.status !== 'in_progress' || sendingCustom || !customCmd.trim()}
+                                            onClick={handleSendCustom}
+                                            sx={{
+                                                bgcolor: '#37474f',
+                                                color: '#fff',
+                                                textTransform: 'none',
+                                                fontWeight: 600,
+                                                '&:hover': { bgcolor: '#263238' }
+                                            }}
+                                        >
+                                            {sendingCustom ? "Sending..." : "Send Custom"}
+                                        </Button>
+                                    </Grid>
+                                </Grid>
+                            </Paper>
+                        </Box>
+
+                        {/* Section 3: History & Live Device Replies */}
+                        <Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1b5e20' }}>
+                                    Command Dispatch History & Device Replies
+                                </Typography>
+                                <Button
+                                    variant="outlined"
+                                    size="small"
+                                    startIcon={refreshing ? <CircularProgress size={12} /> : <RefreshIcon sx={{ fontSize: '0.85rem !important' }} />}
+                                    disabled={refreshing}
+                                    onClick={() => fetchCommands(false)}
+                                    sx={{ fontSize: '0.7rem', py: '2px', px: 1, textTransform: 'none' }}
+                                >
+                                    {refreshing ? "Checking..." : "Check for Replies"}
+                                </Button>
+                            </Box>
+                            <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 260, bgcolor: '#fff' }}>
+                                <Table size="small" stickyHeader>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell sx={{ fontWeight: 600, width: '22%' }}>Sent Time</TableCell>
+                                            <TableCell sx={{ fontWeight: 600, width: '30%' }}>Command Dispatched</TableCell>
+                                            <TableCell sx={{ fontWeight: 600, width: '18%' }}>Status</TableCell>
+                                            <TableCell sx={{ fontWeight: 600, width: '30%' }}>Device Replies (ACK)</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {history.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={4} align="center" sx={{ py: 3, color: 'text.secondary', fontSize: '0.8rem' }}>
+                                                    No commands sent yet for this test execution.
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            history.map((item, idx) => {
+                                                const replies = Array.isArray(item.replies) ? item.replies : (item.replies ? [item.replies] : []);
+                                                const status = item.send_status || item.status || "queued";
+
+                                                return (
+                                                    <TableRow key={idx}>
+                                                        <TableCell sx={{ whiteSpace: 'nowrap', fontSize: '0.75rem', color: 'text.secondary', fontFamily: 'monospace' }}>
+                                                            {item.sent_at || item.created_at || item.timestamp ? formatDateTime(item.sent_at || item.created_at || item.timestamp) : 'Just now'}
+                                                        </TableCell>
+                                                        <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.78rem', fontWeight: 600, color: '#0d1b2a', wordBreak: 'break-all' }}>
+                                                            {item.command || item.command_key || '—'}
+                                                            {item.value && (
+                                                                <Typography component="span" variant="caption" sx={{ color: '#0277bd', ml: 0.5 }}>
+                                                                    ({item.value})
+                                                                </Typography>
+                                                            )}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Chip
+                                                                label={status}
+                                                                size="small"
+                                                                sx={{
+                                                                    height: 18,
+                                                                    fontSize: '0.62rem',
+                                                                    fontWeight: 600,
+                                                                    bgcolor: status === 'delivered' || status === 'completed' ? '#e8f5e9' : status === 'sent' ? '#e1f5fe' : '#fff9c4',
+                                                                    color: status === 'delivered' || status === 'completed' ? '#2e7d32' : status === 'sent' ? '#0277bd' : '#f57f17'
+                                                                }}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {replies.length > 0 ? (
+                                                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                                                    {replies.map((rep, rIdx) => (
+                                                                        <Box
+                                                                            key={rIdx}
+                                                                            sx={{
+                                                                                bgcolor: '#e8f5e9',
+                                                                                border: '1px solid #c8e6c9',
+                                                                                borderRadius: 1,
+                                                                                px: 1,
+                                                                                py: 0.25,
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                justifyContent: 'space-between',
+                                                                                gap: 0.5
+                                                                            }}
+                                                                        >
+                                                                            <Typography variant="caption" sx={{ fontFamily: 'monospace', fontSize: '0.72rem', color: '#1b5e20', fontWeight: 600 }}>
+                                                                                {typeof rep === 'object' ? JSON.stringify(rep) : String(rep)}
+                                                                            </Typography>
+                                                                            <Button
+                                                                                size="small"
+                                                                                sx={{ minWidth: 'auto', p: '1px 4px', fontSize: '0.55rem' }}
+                                                                                onClick={() => navigator.clipboard.writeText(typeof rep === 'object' ? JSON.stringify(rep) : String(rep))}
+                                                                            >
+                                                                                Copy
+                                                                            </Button>
+                                                                        </Box>
+                                                                    ))}
+                                                                </Box>
+                                                            ) : (
+                                                                <Typography variant="caption" sx={{ color: 'text.secondary', fontStyle: 'italic', fontSize: '0.7rem' }}>
+                                                                    Awaiting response...
+                                                                </Typography>
+                                                            )}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            })
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </Box>
+                    </Stack>
+                )}
+            </DialogContent>
+            <DialogActions sx={{ px: 2.5, py: 1.5, bgcolor: '#f5f5f5' }}>
+                <Button onClick={onClose} variant="outlined" size="small" sx={{ textTransform: 'none' }}>
+                    Close
+                </Button>
+            </DialogActions>
+        </Dialog>
+    );
+};
+
+/* ═══════════════════════════════════════════════════
+   MANUAL CONFIRMATION MODAL
+   ═══════════════════════════════════════════════════ */
+const ManualConfirmModal = ({ open, onClose, execution, step, imei, onSave }) => {
+    const [result, setResult] = useState("pass");
+    const [notes, setNotes] = useState("");
+
+    useEffect(() => {
+        if (open) {
+            setResult(execution?.manual_result || "pass");
+            setNotes(execution?.manual_notes || "");
+        }
+    }, [open, execution]);
+
+    const handleSave = () => {
+        onSave({ result, notes: notes.trim() });
+        onClose();
+    };
+
+    return (
+        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+            <DialogTitle sx={{ m: 0, p: 2, bgcolor: '#0d1b2a', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <GavelIcon sx={{ color: '#ffb74d' }} />
+                    <Box>
+                        <Typography variant="subtitle1" sx={{ color: '#fff', fontWeight: 700, lineHeight: 1.2 }}>
+                            Manual Test Confirmation
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#b0bec5', fontSize: '0.72rem' }}>
+                            Test #{getDisplaySerialNo(step?.serial_no)}: {step?.name} • IMEI: {imei || 'N/A'}
+                        </Typography>
+                    </Box>
+                </Box>
+                <IconButton onClick={onClose} sx={{ color: '#fff' }} size="small">
+                    <CancelIcon />
+                </IconButton>
+            </DialogTitle>
+            <DialogContent dividers sx={{ p: 2.5, bgcolor: '#fbfbfb' }}>
+                <Stack spacing={2.5}>
+                    {step?.expected_result && (
+                        <Box sx={{ p: 1.5, bgcolor: '#e8f5e9', border: '1px solid #c8e6c9', borderRadius: 1 }}>
+                            <Typography variant="caption" sx={{ color: '#2e7d32', fontWeight: 700, display: 'block', mb: 0.25 }}>
+                                Expected Result:
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: '#1b5e20', fontSize: '0.75rem', display: 'block' }}>
+                                {step.expected_result}
+                            </Typography>
+                        </Box>
+                    )}
+
+                    <FormControl component="fieldset">
+                        <FormLabel sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#0d1b2a', mb: 0.5 }}>
+                            Physical / Manual Verification Result *
+                        </FormLabel>
+                        <RadioGroup row value={result} onChange={(e) => setResult(e.target.value)}>
+                            <FormControlLabel
+                                value="pass"
+                                control={<Radio color="success" size="small" />}
+                                label={<Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#2e7d32' }}>Pass (Physical action verified)</Typography>}
+                            />
+                            <FormControlLabel
+                                value="fail"
+                                control={<Radio color="error" size="small" />}
+                                label={<Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#c62828' }}>Fail (Criteria not met)</Typography>}
+                            />
+                        </RadioGroup>
+                    </FormControl>
+
+                    <Box>
+                        <Typography variant="caption" sx={{ fontSize: '0.78rem', fontWeight: 600, color: '#0d1b2a', display: 'block', mb: 0.5 }}>
+                            Observation Notes / Physical Remarks (Optional)
+                        </Typography>
+                        <TextField
+                            multiline
+                            rows={3}
+                            fullWidth
+                            size="small"
+                            placeholder="e.g. Physical SOS button pressed, alert buzzer activated and confirmed on device."
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            inputProps={{ style: { fontSize: '0.85rem' } }}
+                        />
+                    </Box>
+                </Stack>
+            </DialogContent>
+            <DialogActions sx={{ px: 2.5, py: 1.5, bgcolor: '#f5f5f5' }}>
+                <Button onClick={onClose} variant="outlined" size="small" sx={{ textTransform: 'none' }}>
+                    Cancel
+                </Button>
+                <Button
+                    onClick={handleSave}
+                    variant="contained"
+                    size="small"
+                    sx={{ bgcolor: '#0d1b2a', color: '#fff', textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: '#1a237e' } }}
+                >
+                    Save Confirmation
+                </Button>
+            </DialogActions>
+        </Dialog>
+    );
+};
+
+/* ═══════════════════════════════════════════════════
    FINALIZE DIALOG
 ═══════════════════════════════════════════════════ */
 const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
@@ -1839,9 +2457,69 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
     // Location Map Modal State
     const [locationMapState, setLocationMapState] = useState({ open: false, samples: [], imei: '', testNo: null });
 
+    // Device Command Modal State
+    const [commandModalState, setCommandModalState] = useState({
+        open: false,
+        execution: null,
+        step: null,
+        imei: ''
+    });
+
+    const handleOpenCommandModal = (execution, step, imei) => {
+        setCommandModalState({
+            open: true,
+            execution,
+            step,
+            imei: execution?.demo_device?.imei || imei || ''
+        });
+    };
+
+    const handleCloseCommandModal = () => {
+        setCommandModalState(prev => ({ ...prev, open: false }));
+    };
+
+    // Manual Confirmations State (execution_id -> { result, notes })
+    const [manualConfirmations, setManualConfirmations] = useState({});
+    const [manualConfirmModalState, setManualConfirmModalState] = useState({
+        open: false,
+        execution: null,
+        step: null,
+        imei: ''
+    });
+
+    const handleOpenManualConfirm = (execution, step, imei) => {
+        setManualConfirmModalState({
+            open: true,
+            execution,
+            step,
+            imei: execution?.demo_device?.imei || imei || ''
+        });
+    };
+
+    const handleCloseManualConfirm = () => {
+        setManualConfirmModalState(prev => ({ ...prev, open: false }));
+    };
+
+    const handleSaveManualConfirm = (data) => {
+        if (!manualConfirmModalState.execution?.id) return;
+        setManualConfirmations(prev => ({
+            ...prev,
+            [manualConfirmModalState.execution.id]: data
+        }));
+    };
+
     // Checklist states
     const [activeTestId, setActiveTestId] = useState(1);
     const [deviceTestResults, setDeviceTestResults] = useState({});
+    const [startingDeviceTestId, setStartingDeviceTestId] = useState(null);
+    const [completingExecId, setCompletingExecId] = useState(null);
+    const [refreshingExecId, setRefreshingExecId] = useState(null);
+
+    // Collapsible procedures state
+    const [expandedProcedures, setExpandedProcedures] = useState({});
+    const toggleProcedure = (id) => {
+        setExpandedProcedures(prev => ({ ...prev, [id]: !prev[id] }));
+    };
 
     // Test board data from API
     const [testBoardCategories, setTestBoardCategories] = useState([]);
@@ -1909,20 +2587,24 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
 
             if (categories.length > 0) {
                 setTestBoardCategories(categories);
-                // find the first active test id that has any incomplete execution, or default to 1
-                let firstIncompleteId = 1;
-                for (const cat of categories) {
-                    const hasIncomplete = cat.executions.some(e => e.status === "incomplete" || e.status === "not_started" || e.status === "in_progress");
-                    if (hasIncomplete) {
-                        firstIncompleteId = cat.test_case.serial_no;
-                        break;
+                if (res?.data?.current_unlocked_serial_no !== undefined && res?.data?.current_unlocked_serial_no !== null) {
+                    setActiveTestId(res.data.current_unlocked_serial_no);
+                } else {
+                    // find the first active test id that has any incomplete execution, or default to 1
+                    let firstIncompleteId = 1;
+                    for (const cat of categories) {
+                        const hasIncomplete = cat.executions.some(e => e.status === "incomplete" || e.status === "not_started" || e.status === "in_progress");
+                        if (hasIncomplete) {
+                            firstIncompleteId = cat.test_case.serial_no;
+                            break;
+                        }
                     }
+                    // if all tests completed, it will set it to the max id
+                    if (categories.every(cat => cat.executions.every(e => e.status === "pass" || e.status === "completed" || e.status === "complete"))) {
+                        firstIncompleteId = 999;
+                    }
+                    setActiveTestId(firstIncompleteId);
                 }
-                // if all tests completed, it will set it to the max id
-                if (categories.every(cat => cat.executions.every(e => e.status === "pass" || e.status === "completed"))) {
-                    firstIncompleteId = categories.length + 1;
-                }
-                setActiveTestId(firstIncompleteId);
             }
         } catch (err) {
             setApiError(extractError(err));
@@ -1973,6 +2655,10 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
     }, [open, testBoardCategories, fetchTestBoard]);
 
     const handleStartTest = async (testCaseId, demoDeviceId) => {
+        const key = `${testCaseId}_${demoDeviceId}`;
+        if (startingDeviceTestId) return;
+        setStartingDeviceTestId(key);
+        setApiError("");
         try {
             await DeviceModelServices.startTestBoard({
                 onboarding_request_id: row.id,
@@ -1982,24 +2668,40 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
             fetchTestBoard(false);
         } catch (err) {
             setApiError(extractError(err));
+        } finally {
+            setStartingDeviceTestId(null);
         }
     };
 
     const handleRefreshLog = async (executionId) => {
+        if (refreshingExecId) return;
+        setRefreshingExecId(executionId);
         try {
             await DeviceModelServices.refreshLogTestBoard({ execution_id: executionId });
             fetchTestBoard(false);
         } catch (err) {
             setApiError(extractError(err));
+        } finally {
+            setRefreshingExecId(null);
         }
     };
 
-    const handleCompleteTest = async (executionId) => {
+    const handleCompleteTest = async (executionId, manualData = null) => {
+        if (completingExecId) return;
+        setCompletingExecId(executionId);
+        setApiError("");
         try {
-            await DeviceModelServices.completeTestBoard({ execution_id: executionId });
+            const payload = { execution_id: executionId };
+            if (manualData) {
+                payload.manual_result = manualData.result;
+                payload.manual_notes = manualData.notes;
+            }
+            await DeviceModelServices.completeTestBoard(payload);
             fetchTestBoard(false);
         } catch (err) {
             setApiError(extractError(err));
+        } finally {
+            setCompletingExecId(null);
         }
     };
 
@@ -2117,10 +2819,9 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
         const mapRequests = [];
         testBoardCategories.forEach((category) => {
             const step = category.test_case;
-            const isLocationTest = LOCATION_TEST_NOS.includes(Number(step.serial_no)) ||
-                (step.name && /(speed|geofence|faraday|location|satellite|recovery|a-gps)/i.test(step.name));
+            const hasMap = isLocationTest(step.serial_no, step.name, step);
 
-            if (isLocationTest) {
+            if (hasMap) {
                 imeis.forEach((imei, idx) => {
                     const executions = Array.isArray(category.executions) ? category.executions : [];
                     const exec = executions.find(e =>
@@ -2135,8 +2836,10 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                         try {
                             snap = typeof execution.test_log_snapshot === "string" ? JSON.parse(execution.test_log_snapshot) : execution.test_log_snapshot;
                         } catch (e) { }
-                        if (snap && Array.isArray(snap.samples)) {
+                        if (snap && Array.isArray(snap.samples) && snap.samples.length > 0) {
                             samples = snap.samples;
+                        } else if (snap && Array.isArray(snap.route) && snap.route.length > 0) {
+                            samples = snap.route;
                         }
                     }
                     if ((!samples || samples.length === 0) && Array.isArray(execution?.samples)) {
@@ -2322,7 +3025,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                     if (appendStr) {
                         displayName = `${step.name} (${appendStr})`;
                     }
-                } else if (step.serial_no === 23 && extraData.includes("Op:")) {
+                } else if (step.serial_no === 24 && extraData.includes("Op:")) {
                     const opMatch = extraData.match(/Op: (.*?)( \||$)/);
                     if (opMatch) {
                         const ops = opMatch[1].split(" -> ");
@@ -2332,7 +3035,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                             displayName = `eSIM switch: primary (${ops[0]}) -> secondary (...)`;
                         }
                     }
-                } else if (step.serial_no === 24 && extraData.includes("Op:")) {
+                } else if (step.serial_no === 25 && extraData.includes("Op:")) {
                     const opMatch = extraData.match(/Op: (.*?)( \||$)/);
                     if (opMatch) {
                         const ops = opMatch[1].split(" -> ");
@@ -2354,7 +3057,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                 } else if (step.serial_no === 8) {
                     const match = extraData.match(/Ext Vol: (.*?)( \||$)/);
                     if (match) filteredExtraData = `Ext Vol: ${match[1]}`;
-                } else if (step.serial_no === 14 || step.serial_no === 15) {
+                } else if (step.serial_no === 15) {
                     let speedStr = "";
                     if (rowSpeeds.length >= 2) {
                         speedStr = `Start Speed: ${rowSpeeds[0]} km/h | End Speed: ${rowSpeeds[rowSpeeds.length - 1]} km/h`;
@@ -2364,29 +3067,14 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                     const locMatch = extraData.match(/Lat\/Lon: (.*?)( \||$)/);
                     const locStr = locMatch ? `Lat/Lon: ${locMatch[1]}` : "";
                     filteredExtraData = [speedStr, locStr].filter(Boolean).join(" | ");
-                } else if (step.serial_no === 20 || step.serial_no === 21) {
+                } else if (step.serial_no === 20 || step.serial_no === 21 || step.serial_no === 22) {
                     const parts = [];
                     const locMatch = extraData.match(/Lat\/Lon: (.*?)( \||$)/);
                     if (locMatch) parts.push(`Lat/Lon: ${locMatch[1]}`);
                     const netMatch = extraData.match(/Net: (.*?)( \||$)/);
                     if (netMatch) parts.push(`Net: ${netMatch[1]}`);
                     filteredExtraData = parts.join(" | ");
-                } else if (step.serial_no === 23) {
-                    const isGpsRecovery = /(loss|recovery|satellite)/i.test(step.name);
-                    if (isGpsRecovery) {
-                        if (rowLocations.length >= 2) {
-                            filteredExtraData = `Loss Point: ${rowLocations[0]} | Recovery Point: ${rowLocations[rowLocations.length - 1]}`;
-                        } else if (rowLocations.length === 1) {
-                            filteredExtraData = `Recovery Point: ${rowLocations[0]}`;
-                        } else {
-                            const locMatch = extraData.match(/Lat\/Lon: (.*?)( \||$)/);
-                            if (locMatch) filteredExtraData = locMatch[1];
-                        }
-                    } else {
-                        const match = extraData.match(/Op: (.*?)( \||$)/);
-                        if (match) filteredExtraData = `Op: ${match[1]}`;
-                    }
-                } else if (step.serial_no === 24) {
+                } else if (step.serial_no === 24 || step.serial_no === 25) {
                     const match = extraData.match(/Op: (.*?)( \||$)/);
                     if (match) filteredExtraData = `Op: ${match[1]}`;
                 }
@@ -2398,12 +3086,12 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                 let pdfDescription = step.description;
                 if (step.serial_no === 7) {
                     pdfDescription = "Confirm the internal battery voltage reading at three distinct voltage levels.\n\nScans GPSDataLog for ,PVT,|$PVT, · needs >=1 match within a 5 min window.\nTester still confirms the reported voltage matches a reference meter, at all 3 levels.";
-                } else if (step.serial_no === 40) {
+                } else if (step.serial_no === 41) {
                     const code = getActivationCode(imei, index);
                     pdfDescription = `${step.description ? step.description + "\n\n" : ""}Command: ACTV,${code},${ACTIVATION_PHONE}`;
                 }
                 tableData.push([
-                    step.serial_no,
+                    getDisplaySerialNo(step.serial_no),
                     displayName,
                     pdfDescription,
                     timestamp,
@@ -2412,10 +3100,9 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                 ]);
 
                 // Insert inline map evidence directly underneath the test row!
-                const isLocationTest = LOCATION_TEST_NOS.includes(Number(step.serial_no)) ||
-                    (step.name && /(speed|geofence|faraday|location|satellite|recovery|a-gps)/i.test(step.name));
+                const hasMap = isLocationTest(step.serial_no, step.name, step);
 
-                if (isLocationTest) {
+                if (hasMap) {
                     const mapItem = mapSnapshots.find(
                         (m) => (String(m.imei) === String(imei) || m.imeiIndex === index) &&
                             Number(m.serial_no) === Number(step.serial_no) &&
@@ -2434,7 +3121,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                 },
                                 _isMapRow: true,
                                 _mapDataUrl: mapItem.dataUrl,
-                                _testNo: step.serial_no,
+                                _testNo: getDisplaySerialNo(step.serial_no),
                                 _testName: displayName,
                                 _points: mapItem.points
                             }
@@ -2733,7 +3420,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                             Test Board — Request {row?.id} {row?.status}
                         </Typography>
                         <Typography variant="body2" color="text.secondary" mb={2}>
-                            Currently unlocked test: #{activeTestId <= testBoardCategories.length ? activeTestId : 'All completed'}
+                            Currently unlocked test: {allTestsCompleted ? 'All completed' : `#${getDisplaySerialNo(activeTestId)}`}
                         </Typography>
 
                         <TableContainer sx={{ border: "1px solid #e0e0e0", borderRadius: 1 }}>
@@ -2829,14 +3516,53 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                         const isCompleted = step.serial_no < activeTestId;
                                         return (
                                             <TableRow key={step.id}>
-                                                <TableCell sx={{ verticalAlign: 'top', pt: 2 }}>{step.serial_no}</TableCell>
-                                                <TableCell sx={{ verticalAlign: 'top', pt: 2 }}>
-                                                    <Typography variant="body2" fontWeight={600} color="text.primary">{displayName}</Typography>
-                                                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+                                                <TableCell sx={{ verticalAlign: 'top', pt: 2 }}>{getDisplaySerialNo(step.serial_no)}</TableCell>
+                                                <TableCell sx={{ verticalAlign: 'top', pt: 2, minWidth: 280 }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', mb: 0.5 }}>
+                                                        <Typography variant="body2" fontWeight={700} color="text.primary">{displayName}</Typography>
+                                                        {step.category && (
+                                                            <Chip
+                                                                label={step.category}
+                                                                size="small"
+                                                                sx={{ height: 18, fontSize: '0.62rem', fontWeight: 600, bgcolor: '#e3f2fd', color: '#1565c0' }}
+                                                            />
+                                                        )}
+                                                        {step.test_environment && (
+                                                            <Chip
+                                                                label={step.test_environment}
+                                                                size="small"
+                                                                variant="outlined"
+                                                                sx={{
+                                                                    height: 18,
+                                                                    fontSize: '0.6rem',
+                                                                    color: step.test_environment.includes('Outdoor') ? '#e65100' : '#455a64',
+                                                                    borderColor: step.test_environment.includes('Outdoor') ? '#ffb74d' : '#cfd8dc'
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </Box>
+
+                                                    {/* Requirement Badges */}
+                                                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 0.75 }}>
+                                                        {step.requires_physical_test && (
+                                                            <Chip label="Physical Test" size="small" sx={{ height: 16, fontSize: '0.58rem', bgcolor: '#f3e5f5', color: '#7b1fa2' }} />
+                                                        )}
+                                                        {step.requires_command && (
+                                                            <Chip label="Command Required" size="small" sx={{ height: 16, fontSize: '0.58rem', bgcolor: '#fff3e0', color: '#e65100' }} />
+                                                        )}
+                                                        {step.requires_map && (
+                                                            <Chip label="Map" size="small" sx={{ height: 16, fontSize: '0.58rem', bgcolor: '#e8f5e9', color: '#2e7d32' }} />
+                                                        )}
+                                                        {step.requires_manual_confirmation && (
+                                                            <Chip label="Manual Confirm" size="small" sx={{ height: 16, fontSize: '0.58rem', bgcolor: '#ede7f6', color: '#512da8' }} />
+                                                        )}
+                                                    </Box>
+
+                                                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5, lineHeight: 1.3 }}>
                                                         {step.serial_no === 7 ? (
                                                             <>
                                                                 Confirm the internal battery voltage reading at three distinct voltage levels.
-                                                                <br /><br />
+                                                                <br />
                                                                 Scans GPSDataLog for ,PVT,|$PVT, &middot; needs &ge;1 match within a 5 min window.<br />
                                                                 Tester still confirms the reported voltage matches a reference meter, at all 3 levels.
                                                             </>
@@ -2844,7 +3570,41 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                             step.description
                                                         )}
                                                     </Typography>
-                                                    {step.serial_no === 40 && (
+
+                                                    {/* Expected Result */}
+                                                    {step.expected_result && (
+                                                        <Box sx={{ p: 0.75, bgcolor: '#f1f8e9', border: '1px solid #dcedc8', borderRadius: 1, mb: 0.5 }}>
+                                                            <Typography variant="caption" sx={{ fontWeight: 700, color: '#33691e', fontSize: '0.65rem', display: 'block' }}>
+                                                                Expected Result:
+                                                            </Typography>
+                                                            <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.65rem', display: 'block', lineHeight: 1.3 }}>
+                                                                {step.expected_result}
+                                                            </Typography>
+                                                        </Box>
+                                                    )}
+
+                                                    {/* Procedure toggle */}
+                                                    {step.procedure && (
+                                                        <Box sx={{ mt: 0.5 }}>
+                                                            <Button
+                                                                size="small"
+                                                                variant="text"
+                                                                onClick={() => toggleProcedure(step.id)}
+                                                                sx={{ p: 0, minWidth: 'auto', fontSize: '0.65rem', textTransform: 'none', color: '#1976d2', fontWeight: 600 }}
+                                                                endIcon={expandedProcedures[step.id] ? <KeyboardArrowUpIcon sx={{ fontSize: '14px !important' }} /> : <KeyboardArrowDownIcon sx={{ fontSize: '14px !important' }} />}
+                                                            >
+                                                                {expandedProcedures[step.id] ? "Hide Procedure" : "View Procedure"}
+                                                            </Button>
+                                                            <Collapse in={Boolean(expandedProcedures[step.id])}>
+                                                                <Box sx={{ mt: 0.5, p: 0.75, bgcolor: '#fafafa', border: '1px dashed #bdbdbd', borderRadius: 1 }}>
+                                                                    <Typography variant="caption" sx={{ whiteSpace: 'pre-line', fontSize: '0.65rem', color: 'text.secondary', display: 'block', lineHeight: 1.4 }}>
+                                                                        {step.procedure}
+                                                                    </Typography>
+                                                                </Box>
+                                                            </Collapse>
+                                                        </Box>
+                                                    )}
+                                                    {step.serial_no === 41 && (
                                                         <Box sx={{ mt: 1, p: 1, bgcolor: '#f0f7ff', border: '1px solid #bbdefb', borderRadius: 1.5, textAlign: 'left' }}>
                                                             <Typography variant="caption" sx={{ fontWeight: 700, color: '#1565c0', fontSize: '0.72rem', display: 'block', mb: 0.75 }}>
                                                                 Activation Commands (Phone: {ACTIVATION_PHONE})
@@ -2898,7 +3658,8 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                 return (
                                                                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                                                         <Chip label="pass" size="small" color="success" sx={{ height: 20, fontSize: '0.65rem', mb: 1 }} />
-                                                                        {isLocationTest(step.serial_no, step.name) && (() => {
+
+                                                                        {isLocationTest(step.serial_no, step.name, step) && (() => {
                                                                             let lockedCoord = null;
                                                                             if (resolvedSamples && resolvedSamples.length > 0) {
                                                                                 const sorted = [...resolvedSamples].sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
@@ -2928,7 +3689,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                 setLocationMapState({
                                                                                     open: true,
                                                                                     imei: deviceImei,
-                                                                                    testNo: step.serial_no,
+                                                                                    testNo: getDisplaySerialNo(step.serial_no),
                                                                                     testName: step.name,
                                                                                     rowId: row.id,
                                                                                     samples: resolvedSamples,
@@ -2944,7 +3705,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                         fallbackCoord={lockedCoord}
                                                                                         lat={lockedCoord?.lat}
                                                                                         lng={lockedCoord?.lng}
-                                                                                        testNo={step.serial_no}
+                                                                                        testNo={getDisplaySerialNo(step.serial_no)}
                                                                                         testName={step.name}
                                                                                         onClick={handleOpenBigMap}
                                                                                     />
@@ -3015,28 +3776,24 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                                     Ext Vol: {sampleExtVoltage}V
                                                                                                 </Typography>
                                                                                             )}
-                                                                                            {(step.serial_no === 14 || step.serial_no === 15) && sampleSpeed && (
+                                                                                            {step.serial_no === 15 && sampleSpeed && (
                                                                                                 <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
                                                                                                     {resolvedSamples.length >= 2
                                                                                                         ? (sIdx === 0 ? `Start Speed: ${sampleSpeed} km/h` : sIdx === resolvedSamples.length - 1 ? `End Speed: ${sampleSpeed} km/h` : `Speed: ${sampleSpeed} km/h`)
                                                                                                         : `Speed: ${sampleSpeed} km/h`}
                                                                                                 </Typography>
                                                                                             )}
-                                                                                            {(isLocationTest(step.serial_no, step.name) || step.serial_no === 20) && sampleLocation && (
+                                                                                            {(isLocationTest(step.serial_no, step.name, step) || step.serial_no === 20) && sampleLocation && (
                                                                                                 <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
-                                                                                                    {step.serial_no === 23
-                                                                                                        ? (resolvedSamples.length >= 2
-                                                                                                            ? (sIdx === 0 ? `Loss Point: ${sampleLocation}` : sIdx === resolvedSamples.length - 1 ? `Recovery Point: ${sampleLocation}` : `Lat/Lon: ${sampleLocation}`)
-                                                                                                            : `Recovery Point: ${sampleLocation}`)
-                                                                                                        : `Lat/Lon: ${sampleLocation}`}
+                                                                                                    Lat/Lon: {sampleLocation}
                                                                                                 </Typography>
                                                                                             )}
-                                                                                            {(step.serial_no === 20 || step.serial_no === 21) && sampleNetwork && (
+                                                                                            {(step.serial_no === 20 || step.serial_no === 21 || step.serial_no === 22) && sampleNetwork && (
                                                                                                 <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
                                                                                                     Net: {sampleNetwork}
                                                                                                 </Typography>
                                                                                             )}
-                                                                                            {(step.serial_no === 23 || step.serial_no === 24) && sampleOperator && (
+                                                                                            {(step.serial_no === 24 || step.serial_no === 25) && sampleOperator && (
                                                                                                 <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
                                                                                                     Op: {sampleOperator}
                                                                                                 </Typography>
@@ -3054,14 +3811,114 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                 );
                                                             })() : execStatus === "in_progress" ? (
                                                                 <>
-                                                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1, gap: 0.5 }}>
+                                                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1, gap: 0.5, flexWrap: 'wrap' }}>
                                                                         <Chip label="In progress" size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#fff9c4', color: '#f57f17', borderRadius: 1 }} />
                                                                         <Tooltip title="Refresh Log">
-                                                                            <IconButton size="small" onClick={() => handleRefreshLog(execution.id)} sx={{ p: 0.5 }}>
-                                                                                <RefreshIcon fontSize="small" color="primary" />
+                                                                            <IconButton
+                                                                                size="small"
+                                                                                disabled={refreshingExecId === execution.id}
+                                                                                onClick={() => handleRefreshLog(execution.id)}
+                                                                                sx={{ p: 0.5 }}
+                                                                            >
+                                                                                {refreshingExecId === execution.id ? (
+                                                                                    <CircularProgress size={16} />
+                                                                                ) : (
+                                                                                    <RefreshIcon fontSize="small" color="primary" />
+                                                                                )}
                                                                             </IconButton>
                                                                         </Tooltip>
+                                                                        {step.requires_command && (
+                                                                            <Tooltip title="Send MQTT Command">
+                                                                                <Button
+                                                                                    variant="contained"
+                                                                                    size="small"
+                                                                                    startIcon={<SendIcon sx={{ fontSize: '0.75rem !important' }} />}
+                                                                                    sx={{
+                                                                                        bgcolor: '#0288d1',
+                                                                                        color: '#fff',
+                                                                                        fontSize: '0.62rem',
+                                                                                        minWidth: 'auto',
+                                                                                        py: '2px',
+                                                                                        px: 0.75,
+                                                                                        textTransform: 'none',
+                                                                                        fontWeight: 600,
+                                                                                        boxShadow: 'none',
+                                                                                        '&:hover': { bgcolor: '#01579b', boxShadow: 'none' }
+                                                                                    }}
+                                                                                    onClick={() => handleOpenCommandModal(execution, step, imei)}
+                                                                                >
+                                                                                    Send Cmd
+                                                                                </Button>
+                                                                            </Tooltip>
+                                                                        )}
                                                                     </Box>
+                                                                    {isLocationTest(step.serial_no, step.name, step) && (() => {
+                                                                        let snapshotObj = null;
+                                                                        if (typeof execution?.test_log_snapshot === 'string') {
+                                                                            try { snapshotObj = JSON.parse(execution.test_log_snapshot); } catch (e) { }
+                                                                        } else if (typeof execution?.test_log_snapshot === 'object' && execution?.test_log_snapshot !== null) {
+                                                                            snapshotObj = execution.test_log_snapshot;
+                                                                        }
+                                                                        const resolvedSamples = snapshotObj && Array.isArray(snapshotObj.samples)
+                                                                            ? snapshotObj.samples
+                                                                            : (snapshotObj && Array.isArray(snapshotObj.route) ? snapshotObj.route : []);
+
+                                                                        let lockedCoord = null;
+                                                                        if (resolvedSamples && resolvedSamples.length > 0) {
+                                                                            const sorted = [...resolvedSamples].sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
+                                                                            for (let i = sorted.length - 1; i >= 0; i--) {
+                                                                                const coord = extractCoordFromSample(sorted[i]);
+                                                                                if (coord && (coord.lat !== 0 || coord.lng !== 0)) {
+                                                                                    lockedCoord = coord;
+                                                                                    break;
+                                                                                }
+                                                                            }
+                                                                        }
+
+                                                                        const deviceImei = execution?.demo_device?.imei || imei || `Device ${idx + 1}`;
+                                                                        if (!lockedCoord) {
+                                                                            lockedCoord = getDeviceFallbackCoord(deviceImei, idx);
+                                                                        }
+
+                                                                        const testPoints = processTestPointsForMap({
+                                                                            sampleList: resolvedSamples,
+                                                                            testNo: step.serial_no,
+                                                                            testName: step.name,
+                                                                            imei: deviceImei,
+                                                                            fallbackCoord: lockedCoord
+                                                                        });
+
+                                                                        const handleOpenBigMap = () => {
+                                                                            setLocationMapState({
+                                                                                open: true,
+                                                                                imei: deviceImei,
+                                                                                testNo: getDisplaySerialNo(step.serial_no),
+                                                                                testName: step.name,
+                                                                                rowId: row.id,
+                                                                                samples: resolvedSamples,
+                                                                                execution,
+                                                                                fallbackCoord: lockedCoord
+                                                                            });
+                                                                        };
+
+                                                                        if ((testPoints && testPoints.length > 0) || lockedCoord) {
+                                                                            return (
+                                                                                <Box sx={{ my: 1, display: 'flex', justifyContent: 'center' }}>
+                                                                                    <MiniLocationMap
+                                                                                        points={testPoints}
+                                                                                        fallbackCoord={lockedCoord}
+                                                                                        lat={lockedCoord?.lat}
+                                                                                        lng={lockedCoord?.lng}
+                                                                                        testNo={getDisplaySerialNo(step.serial_no)}
+                                                                                        testName={step.name}
+                                                                                        onClick={handleOpenBigMap}
+                                                                                    />
+                                                                                </Box>
+                                                                            );
+                                                                        }
+
+                                                                        return null;
+                                                                    })()}
                                                                     {execution.test_log_snapshot && (
                                                                         <Box sx={{ my: 1, textAlign: 'left', lineHeight: 1.2 }}>
                                                                             {(() => {
@@ -3072,16 +3929,88 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                     snapshotObj = execution.test_log_snapshot;
                                                                                 }
 
-                                                                                if (snapshotObj && snapshotObj.matched_count !== undefined) {
+                                                                                if (snapshotObj && (snapshotObj.matched_count !== undefined || snapshotObj.remaining_seconds !== undefined || snapshotObj.checks !== undefined)) {
+                                                                                    // 15-Minute Countdown Timer for Test #40 / PVT drop
+                                                                                    const isPvtDropTest = step.serial_no === 40 || step.serial_no === 39 || (step.name && /(15-min|drop|pvt.*drop)/i.test(step.name)) || snapshotObj.remaining_seconds !== undefined;
+                                                                                    const remSec = snapshotObj.remaining_seconds !== undefined
+                                                                                        ? Math.max(0, Number(snapshotObj.remaining_seconds))
+                                                                                        : snapshotObj.window_end
+                                                                                            ? Math.max(0, Math.floor((new Date(snapshotObj.window_end) - new Date()) / 1000))
+                                                                                            : null;
+                                                                                    const totalSec = 900;
+                                                                                    const elapsedSec = remSec !== null ? Math.max(0, totalSec - remSec) : null;
+                                                                                    const timerPct = remSec !== null ? Math.min(100, Math.max(0, (elapsedSec / totalSec) * 100)) : null;
+                                                                                    const timerMins = remSec !== null ? Math.floor(remSec / 60) : 0;
+                                                                                    const timerSecs = remSec !== null ? remSec % 60 : 0;
+                                                                                    const timeStr = remSec !== null ? `${String(timerMins).padStart(2, '0')}:${String(timerSecs).padStart(2, '0')}` : null;
+
+                                                                                    // Checks scorecard list
+                                                                                    const checksList = snapshotObj.checks
+                                                                                        ? (Array.isArray(snapshotObj.checks)
+                                                                                            ? snapshotObj.checks
+                                                                                            : Object.entries(snapshotObj.checks).map(([k, v]) => {
+                                                                                                if (typeof v === 'boolean') return { name: k.replace(/_/g, ' '), pass: v, detail: '' };
+                                                                                                return {
+                                                                                                    name: v.label || v.name || k.replace(/_/g, ' '),
+                                                                                                    pass: v.pass === true || v.status === 'pass',
+                                                                                                    detail: v.detail || v.value || v.message || ''
+                                                                                                };
+                                                                                            }))
+                                                                                        : [];
+
                                                                                     return (
                                                                                         <Box>
-                                                                                            <Typography variant="caption" display="block" color="text.primary" sx={{ fontSize: '0.65rem', fontWeight: 700 }}>
-                                                                                                # {snapshotObj.matched_count}/{snapshotObj.required || '?'}
-                                                                                            </Typography>
+                                                                                            {snapshotObj.matched_count !== undefined && (
+                                                                                                <Typography variant="caption" display="block" color="text.primary" sx={{ fontSize: '0.65rem', fontWeight: 700 }}>
+                                                                                                    # {snapshotObj.matched_count}/{snapshotObj.required || '?'}
+                                                                                                </Typography>
+                                                                                            )}
                                                                                             {snapshotObj.reason && (
                                                                                                 <Typography variant="caption" display="block" color="error" sx={{ fontSize: '0.65rem' }}>
                                                                                                     {snapshotObj.reason}
                                                                                                 </Typography>
+                                                                                            )}
+
+                                                                                            {/* Test #40 / PVT drop 15-min countdown banner */}
+                                                                                            {isPvtDropTest && (
+                                                                                                <Box sx={{ my: 0.75, p: 0.75, bgcolor: '#e3f2fd', border: '1px solid #90caf9', borderRadius: 1 }}>
+                                                                                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.25 }}>
+                                                                                                        <Typography variant="caption" sx={{ fontSize: '0.65rem', fontWeight: 700, color: '#0d47a1' }}>
+                                                                                                            ⏱️ 15m Test: {timeStr ? `${timeStr} left` : 'Active'}
+                                                                                                        </Typography>
+                                                                                                        {snapshotObj.moving_share !== undefined && (
+                                                                                                            <Typography variant="caption" sx={{ fontSize: '0.62rem', fontWeight: 700, color: '#1565c0' }}>
+                                                                                                                Moving: {typeof snapshotObj.moving_share === 'number' ? `${(snapshotObj.moving_share * 100).toFixed(0)}%` : snapshotObj.moving_share}
+                                                                                                            </Typography>
+                                                                                                        )}
+                                                                                                    </Box>
+                                                                                                    {timerPct !== null && (
+                                                                                                        <LinearProgress variant="determinate" value={timerPct} sx={{ height: 4, borderRadius: 2, bgcolor: '#bbdefb' }} />
+                                                                                                    )}
+                                                                                                </Box>
+                                                                                            )}
+
+                                                                                            {/* 9-Check Validation Scorecard */}
+                                                                                            {checksList.length > 0 && (
+                                                                                                <Box sx={{ my: 0.75, p: 0.75, bgcolor: '#f9f9f9', border: '1px solid #e0e0e0', borderRadius: 1 }}>
+                                                                                                    <Typography variant="caption" sx={{ fontSize: '0.62rem', fontWeight: 700, color: '#37474f', display: 'block', mb: 0.5 }}>
+                                                                                                        Scorecard: {checksList.filter(c => c.pass).length}/{checksList.length} Passed
+                                                                                                    </Typography>
+                                                                                                    <Stack spacing={0.25}>
+                                                                                                        {checksList.map((chk, cIdx) => (
+                                                                                                            <Box key={cIdx} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.6rem' }}>
+                                                                                                                <Typography variant="caption" sx={{ fontSize: '0.6rem', color: chk.pass ? '#2e7d32' : '#d32f2f', fontWeight: 600 }}>
+                                                                                                                    {chk.pass ? '✓' : '✗'} {chk.name}
+                                                                                                                </Typography>
+                                                                                                                {chk.detail && (
+                                                                                                                    <Typography variant="caption" sx={{ fontSize: '0.58rem', color: 'text.secondary', fontFamily: 'monospace' }}>
+                                                                                                                        {chk.detail}
+                                                                                                                    </Typography>
+                                                                                                                )}
+                                                                                                            </Box>
+                                                                                                        ))}
+                                                                                                    </Stack>
+                                                                                                </Box>
                                                                                             )}
                                                                                             {Array.isArray(snapshotObj.samples) && [...snapshotObj.samples].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)).map((sample, idx) => {
                                                                                                 let fwVersion = "";
@@ -3137,28 +4066,24 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                                                 Ext Vol: {extVoltage}V
                                                                                                             </Typography>
                                                                                                         )}
-                                                                                                        {(step.serial_no === 14 || step.serial_no === 15) && speed && (
+                                                                                                        {step.serial_no === 15 && speed && (
                                                                                                             <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
                                                                                                                 {snapshotObj.samples && snapshotObj.samples.length >= 2
                                                                                                                     ? (idx === 0 ? `Start Speed: ${speed} km/h` : idx === snapshotObj.samples.length - 1 ? `End Speed: ${speed} km/h` : `Speed: ${speed} km/h`)
                                                                                                                     : `Speed: ${speed} km/h`}
                                                                                                             </Typography>
                                                                                                         )}
-                                                                                                        {(isLocationTest(step.serial_no, step.name) || step.serial_no === 20) && location && (
+                                                                                                        {(isLocationTest(step.serial_no, step.name, step) || step.serial_no === 20) && location && (
                                                                                                             <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
-                                                                                                                {step.serial_no === 23
-                                                                                                                    ? (snapshotObj.samples && snapshotObj.samples.length >= 2
-                                                                                                                        ? (idx === 0 ? `Loss Point: ${location}` : idx === snapshotObj.samples.length - 1 ? `Recovery Point: ${location}` : `Lat/Lon: ${location}`)
-                                                                                                                        : `Recovery Point: ${location}`)
-                                                                                                                    : `Lat/Lon: ${location}`}
+                                                                                                                Lat/Lon: {location}
                                                                                                             </Typography>
                                                                                                         )}
-                                                                                                        {(step.serial_no === 20 || step.serial_no === 21) && network && (
+                                                                                                        {(step.serial_no === 20 || step.serial_no === 21 || step.serial_no === 22) && network && (
                                                                                                             <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
                                                                                                                 Net: {network}
                                                                                                             </Typography>
                                                                                                         )}
-                                                                                                        {(step.serial_no === 23 || step.serial_no === 24) && operator && (
+                                                                                                        {(step.serial_no === 24 || step.serial_no === 25) && operator && (
                                                                                                             <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
                                                                                                                 Op: {operator}
                                                                                                             </Typography>
@@ -3188,25 +4113,124 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                             }
                                                                         } catch (e) { }
 
+                                                                        const confirmation = manualConfirmations[execution.id] || (execution.manual_result ? { result: execution.manual_result, notes: execution.manual_notes } : null);
+
+                                                                        // Tests requiring manual confirmation: appear only after automated packet check passes (isPass === true)
+                                                                        if (step.requires_manual_confirmation) {
+                                                                            if (!isPass) return null;
+
+                                                                            return (
+                                                                                <Box sx={{ mt: 1, textAlign: 'center' }}>
+                                                                                    {confirmation ? (
+                                                                                        <>
+                                                                                            <Box sx={{ mb: 0.5 }}>
+                                                                                                <Chip
+                                                                                                    label={`Manual: ${confirmation.result.toUpperCase()} ✓`}
+                                                                                                    size="small"
+                                                                                                    color={confirmation.result === 'pass' ? 'success' : 'error'}
+                                                                                                    sx={{ height: 18, fontSize: '0.6rem', fontWeight: 700, cursor: 'pointer' }}
+                                                                                                    onClick={() => handleOpenManualConfirm(execution, step, imei)}
+                                                                                                />
+                                                                                            </Box>
+                                                                                            <Button
+                                                                                                variant="contained"
+                                                                                                disableElevation
+                                                                                                size="small"
+                                                                                                disabled={completingExecId === execution.id}
+                                                                                                sx={{
+                                                                                                    bgcolor: '#1a237e',
+                                                                                                    color: '#fff',
+                                                                                                    fontSize: '0.7rem',
+                                                                                                    minWidth: '60px',
+                                                                                                    p: '2px 8px',
+                                                                                                    display: 'block',
+                                                                                                    mx: 'auto',
+                                                                                                    '&:hover': { bgcolor: '#283593' },
+                                                                                                    '&:disabled': { bgcolor: '#cfd8dc', color: '#90a4ae' }
+                                                                                                }}
+                                                                                                onClick={() => handleCompleteTest(execution.id, confirmation)}
+                                                                                            >
+                                                                                                {completingExecId === execution.id ? "Completing..." : "Complete"}
+                                                                                            </Button>
+                                                                                        </>
+                                                                                    ) : (
+                                                                                        <Button
+                                                                                            variant="outlined"
+                                                                                            size="small"
+                                                                                            startIcon={<GavelIcon sx={{ fontSize: '0.75rem !important' }} />}
+                                                                                            onClick={() => handleOpenManualConfirm(execution, step, imei)}
+                                                                                            sx={{
+                                                                                                borderColor: '#e65100',
+                                                                                                color: '#e65100',
+                                                                                                fontSize: '0.62rem',
+                                                                                                p: '2px 8px',
+                                                                                                textTransform: 'none',
+                                                                                                fontWeight: 700,
+                                                                                                '&:hover': { bgcolor: '#fff3e0', borderColor: '#bf360c' }
+                                                                                            }}
+                                                                                        >
+                                                                                            Manual Confirm
+                                                                                        </Button>
+                                                                                    )}
+                                                                                </Box>
+                                                                            );
+                                                                        }
+
                                                                         return isPass ? (
-                                                                            <Button variant="contained" disableElevation size="small" sx={{ bgcolor: '#1a237e', color: '#fff', fontSize: '0.7rem', minWidth: '60px', p: '2px 8px', display: 'block', mx: 'auto', mt: 1, '&:hover': { bgcolor: '#283593' } }} onClick={() => handleCompleteTest(execution.id)}>
-                                                                                Complete
+                                                                            <Button
+                                                                                variant="contained"
+                                                                                disableElevation
+                                                                                size="small"
+                                                                                disabled={completingExecId === execution.id}
+                                                                                sx={{ bgcolor: '#1a237e', color: '#fff', fontSize: '0.7rem', minWidth: '60px', p: '2px 8px', display: 'block', mx: 'auto', mt: 1, '&:hover': { bgcolor: '#283593' }, '&:disabled': { bgcolor: '#cfd8dc', color: '#90a4ae' } }}
+                                                                                onClick={() => handleCompleteTest(execution.id)}
+                                                                            >
+                                                                                {completingExecId === execution.id ? "Completing..." : "Complete"}
                                                                             </Button>
                                                                         ) : null;
                                                                     })()}
                                                                 </>
-                                                            ) : (isUnlocked || isExecIncomplete) ? (
+                                                            ) : isUnlocked ? (
                                                                 <Stack direction="column" alignItems="center" spacing={1} sx={{ width: '100%' }}>
-                                                                    <Chip label={execStatus} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#ffebee', color: '#c62828', borderRadius: 1 }} />
-                                                                    <Button variant="contained" disableElevation size="small" sx={{ bgcolor: '#1a237e', color: '#fff', fontSize: '0.7rem', minWidth: '60px', p: '2px 8px', '&:hover': { bgcolor: '#283593' } }} onClick={() => {
-                                                                        if (execution?.demo_device?.id) {
-                                                                            handleStartTest(step.id, execution.demo_device.id);
-                                                                        }
-                                                                    }}>Start</Button>
+                                                                    <Chip
+                                                                        label={execStatus}
+                                                                        size="small"
+                                                                        sx={{
+                                                                            height: 20,
+                                                                            fontSize: '0.65rem',
+                                                                            bgcolor: execStatus === 'incomplete' ? '#ffebee' : '#f5f5f5',
+                                                                            color: execStatus === 'incomplete' ? '#c62828' : '#757575',
+                                                                            borderRadius: 1
+                                                                        }}
+                                                                    />
+                                                                    <Button
+                                                                        variant="contained"
+                                                                        disableElevation
+                                                                        size="small"
+                                                                        disabled={Boolean(startingDeviceTestId)}
+                                                                        sx={{ bgcolor: '#1a237e', color: '#fff', fontSize: '0.7rem', minWidth: '60px', p: '2px 8px', '&:hover': { bgcolor: '#283593' }, '&:disabled': { bgcolor: '#b0bec5', color: '#fff' } }}
+                                                                        onClick={() => {
+                                                                            if (execution?.demo_device?.id) {
+                                                                                handleStartTest(step.id, execution.demo_device.id);
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        {startingDeviceTestId === `${step.id}_${execution?.demo_device?.id}` ? "Starting..." : (execStatus === 'incomplete' ? "Retry" : "Start")}
+                                                                    </Button>
                                                                 </Stack>
                                                             ) : (
                                                                 <Stack direction="column" alignItems="center" spacing={0.5} sx={{ width: '100%' }}>
-                                                                    <Chip label={execStatus} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#f5f5f5', color: '#757575', borderRadius: 1 }} />
+                                                                    <Chip
+                                                                        label={execStatus}
+                                                                        size="small"
+                                                                        sx={{
+                                                                            height: 20,
+                                                                            fontSize: '0.65rem',
+                                                                            bgcolor: execStatus === 'incomplete' ? '#ffebee' : '#f5f5f5',
+                                                                            color: execStatus === 'incomplete' ? '#c62828' : '#757575',
+                                                                            borderRadius: 1
+                                                                        }}
+                                                                    />
                                                                     <Typography variant="caption" color="text.secondary" display="block">locked</Typography>
                                                                 </Stack>
                                                             )}
@@ -3324,6 +4348,27 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                 samples={locationMapState.samples}
                 execution={locationMapState.execution}
                 fallbackCoord={locationMapState.fallbackCoord}
+                onRefreshTestBoard={() => fetchTestBoard(false)}
+            />
+
+            {/* Device Command Modal */}
+            <DeviceCommandModal
+                open={commandModalState.open}
+                onClose={handleCloseCommandModal}
+                execution={commandModalState.execution}
+                step={commandModalState.step}
+                imei={commandModalState.imei}
+                onCommandSent={() => fetchTestBoard(false)}
+            />
+
+            {/* Manual Confirmation Modal */}
+            <ManualConfirmModal
+                open={manualConfirmModalState.open}
+                onClose={handleCloseManualConfirm}
+                execution={manualConfirmModalState.execution}
+                step={manualConfirmModalState.step}
+                imei={manualConfirmModalState.imei}
+                onSave={handleSaveManualConfirm}
             />
         </Dialog>
     );
@@ -3361,7 +4406,7 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
         if (!demoDevices || demoDevices.length === 0) return null;
 
         let hasAnyProgress = false;
-        let completed = 41;
+        let completed = 40;
         let currentTestName = "";
         let lastCompletedName = "";
 
@@ -3369,7 +4414,8 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
             const cp = d.checkpoint_status;
             if (cp && (cp.last_completed_test_no !== null || cp.next_test_no !== null || cp.next_test_name || cp.last_completed_test_name)) {
                 hasAnyProgress = true;
-                const devCompleted = cp.last_completed_test_no || 0;
+                const rawDevCompleted = cp.last_completed_test_no || 0;
+                const devCompleted = Math.min(getDisplaySerialNo(rawDevCompleted) || 0, 40);
                 if (devCompleted < completed) {
                     completed = devCompleted;
                     currentTestName = cp.next_test_name || "";
@@ -3383,9 +4429,9 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
         if (!hasAnyProgress) return null;
 
         return {
-            total: 41,
+            total: 40,
             completed,
-            currentTestName: currentTestName || (completed === 41 ? "All tests completed" : ""),
+            currentTestName: currentTestName || (completed >= 40 ? "All tests completed" : ""),
             lastCompletedName
         };
     }, [demoDevices]);

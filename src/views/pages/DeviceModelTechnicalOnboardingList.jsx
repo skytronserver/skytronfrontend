@@ -57,6 +57,12 @@ const formatDateTime = (value) => {
     }
 };
 
+const getDisplaySerialNo = (serialNo) => {
+    const sNo = Number(serialNo);
+    if (!sNo) return 0;
+    return sNo > 23 ? sNo - 1 : sNo;
+};
+
 const DocumentButton = ({ label, path }) => {
     if (!path) return null;
 
@@ -165,7 +171,8 @@ const RequestRow = ({ row, index }) => {
             for (const d of demoDevices) {
                 const cp = d.checkpoint_status;
                 if (cp) {
-                    const comp = cp.last_completed_test_no || 0;
+                    const rawComp = cp.last_completed_test_no || 0;
+                    const comp = getDisplaySerialNo(rawComp);
                     if (comp >= maxCompleted) {
                         maxCompleted = comp;
                         lastTestName = cp.last_completed_test_name || lastTestName;
@@ -181,20 +188,21 @@ const RequestRow = ({ row, index }) => {
         }
 
         if (hasStarted) {
-            const total = 41;
-            const pct = Math.min(Math.round((maxCompleted / total) * 100), 100);
+            const total = 40;
+            const cappedCompleted = Math.min(maxCompleted, total);
+            const pct = Math.min(Math.round((cappedCompleted / total) * 100), 100);
 
             return {
-                label: maxCompleted > 0 ? `${maxCompleted}/${total} Integration test completed` : `Platform Integration Testing In Progress`,
+                label: cappedCompleted > 0 ? `${cappedCompleted}/${total} Integration test completed` : `Platform Integration Testing In Progress`,
                 pct: pct,
-                pending: maxCompleted >= total ? <span>All tests completed</span> : (
+                pending: cappedCompleted >= total ? <span>All tests completed</span> : (
                     <>
                         {lastTestName && <span style={{ display: 'block' }}>Completed: {lastTestName}</span>}
                         {nextTestName && <span style={{ display: 'block' }}>Next: {nextTestName}</span>}
                         {!lastTestName && !nextTestName && <span>Test Samples received</span>}
                     </>
                 ),
-                color: maxCompleted === total ? "success" : "primary",
+                color: cappedCompleted === total ? "success" : "primary",
             };
         }
 

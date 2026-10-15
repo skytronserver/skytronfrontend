@@ -143,6 +143,26 @@ const getDemoDeviceHistory = (data) => {
   return http.post("/api/devicemodel/technical-onboarding/superadmin/demo-device-history/", data);
 };
 
+const listTestCommands = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/superadmin/test-commands/", data);
+};
+
+const sendTestCommand = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/superadmin/test-send-command/", data);
+};
+
+const listTestCases = (data = {}) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/test-cases/list/", data);
+};
+
+const upsertTestCase = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/test-cases/upsert/", data);
+};
+
 const rejectModel = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/devicemodel/reject-model/", data);
@@ -184,6 +204,10 @@ const DeviceModelServices = {
   refreshLogTestBoard,
   completeTestBoard,
   getDemoDeviceHistory,
+  listTestCommands,
+  sendTestCommand,
+  listTestCases,
+  upsertTestCase,
   rejectModel,
   getManufacturerModelOverview,
 };
