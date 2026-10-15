@@ -234,9 +234,9 @@ const processTestPointsForMap = (arg1, arg2, arg3, arg4, arg5) => {
     const isMultiPacketTest = (tNo === 20 || tNo === 21 || tNo === 22) ||
         (testName && /(faraday|history.*storage|storage.*transmission|a-gps|network)/i.test(testName) && !/esim/i.test(testName));
 
-    if (isMultiPacketTest && validCoords.length < 4) {
-        let baseLat = validCoords.length > 0 ? validCoords[0].lat : fbLat;
-        let baseLng = validCoords.length > 0 ? validCoords[0].lng : fbLng;
+    if (isMultiPacketTest && validCoords.length > 0 && validCoords.length < 4) {
+        let baseLat = validCoords[0].lat;
+        let baseLng = validCoords[0].lng;
 
         const offsets = [
             { dLat: 0, dLng: 0 },
@@ -287,51 +287,10 @@ const processTestPointsForMap = (arg1, arg2, arg3, arg4, arg5) => {
                 isReferenceFix: true
             });
         }
-    } else if (validCoords.length === 0) {
-        let rawStr = '';
-        let operator = '';
-        let network = '';
-        let ts = null;
+    }
 
-        if (sorted.length > 0) {
-            const latestSample = sorted[sorted.length - 1];
-            let parsedSample = latestSample;
-            if (typeof latestSample === 'string') {
-                try { parsedSample = JSON.parse(latestSample); } catch { parsedSample = { raw_data: latestSample }; }
-            }
-            rawStr = parsedSample?.raw_data || '';
-            operator = parsedSample?.operator || '';
-            network = parsedSample?.network || '';
-            ts = parsedSample?.timestamp || parsedSample?.created_at;
-
-            if (rawStr && typeof rawStr === 'string') {
-                const isComma = rawStr.startsWith("$,PVT");
-                if (rawStr.startsWith("$PVT") || isComma) {
-                    const parts = rawStr.split(",");
-                    const offset = isComma ? 1 : 0;
-                    if (parts.length > 21 + offset) {
-                        operator = parts[21 + offset];
-                    }
-                    if (parts.length > 34 + offset) {
-                        network = `${operator} (Sig:${parts[30 + offset]} MCC:${parts[31 + offset]} MNC:${parts[32 + offset]} LAC:${parts[33 + offset]} Cell:${parts[34 + offset]})`;
-                    } else if (parts.length > 32 + offset) {
-                        network = `${operator} (Sig:${parts[28 + offset]} MCC:${parts[29 + offset]} MNC:${parts[30 + offset]} LAC:${parts[31 + offset]} Cell:${parts[32 + offset]})`;
-                    }
-                }
-            }
-        }
-
-        // Push synthesized point at device's reference testing location with cell-tower data
-        validCoords.push({
-            lat: fbLat,
-            lng: fbLng,
-            speed: 0,
-            timestamp: ts,
-            raw_data: rawStr,
-            network,
-            operator,
-            isReferenceFix: true
-        });
+    if (validCoords.length === 0) {
+        return [];
     }
 
     // ─────────────────────────────────────────────
@@ -3672,11 +3631,15 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                 }
                                                                             }
 
-                                                                            const deviceImei = execution?.demo_device?.imei || imei || `Device ${idx + 1}`;
+                                                                            const hasRoute = snapshotObj && Array.isArray(snapshotObj.route) && snapshotObj.route.length > 0;
+                                                                            if (!lockedCoord && hasRoute) {
+                                                                                lockedCoord = { lat: snapshotObj.route[0].latitude, lng: snapshotObj.route[0].longitude };
+                                                                            }
                                                                             if (!lockedCoord) {
-                                                                                lockedCoord = getDeviceFallbackCoord(deviceImei, idx);
+                                                                                return null;
                                                                             }
 
+                                                                            const deviceImei = execution?.demo_device?.imei || imei || 'Device ' + (idx + 1);
                                                                             const testPoints = processTestPointsForMap({
                                                                                 sampleList: resolvedSamples,
                                                                                 testNo: step.serial_no,
@@ -3698,7 +3661,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                 });
                                                                             };
 
-                                                                            if ((testPoints && testPoints.length > 0) || lockedCoord) {
+                                                                            if (testPoints && testPoints.length > 0) {
                                                                                 return (
                                                                                     <MiniLocationMap
                                                                                         points={testPoints}
@@ -3875,11 +3838,15 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                             }
                                                                         }
 
-                                                                        const deviceImei = execution?.demo_device?.imei || imei || `Device ${idx + 1}`;
+                                                                        const hasRoute = snapshotObj && Array.isArray(snapshotObj.route) && snapshotObj.route.length > 0;
+                                                                        if (!lockedCoord && hasRoute) {
+                                                                            lockedCoord = { lat: snapshotObj.route[0].latitude, lng: snapshotObj.route[0].longitude };
+                                                                        }
                                                                         if (!lockedCoord) {
-                                                                            lockedCoord = getDeviceFallbackCoord(deviceImei, idx);
+                                                                            return null;
                                                                         }
 
+                                                                        const deviceImei = execution?.demo_device?.imei || imei || 'Device ' + (idx + 1);
                                                                         const testPoints = processTestPointsForMap({
                                                                             sampleList: resolvedSamples,
                                                                             testNo: step.serial_no,
@@ -3901,7 +3868,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                             });
                                                                         };
 
-                                                                        if ((testPoints && testPoints.length > 0) || lockedCoord) {
+                                                                        if (testPoints && testPoints.length > 0) {
                                                                             return (
                                                                                 <Box sx={{ my: 1, display: 'flex', justifyContent: 'center' }}>
                                                                                     <MiniLocationMap
