@@ -174,7 +174,7 @@ const user = {
     },
     {
       id: "superadmin-technical-onboarding-requests",
-      title: "Devivce Model Technical Onboarding Requests",
+      title: "Device Model Technical Onboarding Requests",
       type: "item",
       url: "/superadmin-dashboard/technical-onboarding-requests",
       icon: icons.IconChecks,
@@ -531,7 +531,7 @@ const user = {
       children: [
         {
           id: "whitelist-requests",
-          title: "Whitelist Request",
+          title: "Create Whitelist Request",
           type: "item",
           url: "/device/whitelist/create-request",
           breadcrumbs: false,

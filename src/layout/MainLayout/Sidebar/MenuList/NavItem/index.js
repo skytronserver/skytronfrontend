@@ -34,7 +34,7 @@ const NavItem = ({ item, level }) => {
 
   let displayTitle = item.title;
   if (item.id === 'whitelist-requests' && isAdmin) {
-    displayTitle = 'Active Whitelist';
+    displayTitle = 'Create Whitelist Request';
   }
 
   const Icon = item.icon;
