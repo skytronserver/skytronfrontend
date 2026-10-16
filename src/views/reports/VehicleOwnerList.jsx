@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import { vehicleOwnerCols } from '../../datatables/rowsColumn';
 import { useTranslation } from 'react-i18next';
-
+import SettingService from '../../services/SettingService';
 const VehicleOwnerList = () => {
   const { t } = useTranslation();
   const [load, setLoad] = useState(false)
@@ -45,7 +45,7 @@ const VehicleOwnerList = () => {
       }
     };
     fetchOwner();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const parseDateSafely = (val) => {
@@ -177,32 +177,65 @@ const VehicleOwnerList = () => {
       return col;
     }),
     {
-  name: "file_idProof",
-  label: "ID Proof",
-  options: {
-    filter: false,
-    sort: false,
-    customBodyRender: (value) => {
-      if (!value) return "N/A";
+      name: "file_idProof",
+      label: "ID Proof",
+      options: {
+        filter: false,
+        sort: false,
+        customBodyRender: (value) => {
+          if (!value) return "N/A";
 
-      const baseUrl = process.env.REACT_APP_BASE_URL;
-      const fileUrl = `${baseUrl.replace(/\/$/, "")}/${value.replace(/^\//, "")}`;
+          return (
+            <Link
+              component="button"
+              type="button"
+              underline="none"
+              onClick={async () => {
+                try {
+                  const response = await SettingService.file_Download({
+                    file_path: value,
+                  });
 
-      return (
-        <Link
-          href={fileUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          underline="none"
-          sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}
-        >
-          <VisibilityIcon fontSize="small" />
-          View ID Proof
-        </Link>
-      );
+                  const blob = new Blob([response.data], {
+                    type: response.headers["content-type"] ||
+                      "application/octet-stream",
+                  });
+
+                  const downloadUrl = window.URL.createObjectURL(blob);
+                  const link = document.createElement("a");
+
+                  link.href = downloadUrl;
+                  link.download = value.split("/").pop() || "id-proof.pdf";
+
+                  document.body.appendChild(link);
+                  link.click();
+                  link.remove();
+
+                  window.URL.revokeObjectURL(downloadUrl);
+                } catch (error) {
+                  console.error("Download error:", error);
+
+                  setNotification({
+                    open: true,
+                    message: "Failed to download ID proof",
+                    severity: "error",
+                  });
+                }
+              }}
+              sx={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 0.5,
+                cursor: "pointer",
+              }}
+            >
+              <VisibilityIcon fontSize="small" />
+              Download ID Proof
+            </Link>
+          );
+        },
+      },
     },
-  },
-},
     {
       name: "actions",
       label: "Actions",
