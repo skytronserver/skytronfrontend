@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { retriveStateList, retriveCreatedSimProvider } from "../../helper";
 import { manufacturerInitialValues, manufacturerFormField } from "../../formjson/manufacturer";
 
-const FILE_SIZE = 512 * 1024; // 512 KB
+const FILE_SIZE = 2 * 1024 * 1024; // 2 MB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 
 const Manufacturer = () => {
@@ -91,7 +91,7 @@ const Manufacturer = () => {
     const errors = {};
     if (selectedFile) {
       if (selectedFile.size > FILE_SIZE) {
-        errors[fieldName] = "File too large. Max size is 520KB";
+        errors[fieldName] = "File too large. Max size is 2 MB";
       } else if (!SUPPORTED_FORMATS.includes(selectedFile.type)) {
         errors[fieldName] = "Unsupported Format";
       } else {

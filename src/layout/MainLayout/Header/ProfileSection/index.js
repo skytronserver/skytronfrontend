@@ -187,7 +187,7 @@ const ProfileSection = () => {
                         {userData && data.length > 2 && (
                           <span>
                             {data[1] === 'teamlead'
-        ? 'Police Control Room'
+        ? 'SOS Team Lead'
         :data[1] === 'esimprovider'
                               ? 'M2M PROVIDER'
                               : data[1] === 'superadmin'

@@ -1193,24 +1193,24 @@ const EMCall = () => {
             persistentSeenTable[c.id] += 1; // increment poll count
           }
 
-          if (loggedInRole === 'desk_ex' && persistentSeenTable[c.id] === 4) {
-            HomePageService.acceptEMCall({ assignment_id: c.id, accept: false }).catch(console.error);
-          }
+          // if (loggedInRole === 'desk_ex' && persistentSeenTable[c.id] === 4) {
+          //   HomePageService.acceptEMCall({ assignment_id: c.id, accept: false }).catch(console.error);
+          // }
         });
 
         sessionStorage.setItem('emcall_seen_calls', JSON.stringify(persistentSeenTable));
 
         // Delay parsing for teamlead: only show if missed by desk_ex for 3 polls
         let processableCalls = apiCalls;
-        if (loggedInRole === 'teamlead') {
-          processableCalls = apiCalls.filter(
-            (c) => persistentSeenTable[c.id] > 3 // wait until it's seen in more than 3 polling cycles
-          );
-        } else if (loggedInRole === 'desk_ex') {
-          processableCalls = apiCalls.filter(
-            (c) => persistentSeenTable[c.id] <= 3
-          );
-        }
+        // if (loggedInRole === 'teamlead') {
+        //   processableCalls = apiCalls.filter(
+        //     (c) => persistentSeenTable[c.id] > 3 // wait until it's seen in more than 3 polling cycles
+        //   );
+        // } else if (loggedInRole === 'desk_ex') {
+        //   processableCalls = apiCalls.filter(
+        //     (c) => persistentSeenTable[c.id] <= 3
+        //   );
+        // }
 
         if (emCallNewIncomingCallRef.current && !processableCalls.some(c => c.id === emCallNewIncomingCallRef.current.id)) {
           setNewIncomingCall(null);

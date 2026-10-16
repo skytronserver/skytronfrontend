@@ -78,36 +78,36 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
       try {
         const response = await HomePageService.getPendingSOSCall();
         const apiCalls = response?.data?.calls || [];
-        let persistentSeenTable = JSON.parse(sessionStorage.getItem('dashboard_seen_calls') || '{}');
+        // let persistentSeenTable = JSON.parse(sessionStorage.getItem('dashboard_seen_calls') || '{}');
 
-        apiCalls.forEach((c) => {
-          if (!persistentSeenTable[c.id]) {
-            persistentSeenTable[c.id] = 1; // 1st poll
-          } else {
-            persistentSeenTable[c.id] += 1; // increment poll count
-          }
+        // apiCalls.forEach((c) => {
+        //   if (!persistentSeenTable[c.id]) {
+        //     persistentSeenTable[c.id] = 1; // 1st poll
+        //   } else {
+        //     persistentSeenTable[c.id] += 1; // increment poll count
+        //   }
 
-          if (role === 'desk_ex' && persistentSeenTable[c.id] === 4) {
-            HomePageService.acceptEMCall({ assignment_id: c.id, accept: false }).catch(console.error);
-          }
-        });
+          // if (role === 'desk_ex' && persistentSeenTable[c.id] === 4) {
+          //   HomePageService.acceptEMCall({ assignment_id: c.id, accept: false }).catch(console.error);
+          // }
+        // });
 
-        sessionStorage.setItem('dashboard_seen_calls', JSON.stringify(persistentSeenTable));
+        // sessionStorage.setItem('dashboard_seen_calls', JSON.stringify(persistentSeenTable));
 
         // Delay parsing for teamlead: only show if missed by desk_ex for 3 polls
-        let processableCalls = apiCalls;
-        if (role === 'teamlead') {
-          processableCalls = apiCalls.filter(
-            (c) => persistentSeenTable[c.id] > 3 // wait until it's seen in more than 3 polling cycles
-          );
-        } else if (role === 'desk_ex') {
-          processableCalls = apiCalls.filter(
-            (c) => persistentSeenTable[c.id] <= 3
-          );
-        }
+        // let processableCalls = apiCalls;
+        // if (role === 'teamlead') {
+        //   processableCalls = apiCalls.filter(
+        //     (c) => persistentSeenTable[c.id] > 3 // wait until it's seen in more than 3 polling cycles
+        //   );
+        // } else if (role === 'desk_ex') {
+        //   processableCalls = apiCalls.filter(
+        //     (c) => persistentSeenTable[c.id] <= 3
+        //   );
+        // }
 
-        dispatch(getAllSOSCall(processableCalls));
-        checkForNewPendingCall(processableCalls); // Check for new "pending" assignments
+        dispatch(getAllSOSCall(apiCalls));
+        checkForNewPendingCall(apiCalls); // Check for new "pending" assignments
       } catch (error) {
         console.error('Error fetching call list:', error);
         dispatch(getAllSOSCall([]));

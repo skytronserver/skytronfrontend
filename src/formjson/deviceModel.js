@@ -1,5 +1,5 @@
 import * as Yup from "yup";
-const FILE_SIZE = 520 * 1024; // 512 KB
+const FILE_SIZE = 2 * 1024 * 1024; // 2 MB
 const SUPPORTED_FORMATS = [
   "image/png",
   "image/jpeg",
@@ -89,7 +89,7 @@ export const deviceModelFormField = {
     label: "deviceModelForm.fields.uploadTac",
     validation: Yup.mixed()
       .required("deviceModelForm.validation.tacRequired")
-      .test("fileSize", "File size is too large (max 520KB)", value => {
+      .test("fileSize", "File size is too large (max 2 MB)", value => {
         if (!value) return false;
         return value.size <= FILE_SIZE;
       })
@@ -140,7 +140,7 @@ export const deviceModelFormField = {
       },
       then: Yup.mixed()
         .required("modelExtensionForm.validation.copRequired")
-        .test("fileSize", "File size is too large (max 520KB)", value => {
+        .test("fileSize", "File size is too large (max 2 MB)", value => {
           if (!value) return false;
           return value.size <= FILE_SIZE;
         })

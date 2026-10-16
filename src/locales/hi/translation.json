@@ -164,8 +164,8 @@
     "file": {
       "label": "फ़ाइल चुनें",
       "required": "फ़ाइल आवश्यक है",
-      "message": "केवल JPG, PDF, PNG फ़ाइलें अनुमत हैं और 520KB से कम होनी चाहिए",
-      "sizeError": "फ़ाइल बहुत बड़ी है। अधिकतम आकार 520KB है",
+      "message": "केवल JPG, PDF, PNG फ़ाइलें अनुमत हैं और 2 MB से कम होनी चाहिए",
+      "sizeError": "फ़ाइल बहुत बड़ी है। अधिकतम आकार 2 MB है",
       "formatError": "असमर्थित फ़ाइल प्रारूप"
     },
     "newTitle": "नई सूचना",
@@ -649,7 +649,7 @@
     "mobileRequired": "मोबाइल नंबर आवश्यक है",
     "passwordRequired": "पासवर्ड आवश्यक है",
     "required": "आवश्यक फ़ील्ड",
-    "fileTooLarge": "फ़ाइल बहुत बड़ी है। अधिकतम आकार 520KB है",
+    "fileTooLarge": "फ़ाइल बहुत बड़ी है। अधिकतम आकार 2 MB है",
     "unsupportedFormat": "असमर्थित प्रारूप"
   },
   "stateAdmin": {
@@ -668,8 +668,8 @@
       "lon": "देशांतर"
     },
     "messages": {
-      "file_idProof": "केवल JPG, PDF, PNG फ़ाइलें स्वीकृत हैं और 520KB से कम होनी चाहिए।",
-      "file_authorisation_letter": "केवल JPG, PDF, PNG फ़ाइलें स्वीकृत हैं और 520KB से कम होनी चाहिए।"
+      "file_idProof": "केवल JPG, PDF, PNG फ़ाइलें स्वीकृत हैं और 2 MB से कम होनी चाहिए।",
+      "file_authorisation_letter": "केवल JPG, PDF, PNG फ़ाइलें स्वीकृत हैं और 2 MB से कम होनी चाहिए।"
     },
     "validation": {
       "nameRequired": "नाम आवश्यक है",
@@ -683,8 +683,8 @@
       "idProofRequired": "पहचान पत्र संख्या आवश्यक है",
       "idProofMinLength": "पहचान पत्र संख्या कम से कम 5 अक्षर लंबी होनी चाहिए",
       "fileRequired": "फ़ाइल आवश्यक है",
-      "fileSize": "अधिकतम आकार 520KB है और समर्थित फ़ाइलें pdf/png/jpg हैं",
-      "fileFormat": "अधिकतम आकार 520KB है और समर्थित फ़ाइलें pdf/png/jpg हैं"
+      "fileSize": "अधिकतम आकार 2 MB है और समर्थित फ़ाइलें pdf/png/jpg हैं",
+      "fileFormat": "अधिकतम आकार 2 MB है और समर्थित फ़ाइलें pdf/png/jpg हैं"
     },
     "listTitle": "राज्य प्रशासक"
   },
@@ -730,9 +730,9 @@
         "auth_letter_required": "अधिकृत पत्र आवश्यक है",
         "company_reg_required": "कंपनी पंजीकरण प्रमाणपत्र आवश्यक है",
         "gst_certificate_required": "जीएसटी प्रमाणपत्र आवश्यक है",
-        "file_restrictions": "केवल JPG, PDF, PNG फाइलें अनुमत हैं और 520KB से कम होनी चाहिए",
-        "file_size": "अधिकतम आकार 520KB है और समर्थित फाइलें pdf/png/jpg हैं",
-        "file_format": "अधिकतम आकार 520KB है और समर्थित फाइलें pdf/png/jpg हैं"
+        "file_restrictions": "केवल JPG, PDF, PNG फाइलें अनुमत हैं और 2 MB से कम होनी चाहिए",
+        "file_size": "अधिकतम आकार 2 MB है और समर्थित फाइलें pdf/png/jpg हैं",
+        "file_format": "अधिकतम आकार 2 MB है और समर्थित फाइलें pdf/png/jpg हैं"
       }
     },
     "listTitle": "निर्माता"
@@ -776,9 +776,9 @@
         "auth_letter_required": "अधिकार पत्र आवश्यक है",
         "company_reg_required": "कंपनी पंजीकरण प्रमाणपत्र आवश्यक है",
         "gst_certificate_required": "जीएसटी प्रमाणपत्र आवश्यक है",
-        "file_restrictions": "केवल JPG, PDF, PNG फाइलें अनुमत हैं और 520KB से कम होनी चाहिए",
-        "file_size": "अधिकतम आकार 520KB और समर्थित फाइलें pdf/png/jpg",
-        "file_format": "अधिकतम आकार 520KB और समर्थित फाइलें pdf/png/jpg"
+        "file_restrictions": "केवल JPG, PDF, PNG फाइलें अनुमत हैं और 2 MB से कम होनी चाहिए",
+        "file_size": "अधिकतम आकार 2 MB और समर्थित फाइलें pdf/png/jpg",
+        "file_format": "अधिकतम आकार 2 MB और समर्थित फाइलें pdf/png/jpg"
       }
     }
   },
@@ -822,9 +822,9 @@
         "auth_letter_required": "अधिकृत पत्र आवश्यक है",
         "company_reg_required": "कंपनी पंजीकरण प्रमाणपत्र आवश्यक है",
         "gst_certificate_required": "जीएसटी प्रमाणपत्र आवश्यक है",
-        "file_restrictions": "केवल JPG, PDF, PNG फाइलें अनुमत हैं और 520KB से कम होनी चाहिए",
-        "file_size": "अधिकतम आकार 520KB और समर्थित फाइलें pdf/png/jpg",
-        "file_format": "अधिकतम आकार 520KB और समर्थित फाइलें pdf/png/jpg"
+        "file_restrictions": "केवल JPG, PDF, PNG फाइलें अनुमत हैं और 2 MB से कम होनी चाहिए",
+        "file_size": "अधिकतम आकार 2 MB और समर्थित फाइलें pdf/png/jpg",
+        "file_format": "अधिकतम आकार 2 MB और समर्थित फाइलें pdf/png/jpg"
       }
     }
   },
@@ -980,7 +980,7 @@
       "expiryDateRequired": "समाप्ति तिथि आवश्यक है",
       "dtoRtoRequired": "डीटीओ/आरटीओ चयन आवश्यक है",
       "fileRequired": "फ़ाइल आवश्यक है",
-      "fileSize": "फ़ाइल का आकार 520KB से कम होना चाहिए",
+      "fileSize": "फ़ाइल का आकार 2 MB से कम होना चाहिए",
       "fileFormat": "असमर्थित फ़ाइल प्रारूप"
     },
     "options": {
@@ -988,7 +988,7 @@
       "rto": "आरटीओ"
     },
     "messages": {
-      "fileRestrictions": "समर्थित प्रारूप: JPG, JPEG, PNG, PDF। अधिकतम आकार: 520KB"
+      "fileRestrictions": "समर्थित प्रारूप: JPG, JPEG, PNG, PDF। अधिकतम आकार: 2 MB"
     }
   },
   "bulkUploadForm": {
@@ -1058,9 +1058,9 @@
       "companyRegistrationCertificateRequired": "कंपनी/दुकान पंजीकरण/स्थापना प्रमाणपत्र आवश्यक है",
       "gstCertificateRequired": "जीएसटी प्रमाणपत्र आवश्यक है",
       "userIdProofRequired": "यूजर आईडी प्रूफ आवश्यक है",
-      "fileSize": "अधिकतम आकार 520KB है और समर्थित फ़ाइलें pdf/png/jpg हैं",
-      "fileFormat": "अधिकतम आकार 520KB है और समर्थित फ़ाइलें pdf/png/jpg हैं",
-      "fileRestrictions": "केवल JPG, PDF, PNG फ़ाइलें स्वीकृत हैं और 520KB से कम होनी चाहिए।"
+      "fileSize": "अधिकतम आकार 2 MB है और समर्थित फ़ाइलें pdf/png/jpg हैं",
+      "fileFormat": "अधिकतम आकार 2 MB है और समर्थित फ़ाइलें pdf/png/jpg हैं",
+      "fileRestrictions": "केवल JPG, PDF, PNG फ़ाइलें स्वीकृत हैं और 2 MB से कम होनी चाहिए।"
     }
   },
   "tagDeviceForm": {
@@ -1121,7 +1121,7 @@
       "sosAlertReceived": "एसओएस अलर्ट प्राप्त हुआ",
       "sosButtonPressed": "एसओएस बटन सफलतापूर्वक दबाया गया",
       "sosButtonProceed": "एसओएस बटन दबाया गया! अगले चरण पर जा रहे हैं...",
-      "fileRestrictions": "केवल JPG, PDF, PNG फ़ाइलें स्वीकृत हैं और 520KB से कम होनी चाहिए।"
+      "fileRestrictions": "केवल JPG, PDF, PNG फ़ाइलें स्वीकृत हैं और 2 MB से कम होनी चाहिए।"
     }
   },
   "sosUserForm": {
@@ -1136,7 +1136,7 @@
       "idProof": "आईडी प्रूफ दस्तावेज़",
       "authLetter": "अधिकृत पत्र",
       "userType": "उपयोगकर्ता प्रकार",
-      "fileMessage": "केवल JPG, PDF, PNG फ़ाइलें स्वीकृत हैं और 520KB से कम होनी चाहिए"
+      "fileMessage": "केवल JPG, PDF, PNG फ़ाइलें स्वीकृत हैं और 2 MB से कम होनी चाहिए"
     },
     "validation": {
       "nameRequired": "नाम आवश्यक है",
@@ -1151,7 +1151,7 @@
       "idProofRequired": "आईडी प्रूफ दस्तावेज़ आवश्यक है",
       "authLetterRequired": "अधिकृत पत्र आवश्यक है",
       "userTypeRequired": "उपयोगकर्ता प्रकार आवश्यक है",
-      "fileSize": "फ़ाइल बहुत बड़ी है। अधिकतम आकार 520KB है",
+      "fileSize": "फ़ाइल बहुत बड़ी है। अधिकतम आकार 2 MB है",
       "fileFormat": "असमर्थित प्रारूप। केवल JPG, PDF और PNG फ़ाइलें अनुमत हैं"
     },
     "options": {
