@@ -42,6 +42,29 @@ const HabitualOffenderReport = () => {
     const handleSelectAll = () => setSelectedAlerts(ALERT_OPTIONS);
     const handleReset = () => setSelectedAlerts([]);
 
+    const formatLastAlert = (dateStr) => {
+        if (!dateStr || dateStr === 'N/A') {
+            return 'N/A';
+        }
+
+        const date = new Date(dateStr);
+
+        if (Number.isNaN(date.getTime())) {
+            return 'N/A';
+        }
+
+        return date.toLocaleString('en-IN', {
+            timeZone: 'Asia/Kolkata',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        });
+    };
+
     const fetchData = async () => {
         setLoading(true);
         try {
@@ -81,7 +104,7 @@ const HabitualOffenderReport = () => {
                 return {
                     id: item.device_tag_id || item.imei || index,
                     ...item,
-                    last_alert: item.last_alert_at || item.last_alert, // Map the new API field name
+                    last_alert: formatLastAlert(item.last_alert_at || item.last_alert), // Map the new API field name
                     breakdown: breakdownStr // Replace the object with our formatted string
                 };
             }));

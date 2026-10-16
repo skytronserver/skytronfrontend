@@ -187,42 +187,53 @@ const VehicleOwnerList = () => {
         },
       },
     },
-    {
-      name: "actions",
-      label: "Actions",
-      options: {
-        filter: false,
-        sort: false,
-        customBodyRender: (value, tableMeta) => {
-          // Note: tableMeta.rowData contains raw values from API (timestamps, where present, are in GMT/UTC).
-          // 'users' column is at index 1 and contains array of user objects.
-          // We need to support cases where columns might be reordered, but relying on data structure is safer if we knew field name.
-          // tableMeta.rowData follows the column order. 
-          // vehicleOwnerCols index 1 is 'users' (User Name).
-          // vehicleOwnerCols index 7 is 'expirydate'.
+    
+{
+  name: "actions",
+  label: "Actions",
+  options: {
+    filter: false,
+    sort: false,
+    customBodyRender: (value, tableMeta) => {
+      const usersData = tableMeta.rowData[1];
+      const currentExpiry = tableMeta.rowData[7];
+      const ownerId = tableMeta.rowData[0];
 
-          // Finding the 'users' object from rowData. 
-          // Since multiple columns use 'users', we can pick index 1.
-          const usersData = tableMeta.rowData[1];
-          const currentExpiry = tableMeta.rowData[7];
-          const ownerId = tableMeta.rowData[0]; // owner_id is at index 0
+      const userName = usersData?.[0]?.name || "Unknown";
 
-          const userName = usersData && usersData[0] ? usersData[0].name : 'Unknown';
+      // Read the owner's actual user status
+      const ownerStatus = String(
+        usersData?.[0]?.status || ""
+      ).trim().toLowerCase();
 
-          return (
-            <Button
-              variant="contained"
-              color="primary"
-              size="small"
-              onClick={() => handleOpenExtendDialog(ownerId, userName, currentExpiry)}
-              sx={{ minWidth: '130px' }}
-            >
-              Extend Validity
-            </Button>
-          );
-        }
+      const isRetired = ownerStatus === "retired";
+
+      // Retired owners should not have Extend Validity
+      if (isRetired) {
+        return null;
       }
-    }
+
+      return (
+        <Button
+          variant="contained"
+          color="primary"
+          size="small"
+          onClick={() =>
+            handleOpenExtendDialog(
+              ownerId,
+              userName,
+              currentExpiry
+            )
+          }
+          sx={{ minWidth: "130px" }}
+        >
+          Extend Validity
+        </Button>
+      );
+    },
+  },
+}
+
   ];
 
   return (

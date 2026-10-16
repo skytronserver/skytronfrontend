@@ -11,6 +11,7 @@ import Datatable from '../../datatables/Datatable';
 import { registeredUserColumns } from '../../datatables/rowsColumn';
 import { useTranslation } from 'react-i18next';
 import { Alert, Snackbar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material';
+import { getRole } from "../../helper";
 
 const generateDummyManufacturerUsers = () => {
   const dummyUsers = [];
@@ -31,7 +32,34 @@ const generateDummyManufacturerUsers = () => {
   return dummyUsers;
 };
 
+const roleLabels = {
+  superadmin: 'Super Admin',
+  stateadmin: 'State Admin',
+  sosadmin: 'SOS Admin',
+  sosexecutive: 'SOS Executive',
+  devicemanufacture: 'Manufacturer',
+  esimprovider: 'eSIM Provider',
+  dealer: 'Dealer',
+  owner: 'Owner',
+  dtorto: 'DTO / RTO'
+};
+
+const statusLabels = {
+  active: 'Active',
+  pending: 'Pending',
+  retired: 'Retired',
+  pwreset: 'Password Reset'
+};
+
+const formatLabel = (value, labels) => {
+  if (!value) return 'N/A';
+
+  return labels[String(value).toLowerCase()] ||
+    String(value);
+};
+
 const UsersList = () => {
+  const currentRole = getRole();
   const { t } = useTranslation();
   const [load, setLoad] = useState(false)
   const dispatch = useDispatch();
@@ -153,7 +181,29 @@ const UsersList = () => {
 
   // Add deactivate button to columns
   const columnsWithActions = [
-    ...registeredUserColumns,
+    ...registeredUserColumns.map((column) => {
+      if (column.name === 'role') {
+        return {
+          ...column,
+          options: {
+            ...column.options,
+            customBodyRender: (value) => formatLabel(value, roleLabels)
+          }
+        };
+      }
+
+      if (column.name === 'status') {
+        return {
+          ...column,
+          options: {
+            ...column.options,
+            customBodyRender: (value) => formatLabel(value, statusLabels)
+          }
+        };
+      }
+
+      return column;
+    }),
     {
       name: "expirydate",
       label: "Expiry Date",
@@ -163,6 +213,7 @@ const UsersList = () => {
         customBodyRender: (value) => value ? new Date(value).toLocaleDateString('en-GB') : 'N/A'
       }
     },
+
     {
       name: "actions",
       label: "Actions",
@@ -170,38 +221,50 @@ const UsersList = () => {
         filter: false,
         sort: false,
         customBodyRender: (value, tableMeta) => {
-          // Note: tableMeta.rowData contains raw values from API (timestamps, where present, are in GMT/UTC).
-          const userId = tableMeta.rowData[0]; // Assuming id is the first column
-          const userName = tableMeta.rowData[2]; // Assuming name is the third column
-          const status = (tableMeta.rowData[5] || "").toString().toUpperCase();
-          const isActive = !!tableMeta.rowData[8]; // is_active hidden column
-          const currentExpiry = tableMeta.rowData[9]; // expirydate column we just added (index 9)
+          const userId = tableMeta.rowData[0];
+          const userName = tableMeta.rowData[2];
+
+          const status = String(tableMeta.rowData[5] || "")
+            .trim()
+            .toLowerCase();
+
+          const isActive = Boolean(tableMeta.rowData[8]);
+
+          // Retired users should not have Deactivate/Reactivate actions.
+          const isRetired = status === "retired";
 
           return (
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={() => isActive ? handleOpenConfirmDialog(userId, userName) : handleReactivateUser(userId)}
-                style={{
-                  padding: '5px 10px',
-                  backgroundColor: isActive ? '#ff4444' : '#34c759',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-              >
-                {isActive ? 'Deactivate' : 'Reactivate'}
-              </button>
-              {status === 'PENDING' && (
+            <div style={{ display: "flex", gap: "8px" }}>
+              {!isRetired && (
+                <button
+                  onClick={() =>
+                    isActive
+                      ? handleOpenConfirmDialog(userId, userName)
+                      : handleReactivateUser(userId)
+                  }
+                  style={{
+                    padding: "5px 10px",
+                    backgroundColor: isActive ? "#ff4444" : "#34c759",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
+                >
+                  {isActive ? "Deactivate" : "Reactivate"}
+                </button>
+              )}
+
+              {status === "pending" && (
                 <button
                   onClick={() => handleResendValidationLink(userId)}
                   style={{
-                    padding: '5px 10px',
-                    backgroundColor: '#0088ff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer'
+                    padding: "5px 10px",
+                    backgroundColor: "#0088ff",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
                   }}
                 >
                   Resend Link
@@ -209,9 +272,10 @@ const UsersList = () => {
               )}
             </div>
           );
-        }
-      }
+        },
+      },
     }
+
   ];
 
   return (

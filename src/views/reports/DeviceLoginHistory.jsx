@@ -30,9 +30,18 @@ const formatDT = (str) => {
 const parsePacket = (rawData = '') => {
   try {
     const parts = rawData.split(',');
-    const firstToken = (parts[0] || '').replace('$', '').trim().toUpperCase();
+    const firstToken = (parts[0] || '')
+      .replace('$', '')
+      .trim()
+      .toUpperCase();
+
     const secondToken = (parts[1] || '').trim().toUpperCase();
 
+    // Reject malformed PVT packets that start with "$PVT,"
+    // instead of the expected "$,PVT," format.
+    if (firstToken === 'PVT') {
+      return null;
+    }
     // Handle AIS-140 Login packet: $LGN,VehicleReg,IMEI,ICCID,Firmware,Protocol,...
     if (firstToken === 'LGN' || firstToken === 'HLM' || firstToken === 'HLT' || firstToken === 'NML') {
       const isLGN = firstToken === 'LGN';
@@ -55,13 +64,13 @@ const parsePacket = (rawData = '') => {
      * [0]  [1]   [2]        [3]        [4]        [5]     [6]             [7]         [8]          [9]      [10]       [11]    [12]         [13]    [14]         [15]
      * e.g: $  , PVT , MAPW , 04.03.01 , NR , 01 , L , 866192070567043 , AA00AA7043 , 1 , 28072026 , 075805 , 26.193016 , N , 91.752907 , E , ...
      */
-    const packetType      = secondToken || firstToken || 'GPS';
-    const vendorId        = parts[2] || '—';       // e.g. 'MAPW', 'DTPL'
-    const firmware        = parts[3] || '—';       // e.g. '04.03.01', '1.1.1'
+    const packetType = secondToken || firstToken || 'GPS';
+    const vendorId = parts[2] || '—';       // e.g. 'MAPW', 'DTPL'
+    const firmware = parts[3] || '—';       // e.g. '04.03.01', '1.1.1'
     const protocolVersion = parts[4] || '—';       // e.g. 'NR'
-    const imei            = parts[7] || '—';       // 15-digit IMEI
-    const vehicleName     = parts[8] || '—';       // Vehicle Reg No e.g. 'AA00AA7043'
-    const iccid           = '—';                   // Not present in PVT packets
+    const imei = parts[7] || '—';       // 15-digit IMEI
+    const vehicleName = parts[8] || '—';       // Vehicle Reg No e.g. 'AA00AA7043'
+    const iccid = '—';                   // Not present in PVT packets
 
     // Lat at index 12 (already decimal degrees), Lon at index 14
     const rawLat = parts[12] || '';
@@ -78,7 +87,7 @@ const parsePacket = (rawData = '') => {
       return decimal;
     };
 
-    const latitude  = toDeg(rawLat, latDir);
+    const latitude = toDeg(rawLat, latDir);
     const longitude = toDeg(rawLon, lonDir);
 
     return { packetType, vendorId, firmware, protocolVersion, imei, iccid, vehicleName, latitude, longitude };
@@ -222,14 +231,16 @@ const DeviceLoginHistory = () => {
         return;
       }
 
-      // Show ALL records — no strict login-packet filter
-      const transformed = parsed.map((item) => {
-        const { packetType, vendorId, firmware, protocolVersion, imei, iccid, vehicleName, latitude, longitude } =
-          parsePacket(item.fields?.raw_data || '');
-        return {
-          id: item.pk,
-          timestamp: item.fields?.timestamp,
-          rawData: item.fields?.raw_data,
+      const transformed = parsed.flatMap((item) => {
+        const rawData = item.fields?.raw_data || '';
+        const parsedPacket = parsePacket(rawData);
+
+        // Skip malformed packets.
+        if (!parsedPacket) {
+          return [];
+        }
+
+        const {
           packetType,
           vendorId,
           firmware,
@@ -238,8 +249,23 @@ const DeviceLoginHistory = () => {
           iccid,
           vehicleName,
           latitude,
-          longitude,
-        };
+          longitude
+        } = parsedPacket;
+
+        return [{
+          id: item.pk,
+          timestamp: item.fields?.timestamp,
+          rawData,
+          packetType,
+          vendorId,
+          firmware,
+          protocolVersion,
+          imei,
+          iccid,
+          vehicleName,
+          latitude,
+          longitude
+        }];
       });
 
       setRows(transformed);

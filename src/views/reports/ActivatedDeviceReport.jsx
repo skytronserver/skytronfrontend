@@ -13,18 +13,32 @@ const ActivatedDeviceReport = () => {
   const [totalRows, setTotalRows] = useState(0);
 
   const formatDate = (dateStr) => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleString('en-IN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true
-    });
-  };
+  if (
+    !dateStr ||
+    dateStr === 'N/A' ||
+    dateStr === 'NA' ||
+    dateStr === 'null' ||
+    dateStr === 'undefined'
+  ) {
+    return 'N/A';
+  }
+
+  const date = new Date(dateStr);
+
+  if (Number.isNaN(date.getTime())) {
+    return 'N/A';
+  }
+
+  return date.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+};
 
   const columns = [
     { 

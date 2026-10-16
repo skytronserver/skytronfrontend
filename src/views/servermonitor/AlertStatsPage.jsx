@@ -76,8 +76,8 @@ const AlertStatsPage = () => {
 
       setError(
         err?.response?.data?.detail ||
-          err?.response?.data?.message ||
-          "Failed to load alert statistics."
+        err?.response?.data?.message ||
+        "Failed to load alert statistics."
       );
     } finally {
       setLoading(false);
@@ -125,12 +125,10 @@ const AlertStatsPage = () => {
   };
 
   const getAlertCount = (type) => {
-    if (!data?.devices) {
-      return 0;
-    }
+    if (!data?.devices) return 0;
 
     return data.devices.reduce((total, device) => {
-      return total + Number(device?.[type] || 0);
+      return total + Number(device?.breakdown?.[type] ?? device?.[type] ?? 0);
     }, 0);
   };
 
@@ -159,13 +157,8 @@ const AlertStatsPage = () => {
   };
 
   const totalAlerts = data?.devices?.reduce((total, device) => {
-    return (
-      total +
-      data.types?.reduce((typeTotal, type) => {
-        return typeTotal + Number(device?.[type] || 0);
-      }, 0)
-    );
-  }, 0) || 0;
+    return total + Number(device?.alert_count ?? 0);
+  }, 0) ?? 0;
 
   const devices = data?.devices || [];
 
@@ -565,13 +558,13 @@ const AlertStatsPage = () => {
                 </TableRow>
               ) : (
                 devices.map((device, index) => {
-                  const deviceTotal = (
-                    data?.types || ALERT_TYPES
-                  ).reduce(
-                    (total, type) =>
-                      total +
-                      Number(device?.[type] || 0),
-                    0
+                  const deviceTotal = Number(
+                    device?.alert_count ??
+                    (data?.types || ALERT_TYPES).reduce(
+                      (total, type) =>
+                        total + Number(device?.breakdown?.[type] ?? device?.[type] ?? 0),
+                      0
+                    )
                   );
 
                   return (
@@ -590,9 +583,7 @@ const AlertStatsPage = () => {
                             key={type}
                             align="right"
                           >
-                            {Number(
-                              device?.[type] || 0
-                            )}
+                            {Number(device?.breakdown?.[type] ?? device?.[type] ?? 0)}
                           </TableCell>
                         )
                       )}
