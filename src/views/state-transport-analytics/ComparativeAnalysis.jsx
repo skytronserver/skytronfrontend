@@ -78,7 +78,9 @@ const TripRow = ({ trip }) => {
                     />
                 </TableCell>
                 <TableCell align="right">
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{trip.trip_summary.avg_stop_delay_min} mins</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{trip.trip_summary?.avg_stop_delay_min != null
+                        ? `${trip.trip_summary.avg_stop_delay_min} min`
+                        : 'N/A'}</Typography>
                 </TableCell>
             </TableRow>
             <TableRow>
@@ -211,7 +213,7 @@ const ComparativeAnalysis = () => {
 
     useEffect(() => {
         fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleFilterChange = (e) => {
@@ -299,19 +301,40 @@ const ComparativeAnalysis = () => {
                                     <Typography variant="h5" sx={{ mb: 2 }}>Performance Matrix by Source Stop (Depot)</Typography>
                                     <Box sx={{ height: 400 }}>
                                         <ResponsiveContainer width="100%" height="100%">
-                                            {data.source_stop_comparison && data.source_stop_comparison.length > 0 && data.source_stop_comparison.some(d => Number(d.completion_rate_pct) > 0 || Number(d.on_time_start_rate_pct) > 0) ? (
+                                            {data.source_stop_comparison?.length > 0 ? (
                                                 <BarChart data={data.source_stop_comparison}>
                                                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                                     <XAxis dataKey="source_stop_name" />
-                                                    <YAxis domain={[0, dataMax => (dataMax === 0 ? 100 : dataMax)]} />
+                                                    <YAxis
+                                                        domain={[0, (dataMax) => (dataMax === 0 ? 100 : dataMax)]}
+                                                    />
                                                     <RechartsTooltip />
                                                     <Legend />
-                                                    <Bar dataKey="completion_rate_pct" name="Completion Rate %" fill={theme.palette.success.main} radius={[4, 4, 0, 0]} />
-                                                    <Bar dataKey="on_time_start_rate_pct" name="On-Time Start %" fill={theme.palette.primary.main} radius={[4, 4, 0, 0]} />
+                                                    <Bar
+                                                        dataKey="completion_rate_pct"
+                                                        name="Completion Rate %"
+                                                        fill={theme.palette.success.main}
+                                                        radius={[4, 4, 0, 0]}
+                                                    />
+                                                    <Bar
+                                                        dataKey="on_time_start_rate_pct"
+                                                        name="On-Time Start %"
+                                                        fill={theme.palette.primary.main}
+                                                        radius={[4, 4, 0, 0]}
+                                                    />
                                                 </BarChart>
                                             ) : (
-                                                <Box sx={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                                                    <Typography sx={{ color: 'text.secondary' }}>No performance data available.</Typography>
+                                                <Box
+                                                    sx={{
+                                                        display: 'flex',
+                                                        height: '100%',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center'
+                                                    }}
+                                                >
+                                                    <Typography color="text.secondary">
+                                                        No depot data available.
+                                                    </Typography>
                                                 </Box>
                                             )}
                                         </ResponsiveContainer>
@@ -384,8 +407,12 @@ const ComparativeAnalysis = () => {
                                                         <TableCell align="right">{route.unique_buses}</TableCell>
                                                         <TableCell align="right">{route.total_schedules}</TableCell>
                                                         <TableCell align="right">{route.completion_rate_pct}%</TableCell>
-                                                        <TableCell align="right">{route.avg_stop_delay_minutes}m</TableCell>
                                                         <TableCell align="right">
+                                                            {route.avg_stop_delay_minutes != null &&
+                                                                Number.isFinite(Number(route.avg_stop_delay_minutes))
+                                                                ? `${route.avg_stop_delay_minutes} min`
+                                                                : 'N/A'}
+                                                        </TableCell>                                                        <TableCell align="right">
                                                             <Chip
                                                                 label={route.completion_rate_pct > 90 ? 'Excellent' : route.completion_rate_pct > 70 ? 'Fair' : 'Poor'}
                                                                 size="small"
@@ -403,47 +430,62 @@ const ComparativeAnalysis = () => {
 
                         {/* INTER-CITY CORRIDORS */}
                         <TabPanel value={tabValue} index={2}>
-                            <Grid container spacing={3}>
-                                {data.inter_city_corridor.map((corridor, idx) => (
-                                    <Grid item xs={12} md={6} key={idx}>
-                                        <Card sx={{ border: '1px solid', borderColor: 'divider' }}>
-                                            <CardContent>
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                        <Typography variant="h5">{corridor.source_district_name}</Typography>
-                                                        <IconArrowRight size={20} />
-                                                        <Typography variant="h5">{corridor.destination_district_name}</Typography>
+                            {data.inter_city_corridor?.length > 0 ? (
+                                <Grid container spacing={3}>
+                                    {data.inter_city_corridor.map((corridor, idx) => (
+                                        <Grid item xs={12} md={6} key={idx}>
+                                            <Card sx={{ border: '1px solid', borderColor: 'divider' }}>
+                                                <CardContent>
+                                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                            <Typography variant="h5">{corridor.source_district_name}</Typography>
+                                                            <IconArrowRight size={20} />
+                                                            <Typography variant="h5">{corridor.destination_district_name}</Typography>
+                                                        </Box>
+                                                        <Chip label={`${corridor.total_routes} Routes`} variant="outlined" size="small" />
                                                     </Box>
-                                                    <Chip label={`${corridor.total_routes} Routes`} variant="outlined" size="small" />
-                                                </Box>
-                                                <Grid container spacing={2}>
-                                                    <Grid item xs={6}>
-                                                        <Box sx={{ p: 1.5, bgcolor: 'primary.light', borderRadius: 2 }}>
-                                                            <Typography variant="caption" color="primary.dark">Completion Rate</Typography>
-                                                            <Typography variant="h4" color="primary.dark">{corridor.completion_rate_pct}%</Typography>
-                                                        </Box>
+                                                    <Grid container spacing={2}>
+                                                        <Grid item xs={6}>
+                                                            <Box sx={{ p: 1.5, bgcolor: 'primary.light', borderRadius: 2 }}>
+                                                                <Typography variant="caption" color="primary.dark">Completion Rate</Typography>
+                                                                <Typography variant="h4" color="primary.dark">{corridor.completion_rate_pct}%</Typography>
+                                                            </Box>
+                                                        </Grid>
+                                                        <Grid item xs={6}>
+                                                            <Box sx={{ p: 1.5, bgcolor: 'success.light', borderRadius: 2 }}>
+                                                                <Typography variant="caption" color="success.dark">Punctuality</Typography>
+                                                                <Typography variant="h4" color="success.dark">{corridor.on_time_start_rate_pct}%</Typography>
+                                                            </Box>
+                                                        </Grid>
                                                     </Grid>
-                                                    <Grid item xs={6}>
-                                                        <Box sx={{ p: 1.5, bgcolor: 'success.light', borderRadius: 2 }}>
-                                                            <Typography variant="caption" color="success.dark">Punctuality</Typography>
-                                                            <Typography variant="h4" color="success.dark">{corridor.on_time_start_rate_pct}%</Typography>
-                                                        </Box>
-                                                    </Grid>
-                                                </Grid>
-                                                <Box sx={{ mt: 2 }}>
-                                                    <Typography variant="subtitle2" sx={{ mb: 1 }}>Top Routes in Corridor:</Typography>
-                                                    {corridor.routes.map(r => (
-                                                        <Box key={r.route_id} sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', py: 0.5 }}>
-                                                            <Typography variant="body2">{r.route_name}</Typography>
-                                                            <Typography variant="body2" sx={{ fontWeight: 600 }}>{r.completed}/{r.schedules} Trips</Typography>
-                                                        </Box>
-                                                    ))}
-                                                </Box>
-                                            </CardContent>
-                                        </Card>
-                                    </Grid>
-                                ))}
-                            </Grid>
+                                                    <Box sx={{ mt: 2 }}>
+                                                        <Typography variant="subtitle2" sx={{ mb: 1 }}>Top Routes in Corridor:</Typography>
+                                                        {corridor.routes.map(r => (
+                                                            <Box key={r.route_id} sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', py: 0.5 }}>
+                                                                <Typography variant="body2">{r.route_name}</Typography>
+                                                                <Typography variant="body2" sx={{ fontWeight: 600 }}>{r.completed}/{r.schedules} Trips</Typography>
+                                                            </Box>
+                                                        ))}
+                                                    </Box>
+                                                </CardContent>
+                                            </Card>
+                                        </Grid>
+                                    ))}
+                                </Grid>
+                            ) : (
+                                <Box
+                                    sx={{
+                                        minHeight: 250,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}
+                                >
+                                    <Typography color="text.secondary">
+                                        No inter-city corridor data available for the selected filters.
+                                    </Typography>
+                                </Box>
+                            )}
                         </TabPanel>
 
                         {/* TRIP ANALYSIS */}

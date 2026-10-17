@@ -1179,39 +1179,39 @@ const EMCall = () => {
       try {
         const response = await HomePageService.getPendingSOSCall();
         const apiCalls = response?.data?.calls || [];
-        const now = Date.now();
+        // const now = Date.now();
 
-        let persistentSeenTable = {};
-        try {
-          persistentSeenTable = JSON.parse(sessionStorage.getItem('emcall_seen_calls') || '{}');
-        } catch (e) { }
+        // let persistentSeenTable = {};
+        // try {
+        //   persistentSeenTable = JSON.parse(sessionStorage.getItem('emcall_seen_calls') || '{}');
+        // } catch (e) { }
 
-        apiCalls.forEach((c) => {
-          if (!persistentSeenTable[c.id]) {
-            persistentSeenTable[c.id] = 1; // 1st poll
-          } else {
-            persistentSeenTable[c.id] += 1; // increment poll count
-          }
+        // apiCalls.forEach((c) => {
+        //   if (!persistentSeenTable[c.id]) {
+        //     persistentSeenTable[c.id] = 1; // 1st poll
+        //   } else {
+        //     persistentSeenTable[c.id] += 1; // increment poll count
+        //   }
 
-          if (loggedInRole === 'desk_ex' && persistentSeenTable[c.id] === 4) {
-            HomePageService.acceptEMCall({ assignment_id: c.id, accept: false }).catch(console.error);
-          }
-        });
+        //   if (loggedInRole === 'desk_ex' && persistentSeenTable[c.id] === 4) {
+        //     HomePageService.acceptEMCall({ assignment_id: c.id, accept: false }).catch(console.error);
+        //   }
+        // });
 
-        sessionStorage.setItem('emcall_seen_calls', JSON.stringify(persistentSeenTable));
+        // sessionStorage.setItem('emcall_seen_calls', JSON.stringify(persistentSeenTable));
 
-        // Delay parsing for teamlead: only show if missed by desk_ex for 3 polls
-        let processableCalls = apiCalls;
-        if (loggedInRole === 'teamlead') {
-          processableCalls = apiCalls.filter(
-            (c) => persistentSeenTable[c.id] > 3 // wait until it's seen in more than 3 polling cycles
-          );
-        } else if (loggedInRole === 'desk_ex') {
-          processableCalls = apiCalls.filter(
-            (c) => persistentSeenTable[c.id] <= 3
-          );
-        }
-
+        // // Delay parsing for teamlead: only show if missed by desk_ex for 3 polls
+        // let processableCalls = apiCalls;
+        // if (loggedInRole === 'teamlead') {
+        //   processableCalls = apiCalls.filter(
+        //     (c) => persistentSeenTable[c.id] > 3 // wait until it's seen in more than 3 polling cycles
+        //   );
+        // } else if (loggedInRole === 'desk_ex') {
+        //   processableCalls = apiCalls.filter(
+        //     (c) => persistentSeenTable[c.id] <= 3
+        //   );
+        // }
+const processableCalls = apiCalls;
         if (emCallNewIncomingCallRef.current && !processableCalls.some(c => c.id === emCallNewIncomingCallRef.current.id)) {
           setNewIncomingCall(null);
           emCallAudio.pause();

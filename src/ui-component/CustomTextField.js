@@ -99,9 +99,13 @@ const FormField = ({
             // Check if field is one of the restricted fields
             else if (["name", "title", "category"].includes(fieldConfig.name)) {
               // Only allow letters and single spaces, prevent consecutive spaces
-              const sanitizedValue = value.replace(/\s+/g, " "); // Replace multiple spaces with single space
-              const letterOnlyValue = sanitizedValue.replace(/[^A-Za-z\s]/g, ""); // Remove non-letters
-              formik.setFieldValue(fieldConfig.name, letterOnlyValue);
+              // const sanitizedValue = value.replace(/\s+/g, " "); // Replace multiple spaces with single space
+              // const letterOnlyValue = sanitizedValue.replace(/[^A-Za-z\s]/g, ""); // Remove non-letters
+              // formik.setFieldValue(fieldConfig.name, letterOnlyValue);
+              // Allow letters, spaces, dots, apostrophes, and hyphens
+const sanitizedValue = value.replace(/\s+/g, " ");
+const letterOnlyValue = sanitizedValue.replace(/[^A-Za-z .'-]/g, "");
+formik.setFieldValue(fieldConfig.name, letterOnlyValue);
             }
             // Check if field is a company-related name field
             else if (["company_name", "companyName", "org_name", "organization_name"].includes(fieldConfig.name)) {

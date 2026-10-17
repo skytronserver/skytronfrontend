@@ -1,5 +1,5 @@
 import * as Yup from "yup";
-const FILE_SIZE = 512 * 1024; // 512 KB
+const FILE_SIZE = 2 * 1024 * 1024; // 2 MB
 const SUPPORTED_FORMATS = [
   "image/jpg",
   "image/jpeg",

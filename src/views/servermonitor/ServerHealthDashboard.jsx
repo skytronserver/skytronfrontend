@@ -40,28 +40,28 @@ const ServerHealthDashboard = () => {
   const [error, setError] = useState("");
 
   const fetchServerHealth = useCallback(async () => {
-  try {
-    setRefreshing(true);
-    setError("");
+    try {
+      setRefreshing(true);
+      setError("");
 
-    const response =
-      await ServerHealthService.getServerHealthSummary();
+      const response =
+        await ServerHealthService.getServerHealthSummary();
 
-    setHealthData(response.data);
-  } catch (err) {
-    console.error("Server health API error:", err);
+      setHealthData(response.data);
+    } catch (err) {
+      console.error("Server health API error:", err);
 
-    setError(
-      err?.response?.data?.detail ||
-      err?.response?.data?.message ||
-      err?.message ||
-      "Unable to fetch server health."
-    );
-  } finally {
-    setLoading(false);
-    setRefreshing(false);
-  }
-}, []);
+      setError(
+        err?.response?.data?.detail ||
+        err?.response?.data?.message ||
+        err?.message ||
+        "Unable to fetch server health."
+      );
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchServerHealth();
@@ -92,10 +92,23 @@ const ServerHealthDashboard = () => {
     return number.toLocaleString();
   };
 
-  const formatUptime = (seconds) => {
-    if (!seconds) return "-";
+  const formatUptime = (uptime) => {
+    if (uptime === null || uptime === undefined || uptime === '') {
+      return 'N/A';
+    }
 
-    const totalSeconds = Number(seconds);
+    // Supports values such as "108078 seconds" and numeric seconds.
+    const match = String(uptime).trim().match(/^(\d+(?:\.\d+)?)\s*(?:seconds?|secs?|s)?$/i);
+
+    if (!match) {
+      return 'N/A';
+    }
+
+    const totalSeconds = Math.floor(Number(match[1]));
+
+    if (!Number.isFinite(totalSeconds) || totalSeconds < 0) {
+      return 'N/A';
+    }
 
     const days = Math.floor(totalSeconds / 86400);
     const hours = Math.floor((totalSeconds % 86400) / 3600);
@@ -716,7 +729,7 @@ const ServerHealthDashboard = () => {
                       label={`Keys ${healthData.mqtt.collected_keys}/${healthData.mqtt.expected_keys}`}
                       color={
                         healthData.mqtt.collected_keys ===
-                        healthData.mqtt.expected_keys
+                          healthData.mqtt.expected_keys
                           ? "success"
                           : "warning"
                       }

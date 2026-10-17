@@ -1,5 +1,16 @@
 import MUIDataTable from "mui-datatables";
 import Typography from '@mui/material/Typography';
+const documentLabels = {
+  file_authLetter: 'Authorization Letter',
+  file_idProof: 'ID Proof',
+  file_gstCertificate: 'GST Certificate',
+  file_companyRegistrationCertificate: 'Company Registration Certificate',
+  file_companyPanCard: 'Self-Certified Company PAN Card'
+};
+
+const getDocumentLabel = (label, name) => {
+  return documentLabels[name] || documentLabels[label] || label;
+};
 const Datatable = ({ columns, rows, tableTitle, options: userOptions, helperText }) => {
   const defaultOptions = {
     selectableRows: "none",
@@ -60,28 +71,47 @@ const Datatable = ({ columns, rows, tableTitle, options: userOptions, helperText
     return rows.some((r) => typeof r?.timestamp === 'string' && /Z\s*$/.test(r.timestamp));
   })();
 
+  // const normalizedColumns = Array.isArray(columns)
+  //   ? columns.map((col) => {
+  //       if (!shouldShowGmtNote) {
+  //         return col;
+  //       }
+  //       if (col?.name !== 'timestamp') {
+  //         return col;
+  //       }
+  //       const label = col?.label;
+  //       if (typeof label !== 'string') {
+  //         return col;
+  //       }
+  //       if (label.includes('(GMT/UTC)')) {
+  //         return col;
+  //       }
+  //       return {
+  //         ...col,
+  //         label: `${label} (GMT/UTC)`
+  //       };
+  //     })
+  //   : columns;
   const normalizedColumns = Array.isArray(columns)
-    ? columns.map((col) => {
-        if (!shouldShowGmtNote) {
-          return col;
+  ? columns.map((col) => {
+      let updatedCol = { ...col };
+
+      // Normalize document labels centrally.
+      updatedCol.label = getDocumentLabel(col?.label, col?.name);
+
+      // Preserve the existing GMT/UTC label handling.
+      if (shouldShowGmtNote && col?.name === 'timestamp') {
+        if (
+          typeof updatedCol.label === 'string' &&
+          !updatedCol.label.includes('(GMT/UTC)')
+        ) {
+          updatedCol.label = `${updatedCol.label} (GMT/UTC)`;
         }
-        if (col?.name !== 'timestamp') {
-          return col;
-        }
-        const label = col?.label;
-        if (typeof label !== 'string') {
-          return col;
-        }
-        if (label.includes('(GMT/UTC)')) {
-          return col;
-        }
-        return {
-          ...col,
-          label: `${label} (GMT/UTC)`
-        };
-      })
-    : columns;
-  
+      }
+
+      return updatedCol;
+    })
+  : columns;
   return (
     <div className="datatable" style={{ touchAction: 'manipulation' }}>
       {shouldShowGmtNote && (

@@ -112,7 +112,7 @@ const NoticeForm = () => {
               if (value.size > FILE_SIZE) {
                 return this.createError({
                   path: field,
-                  message: `Max file size is 520KB`,
+                  message: `Max file size is 2 MB`,
                 });
               } else if (!SUPPORTED_FORMATS.includes(value.type)) {
                 return this.createError({

@@ -23,7 +23,7 @@ export const sendCommandFields = {
             { value: "SETHBT", label: "Set Harshbreak" },
             { value: "SETHAT", label: "Set Harsh Acceleration" },
             { value: "SETRTT", label: "Set Harsh turning" },
-            { value: "SETOTT", label: "Set Over Spped Treshold" },
+            { value: "SETOTT", label: "Set Over Speed Treshold" },
             { value: "SETURION", label: "Set Data update rate in ignintion ON" },
             { value: "SETURIOFF", label: "Set Data update rate in ignintion OFF" },
             { value: "SETEMCR", label: "Set Emergency Cutoff rate" },

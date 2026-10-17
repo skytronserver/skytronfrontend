@@ -3,7 +3,7 @@ import { goldNameValidation, goldMobileValidation, goldEmailValidation, goldDobV
 
 export let stateList=[];
 let districtList=[];
-const FILE_SIZE = 512 * 1024 ; // 512 KB
+const FILE_SIZE = 2 * 1024 * 1024; // 2 MB
 const SUPPORTED_FORMATS = ["image/jpg", "image/jpeg", "image/png", "application/pdf"];
 const currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() + 2);

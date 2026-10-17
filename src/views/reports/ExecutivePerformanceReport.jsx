@@ -8,7 +8,11 @@ import {
   Box,
   Card,
   CardContent,
-  Collapse
+  Collapse,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { FilterList, Clear, ExpandMore, ExpandLess } from "@mui/icons-material";
@@ -53,7 +57,7 @@ const ExecutivePerformanceReport = () => {
     try {
       const filters = { start_date: startDate, end_date: endDate };
       if (userType) filters.user_type = userType;
-      
+
       const data = await fetchPerformanceReport(filters);
       setReportData(data);
     } catch (err) {
@@ -129,19 +133,32 @@ const ExecutivePerformanceReport = () => {
                       />
                     </Grid>
                     <Grid item xs={12} md={3}>
-                      <TextField
-                        select
-                        label="User Type"
-                        value={userType}
-                        onChange={(e) => setUserType(e.target.value)}
-                        fullWidth
-                        size="small"
-                        SelectProps={{ native: true }}
-                      >
-                        <option value="">All Roles</option>
-                        <option value="desk_ex">Executive (desk_ex)</option>
-                        <option value="teamlead">Team Lead (teamlead)</option>
-                      </TextField>
+                      <FormControl fullWidth size="small">
+                        <InputLabel id="user-type-label" shrink>
+                          User Type
+                        </InputLabel>
+
+                        <Select
+                          labelId="user-type-label"
+                          id="user-type"
+                          value={userType}
+                          label="User Type"
+                          onChange={(e) => setUserType(e.target.value)}
+                          displayEmpty
+                        >
+                          <MenuItem value="">
+                            All Roles
+                          </MenuItem>
+
+                          <MenuItem value="desk_ex">
+                            Executive (desk_ex)
+                          </MenuItem>
+
+                          <MenuItem value="teamlead">
+                            Team Lead (teamlead)
+                          </MenuItem>
+                        </Select>
+                      </FormControl>
                     </Grid>
 
                     <Grid item xs={12} md={12}>

@@ -89,16 +89,41 @@ const RoleManagement = () => {
 
   // ── Validation ───────────────────────────────────────────────────────────────
   const validate = () => {
-    const errs = {};
-    if (!isEdit) {
-      if (!form.code.trim()) errs.code = 'Role code is required.';
-      else if (!/^[a-z0-9_]{1,20}$/.test(form.code))
-        errs.code = 'Lowercase letters, numbers, underscores only. Max 20 chars.';
+  const errs = {};
+  const normalizedName = form.display_name.trim().toLowerCase();
+
+  if (!isEdit) {
+    const normalizedCode = form.code.trim();
+
+    if (!normalizedCode) {
+      errs.code = 'Role code is required.';
+    } else if (!/^[a-z][a-z0-9_]{0,19}$/.test(normalizedCode)) {
+      errs.code =
+        'Code must start with a lowercase letter and contain only lowercase letters, numbers, or underscores (max 20 characters).';
+    } else if (
+      roles.some(
+        (role) => role.code.toLowerCase() === normalizedCode.toLowerCase()
+      )
+    ) {
+      errs.code = 'This role code already exists.';
     }
-    if (!form.display_name.trim()) errs.display_name = 'Display name is required.';
-    setFormErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
+  }
+
+  if (!normalizedName) {
+    errs.display_name = 'Display name is required.';
+  } else if (
+    roles.some(
+      (role) =>
+        role.display_name.trim().toLowerCase() === normalizedName &&
+        role.code !== form.code
+    )
+  ) {
+    errs.display_name = 'A role with this display name already exists.';
+  }
+
+  setFormErrors(errs);
+  return Object.keys(errs).length === 0;
+};
 
   // ── Submit ───────────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {

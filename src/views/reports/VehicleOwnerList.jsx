@@ -262,20 +262,39 @@ const VehicleOwnerList = () => {
           const userName = (Array.isArray(usersData) && usersData[0]?.name) || 'Unknown';
           const currentExpiry = rowObj.expirydate ?? (expiryColIndex !== -1 ? tableMeta.rowData[expiryColIndex] : tableMeta.rowData[8]);
 
+          // Read the owner's actual user status
+          const ownerStatus = String(
+            (Array.isArray(usersData) && usersData[0]?.status) || ''
+          ).trim().toLowerCase();
+
+          const isRetired = ownerStatus === "retired";
+
+          // Retired owners should not have Extend Validity
+          if (isRetired) {
+            return null;
+          }
+
           return (
             <Button
               variant="contained"
               color="primary"
               size="small"
-              onClick={() => handleOpenExtendDialog(ownerId, userName, currentExpiry)}
-              sx={{ minWidth: '130px' }}
+              onClick={() =>
+                handleOpenExtendDialog(
+                  ownerId,
+                  userName,
+                  currentExpiry
+                )
+              }
+              sx={{ minWidth: "130px" }}
             >
               Extend Validity
             </Button>
           );
-        }
-      }
-    }
+        },
+      },
+    },
+
   ];
 
   return (

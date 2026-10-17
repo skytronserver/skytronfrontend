@@ -3,7 +3,7 @@
 import * as Yup from 'yup';
 import { goldNameValidation, goldMobileValidation, goldEmailValidation, goldDobValidation, goldPinValidation } from './validationHelpers';
 
-const FILE_SIZE = 512 * 1024; // 512 KB
+const FILE_SIZE = 2 * 1024 * 1024; // 2 MB
 const SUPPORTED_FORMATS = ['image/jpg', 'image/jpeg', 'image/png', 'application/pdf'];
 
 export const customUserInitialValues = {
@@ -86,7 +86,7 @@ export const customUserFields = {
     label: 'ID Card (PDF/Image)',
     validation: Yup.mixed()
       .nullable()
-      .test('fileSize', 'File must be less than 520 KB', (v) => !v || v.size <= FILE_SIZE)
+      .test('fileSize', 'File must be less than 2 Mb', (v) => !v || v.size <= FILE_SIZE)
       .test('fileFormat', 'Only PDF, JPG, PNG allowed', (v) => !v || SUPPORTED_FORMATS.includes(v.type)),
   },
   file_authorisation_letter: {
@@ -95,7 +95,7 @@ export const customUserFields = {
     label: 'Authorisation Letter (PDF/Image)',
     validation: Yup.mixed()
       .nullable()
-      .test('fileSize', 'File must be less than 520 KB', (v) => !v || v.size <= FILE_SIZE)
+      .test('fileSize', 'File must be less than 2 MB', (v) => !v || v.size <= FILE_SIZE)
       .test('fileFormat', 'Only PDF, JPG, PNG allowed', (v) => !v || SUPPORTED_FORMATS.includes(v.type)),
   },
 };

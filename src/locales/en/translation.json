@@ -596,7 +596,7 @@
     "newPassword": "New Password",
     "confirmNewPassword": "Confirm New Password",
     "passwordsDoNotMatch": "Passwords do not match",
-    "passwordRequirements": "Password must be more than 8 characters long,must contain at least one uppercase, lowercase, numeric, and special character.",
+    "passwordRequirements": "Password must be 8 to 25 characters long,must contain at least one uppercase, lowercase, numeric, and special character.",
     "failedPasswordReset": "Failed to reset password",
     "failedPasswordResetEmpty": "Failed to reset password or password field is empty",
     "skytronPasswordSet": "Skytron Password Set",
@@ -618,7 +618,7 @@
     "mobileRequired": "Mobile number is required",
     "passwordRequired": "Password is required",
     "required": "Required Field",
-    "fileTooLarge": "File too large. Max size is 520KB",
+    "fileTooLarge": "File too large. Max size is 2 MB",
     "unsupportedFormat": "Unsupported Format"
   },
   "stateAdmin": {
@@ -637,8 +637,8 @@
       "lon": "Longitude"
     },
     "messages": {
-      "file_idProof": "Only JPG, PDF, PNG files are allowed and must be below 520KB.",
-      "file_authorisation_letter": "Only JPG, PDF, PNG files are allowed and must be below 520KB."
+      "file_idProof": "Only JPG, PDF, PNG files are allowed and must be below 2 MB.",
+      "file_authorisation_letter": "Only JPG, PDF, PNG files are allowed and must be below 2 MB."
     },
     "validation": {
       "nameRequired": "Name is required",
@@ -652,8 +652,8 @@
       "idProofRequired": "ID Proof Number is required",
       "idProofMinLength": "ID Proof Number must be at least 5 characters long",
       "fileRequired": "File is required",
-      "fileSize": "Max size is 520KB and supported files are pdf/png/jpg",
-      "fileFormat": "Max size is 520KB and supported files are pdf/png/jpg"
+      "fileSize": "Max size is 2 MB and supported files are pdf/png/jpg",
+      "fileFormat": "Max size is 2 MB and supported files are pdf/png/jpg"
     },
     "listTitle": "State Admin"
   },
@@ -701,9 +701,9 @@
         "auth_letter_required": "Authorization Letter is required",
         "company_reg_required": "Company Registration Certificate is required",
         "gst_certificate_required": "GST Certificate is required",
-        "file_restrictions": "Only JPG, PDF, PNG files are allowed and must be below 520KB",
-        "file_size": "Max size is 520KB and supported files are pdf/png/jpg",
-        "file_format": "Max size is 520KB and supported files are pdf/png/jpg"
+        "file_restrictions": "Only JPG, PDF, PNG files are allowed and must be below 2 MB",
+        "file_size": "Max size is 2 MB and supported files are pdf/png/jpg",
+        "file_format": "Max size is 2 MB and supported files are pdf/png/jpg"
       }
     },
     "listTitle": "Manufacturer"
@@ -748,9 +748,9 @@
         "auth_letter_required": "Authorization letter is required",
         "company_reg_required": "Company registration certificate is required",
         "gst_certificate_required": "GST certificate is required",
-        "file_restrictions": "Only JPG, PDF, PNG files are allowed and must be less than 520KB",
-        "file_size": "Maximum size 520KB and supported files pdf/png/jpg",
-        "file_format": "Maximum size 520KB and supported files pdf/png/jpg"
+        "file_restrictions": "Only JPG, PDF, PNG files are allowed and must be less than 2 MB",
+        "file_size": "Maximum size 2 MB and supported files pdf/png/jpg",
+        "file_format": "Maximum size 2 MB and supported files pdf/png/jpg"
       }
     }
   },
@@ -793,9 +793,9 @@
         "auth_letter_required": "Authorization Letter is required",
         "company_reg_required": "Company Registration Certificate is required",
         "gst_certificate_required": "GST Certificate is required",
-        "file_restrictions": "Only JPG, PDF, PNG files are allowed and must be below 520KB",
-        "file_size": "Max size is 520KB and supported files are pdf/png/jpg",
-        "file_format": "Max size is 520KB and supported files are pdf/png/jpg"
+        "file_restrictions": "Only JPG, PDF, PNG files are allowed and must be below 2 MB",
+        "file_size": "Max size is 2 MB and supported files are pdf/png/jpg",
+        "file_format": "Max size is 2 MB and supported files are pdf/png/jpg"
       }
     }
   },
@@ -953,7 +953,7 @@
       "expiryDateRequired": "Expiry date is required",
       "dtoRtoRequired": "DTO/RTO selection is required",
       "fileRequired": "File is required",
-      "fileSize": "File size must be less than 520KB",
+      "fileSize": "File size must be less than 2 MB",
       "fileFormat": "Unsupported file format"
     },
     "options": {
@@ -961,7 +961,7 @@
       "rto": "RTO"
     },
     "messages": {
-      "fileRestrictions": "Supported formats: JPG, JPEG, PNG, PDF. Max size: 520KB"
+      "fileRestrictions": "Supported formats: JPG, JPEG, PNG, PDF. Max size: 2 MB"
     }
   },
   "bulkUploadForm": {
@@ -1035,11 +1035,11 @@
       "companyRegistrationCertificateRequired": "Company/Shop Registration/Establishment Certificate is required",
       "gstCertificateRequired": "GST Certificate is required",
       "userIdProofRequired": "User ID Proof is required",
-      "fileSize": "Max size is 520KB and supported files are pdf/png/jpg",
-      "fileFormat": "Max size is 520KB and supported files are pdf/png/jpg"
+      "fileSize": "Max size is 2 MB and supported files are pdf/png/jpg",
+      "fileFormat": "Max size is 2 MB and supported files are pdf/png/jpg"
     },
     "messages": {
-      "fileRestrictions": "Only JPG, PDF, PNG files are allowed and must be below 520KB."
+      "fileRestrictions": "Only JPG, PDF, PNG files are allowed and must be below 2 MB."
     }
   },
   "tagDeviceForm": {
@@ -1100,7 +1100,7 @@
       "sosAlertReceived": "SOS alert received",
       "sosButtonPressed": "SOS button pressed successfully",
       "sosButtonProceed": "SOS button pressed! Proceeding to next step...",
-      "fileRestrictions": "Only JPG, PDF, PNG files are allowed and must be less than 520KB."
+      "fileRestrictions": "Only JPG, PDF, PNG files are allowed and must be less than 2 MB."
     }
   },
   "vehicleOwnerForm": {
@@ -1114,7 +1114,7 @@
       "expiryDate": "Expiry Date",
       "idProofNo": "ID Proof Number (Voter ID, Passport, Driving License, AADHAR)",
       "idProof": "Upload ID Proof (Voter ID, Passport, Driving License, AADHAR)",
-      "fileMessage": "Only JPG, PNG, PDF files are allowed and size should be less than 520KB"
+      "fileMessage": "Only JPG, PNG, PDF files are allowed and size should be less than 2 MB"
     },
     "validation": {
       "nameRequired": "Name is required",
@@ -1128,7 +1128,7 @@
       "idProofNoRequired": "ID proof number is required",
       "idProofNoLength": "ID proof number must be at least 5 characters",
       "idProofRequired": "ID proof document is required",
-      "fileSize": "File size must be less than 520KB",
+      "fileSize": "File size must be less than 2 MB",
       "fileFormat": "Only JPG, PNG, PDF files are allowed"
     }
   },
@@ -1144,7 +1144,7 @@
       "idProof": "Upload ID Proof",
       "authLetter": "Upload Authorization Letter",
       "userType": "User Type",
-      "fileMessage": "Only JPG, PDF, PNG files are allowed and must be below 520KB"
+      "fileMessage": "Only JPG, PDF, PNG files are allowed and must be below 2 MB"
     },
     "validation": {
       "nameRequired": "Name is required",
@@ -1159,7 +1159,7 @@
       "idProofRequired": "ID proof document is required",
       "authLetterRequired": "Authorization letter is required",
       "userTypeRequired": "User type is required",
-      "fileSize": "File too large. Maximum size is 520KB",
+      "fileSize": "File too large. Maximum size is 2 MB",
       "fileFormat": "Unsupported format. Only JPG, PDF and PNG files are allowed"
     },
     "options": {
@@ -1224,8 +1224,8 @@
     "file": {
       "label": "Select File",
       "required": "File is required",
-      "message": "Only JPG, PDF, PNG files are allowed and must be under 520KB",
-      "sizeError": "File is too large. Maximum size is 520KB",
+      "message": "Only JPG, PDF, PNG files are allowed and must be under 2 MB",
+      "sizeError": "File is too large. Maximum size is 2 MB",
       "formatError": "Unsupported file format"
     },
     "newTitle": "New Notice",

@@ -36,20 +36,40 @@ const ActivationLogReport = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const parseGpsData = (responseData) => {
-    try {
-      const dataString = responseData?.data;
-      if (!dataString) return [];
-      const parsedData = JSON.parse(dataString);
-      return parsedData.map((item) => ({
+  try {
+    const dataString = responseData?.data;
+    if (!dataString) return [];
+
+    const parsedData =
+      typeof dataString === 'string'
+        ? JSON.parse(dataString)
+        : dataString;
+
+    if (!Array.isArray(parsedData)) return [];
+
+    return parsedData
+      .filter((item) => {
+        const rawData = item?.fields?.raw_data || '';
+
+        // Only accept packets that START with ACTVR.
+        const packetType = rawData
+          .split(',')[0]
+          .trim()
+          .replace(/^\$/, '')
+          .toUpperCase();
+
+        return packetType === 'ACTVR';
+      })
+      .map((item) => ({
         id: `GPS-${item.pk}`,
-        timestamp: item.fields.timestamp,
-        rawData: item.fields.raw_data,
+        timestamp: item.fields?.timestamp,
+        rawData: item.fields?.raw_data,
       }));
-    } catch (error) {
-      console.error('Error parsing GPS activation data:', error);
-      return [];
-    }
-  };
+  } catch (error) {
+    console.error('Error parsing GPS activation data:', error);
+    return [];
+  }
+};
 
   const getActivationLogs = async (search = '') => {
     // If no search query is provided, default to 'ACTV'
@@ -58,7 +78,7 @@ const ActivationLogReport = () => {
     try {
       setLoading(true);
 
-      const gpsResponse = await HomePageService.getGpsDataLog({ search });
+      const gpsResponse = await HomePageService.getGpsDataLog({ search : 'ACTVR' });
       console.log('ActivationLogReport: API raw response:', gpsResponse);
       const gpsPackets = parseGpsData(gpsResponse.data);
       console.log('ActivationLogReport: Parsed GPS packets:', gpsPackets);
