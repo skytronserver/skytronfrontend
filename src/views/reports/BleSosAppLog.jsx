@@ -33,6 +33,41 @@ const BleSosAppLog = () => {
     const [rowsPerPage, setRowsPerPage] = useState(50)
     const [totalCount, setTotalCount] = useState(0)
 
+    const formatDateTime = (value) => {
+        if (!value) return 'N/A';
+        const d = new Date(value);
+        return isNaN(d.getTime()) ? value : d.toLocaleString();
+    };
+
+    const formatBattery = (value) => {
+        if (value === null || value === undefined || value === '') return 'N/A';
+        if (typeof value === 'string' && value.endsWith('%')) return value;
+        return `${value}%`;
+    };
+
+    const formatSignalStrength = (value) => {
+        if (value === null || value === undefined || value === '') return 'N/A';
+        if (typeof value === 'string' && value.toLowerCase().includes('dbm')) return value;
+        return `${value} dBm`;
+    };
+
+    const formatCellIds = (value) => {
+        if (value === null || value === undefined || value === '') return 'N/A';
+        if (Array.isArray(value)) {
+            if (value.length === 0) return 'N/A';
+            return value.map(item => {
+                if (typeof item === 'object' && item !== null) {
+                    return item.cid || item.cell_id || item.id || JSON.stringify(item);
+                }
+                return String(item);
+            }).join(', ');
+        }
+        if (typeof value === 'object') {
+            return value.cid || value.cell_id || value.id || JSON.stringify(value);
+        }
+        return String(value);
+    };
+
     const columns = [
         {
             name: "received_at",
@@ -40,9 +75,7 @@ const BleSosAppLog = () => {
             options: {
                 filter: false,
                 sort: true,
-                customBodyRender: (value) => {
-                    return value ? new Date(value).toLocaleString() : 'N/A';
-                }
+                customBodyRender: formatDateTime,
             },
         },
         {
@@ -51,9 +84,7 @@ const BleSosAppLog = () => {
             options: {
                 filter: false,
                 sort: true,
-                customBodyRender: (value) => {
-                    return value ? new Date(value).toLocaleString() : 'N/A';
-                }
+                customBodyRender: formatDateTime,
             },
         },
         {
@@ -94,12 +125,56 @@ const BleSosAppLog = () => {
         {
             name: "latitude",
             label: "Latitude",
-            options: { filter: false, sort: false },
+            options: {
+                filter: false,
+                sort: false,
+                customBodyRender: (value) => (value !== null && value !== undefined && value !== '') ? value : 'N/A',
+            },
         },
         {
             name: "longitude",
             label: "Longitude",
-            options: { filter: false, sort: false },
+            options: {
+                filter: false,
+                sort: false,
+                customBodyRender: (value) => (value !== null && value !== undefined && value !== '') ? value : 'N/A',
+            },
+        },
+        {
+            name: "phone_battery",
+            label: "Phone Battery",
+            options: {
+                filter: false,
+                sort: false,
+                customBodyRender: formatBattery,
+            },
+        },
+        {
+            name: "signal_strength_dbm",
+            label: "Signal Strength",
+            options: {
+                filter: false,
+                sort: false,
+                customBodyRender: formatSignalStrength,
+            },
+        },
+        {
+            name: "cell_ids",
+            label: "Cell ID",
+            options: {
+                filter: false,
+                sort: false,
+                customBodyRender: formatCellIds,
+            },
+        },
+        {
+            name: "source_ip",
+            label: "Source IP",
+            options: {
+                filter: true,
+                sort: false,
+                customBodyRender: (value) => (value !== null && value !== undefined && value !== '') ? value : 'N/A',
+            },
         },
     ];
 
@@ -122,9 +197,18 @@ const BleSosAppLog = () => {
             
             const response = await HomePageService.getBleSosAppLogs(params);
             
-            if (response?.data?.status === 'success') {
-                setData(response.data.data || []);
-                setTotalCount(response.data.pagination?.total || 0);
+            const payload = response?.data;
+            if (payload?.status === 'success' || Array.isArray(payload?.data) || Array.isArray(payload?.results)) {
+                const rawList = payload?.data || payload?.results || [];
+                const normalized = rawList.map(item => ({
+                    ...item,
+                    phone_battery: item.phone_battery ?? item.battery ?? null,
+                    signal_strength_dbm: item.signal_strength_dbm ?? item.signal_strength ?? null,
+                    cell_ids: item.cell_ids ?? item.cell_id ?? [],
+                    source_ip: item.source_ip ?? item.ip ?? null,
+                }));
+                setData(normalized);
+                setTotalCount(payload?.pagination?.total ?? payload?.count ?? normalized.length);
             } else {
                 setData([]);
                 setTotalCount(0);
@@ -206,6 +290,35 @@ const BleSosAppLog = () => {
         onChangeRowsPerPage: handleChangeRowsPerPage,
         selectableRows: 'none',
         download: true,
+        downloadOptions: {
+            filename: "ble_sos_app_logs.csv",
+            separator: ",",
+        },
+        onDownload: (buildHead, buildBody, columns, data) => {
+            const modifiedData = data.map(row => {
+                const rowData = row.data.map((cell, index) => {
+                    const col = columns[index];
+                    if (col?.name === 'received_at' || col?.name === 'event_time') {
+                        return formatDateTime(cell);
+                    }
+                    if (col?.name === 'cell_ids') {
+                        return formatCellIds(cell);
+                    }
+                    if (col?.name === 'signal_strength_dbm') {
+                        return formatSignalStrength(cell);
+                    }
+                    if (col?.name === 'phone_battery') {
+                        return formatBattery(cell);
+                    }
+                    if (cell === null || cell === undefined) {
+                        return 'N/A';
+                    }
+                    return cell;
+                });
+                return { ...row, data: rowData };
+            });
+            return buildHead(columns) + buildBody(modifiedData);
+        },
         print: true,
         search: false,
         sort: false, // Disabling sorting for now since ordering requires specific parameter
