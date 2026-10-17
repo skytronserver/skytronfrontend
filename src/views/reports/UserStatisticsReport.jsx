@@ -57,15 +57,15 @@ const UserStatisticsReport = () => {
       sortable: true,
       renderCell: (params) => {
         const role = params.row?.role || 'Unknown';
-        const color = role === 'superadmin' ? 'error' : 
-                     role === 'stateadmin' ? 'warning' : 
-                     role === 'dealer' ? 'info' : 
-                     role === 'devicemanufacture' ? 'secondary' :
-                     role === 'owner' ? 'success' :
-                     role === 'sosadmin' ? 'primary' :
-                     role === 'sosexecutive' ? 'primary' :
-                     role === 'dtorto' ? 'warning' :
-                     role === 'esimprovider' ? 'info' : 'default';
+        const color = role === 'superadmin' ? 'error' :
+          role === 'stateadmin' ? 'warning' :
+            role === 'dealer' ? 'info' :
+              role === 'devicemanufacture' ? 'secondary' :
+                role === 'owner' ? 'success' :
+                  role === 'sosadmin' ? 'primary' :
+                    role === 'sosexecutive' ? 'primary' :
+                      role === 'dtorto' ? 'warning' :
+                        role === 'esimprovider' ? 'info' : 'default';
         const displayRole = role === 'esimprovider' ? 'M2M Provider' : role;
         return <Chip label={displayRole} color={color} size="small" />;
       }
@@ -88,20 +88,41 @@ const UserStatisticsReport = () => {
     }
   ];
 
-  const createRoleData = (roleMap, totalBase) => {
-    const safeTotal = totalBase || 0;
-    return Object.entries(roleMap || {}).map(([role, count], index) => ({
-      id: index,
-      role: role,
-      count: count,
-      percentage: safeTotal > 0 ? ((count / safeTotal) * 100).toFixed(1) : '0.0'
-    }));
+
+  const createRoleData = (roleMap = {}, totalBase) => {
+    const entries = Object.entries(roleMap || {}).filter(
+      ([, count]) => Number.isFinite(Number(count)) && Number(count) >= 0
+    );
+
+    // Use the sum of the role counts when no valid total is supplied.
+    const roleTotal = entries.reduce(
+      (sum, [, count]) => sum + Number(count),
+      0
+    );
+
+    const total = Number.isFinite(Number(totalBase)) && Number(totalBase) > 0
+      ? Number(totalBase)
+      : roleTotal;
+
+    return entries.map(([role, count]) => {
+      const numericCount = Number(count);
+
+      return {
+        id: role,
+        role,
+        count: numericCount,
+        percentage: total > 0
+          ? ((numericCount / total) * 100).toFixed(1)
+          : '0.0'
+      };
+    });
   };
+
 
   // Fetch statistics data on component mount
   useEffect(() => {
     fetchUserStatistics();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchUserStatistics = async () => {
@@ -109,7 +130,7 @@ const UserStatisticsReport = () => {
     setError('');
     try {
       const response = await showDeviceApi.getUserStatistics();
-      
+
       if (response.data) {
         // The API returns statistics directly, not a list of users
         const stats = {
@@ -129,19 +150,33 @@ const UserStatisticsReport = () => {
           online_users_by_role: response.data.online_users_by_role || {},
           active_sessions_by_role: response.data.active_sessions_by_role || {}
         };
-        
+
         setUserStats(stats);
-        
-        const roleData = createRoleData(stats.users_by_role, stats.total_registered_users);
-        const loggedInRoleData = createRoleData(stats.logged_in_users_by_role, stats.currently_logged_in_registered_users);
-        const onlineRoleData = createRoleData(stats.online_users_by_role, stats.online_registered_users);
-        const activeSessionRoleData = createRoleData(stats.active_sessions_by_role, stats.currently_logged_in_registered_users);
+
+        const roleData = createRoleData(
+          stats.users_by_role,
+          stats.total_registered_users
+        );
+
+        const loggedInRoleData = createRoleData(
+          stats.logged_in_users_by_role
+        );
+
+        const onlineRoleData = createRoleData(
+          stats.online_users_by_role
+        );
+
+        const activeSessionRoleData = createRoleData(
+          stats.active_sessions_by_role
+        );
 
         setStatisticsData(roleData);
         setLoggedInStatisticsData(loggedInRoleData);
         setOnlineStatisticsData(onlineRoleData);
         setActiveSessionStatisticsData(activeSessionRoleData);
+
         setTotalRows(roleData.length);
+
       } else {
         setError('Failed to fetch user statistics');
         setStatisticsData([]);
@@ -393,7 +428,7 @@ const UserStatisticsReport = () => {
               >
                 Refresh Data
               </Button>
-              
+
               <Tooltip title="Export to CSV">
                 <Button
                   variant="outlined"
