@@ -362,63 +362,107 @@ const processTestPointsForMap = (arg1, arg2, arg3, arg4, arg5) => {
     }
 
     // ─────────────────────────────────────────────
-    // TEST #15: GPS Speed Accuracy Test
+    // TEST #15: GPS Speed Accuracy Test (3-speed segments)
     // ─────────────────────────────────────────────
     const isSpeedTest = tNo === 15 || (testName && /speed/i.test(testName));
     if (isSpeedTest) {
-        if (validCoords.length >= 2) {
-            const startCoord = validCoords[0];
-            const endCoord = validCoords[validCoords.length - 1];
-            const startSpeed = Number(startCoord.speed) || 0;
-            const endSpeed = Number(endCoord.speed) || 0;
+        // Bucket configs: [targetSpeed, minSpeed, maxSpeed, pinColor, segmentColor, label]
+        const speedBuckets = [
+            { target: 20, min: 15, max: 25, pinColor: '#2e7d32', segColor: '#2e7d32', label: '20 km/h' },
+            { target: 40, min: 35, max: 45, pinColor: '#f57f17', segColor: '#f57f17', label: '40 km/h' },
+            { target: 70, min: 65, max: 75, pinColor: '#d32f2f', segColor: '#d32f2f', label: '70 km/h' },
+        ];
 
-            let endLat = endCoord.lat;
-            let endLng = endCoord.lng;
-            if (Math.hypot(endCoord.lat - startCoord.lat, endCoord.lng - startCoord.lng) < 0.00003) {
-                endLat += 0.00008;
-                endLng += 0.00008;
+        const points = [];
+        let anySorted = false;
+
+        speedBuckets.forEach((bucket, bIdx) => {
+            const bucketCoords = validCoords.filter(c => {
+                const spd = Number(c.speed);
+                return spd >= bucket.min && spd <= bucket.max;
+            });
+
+            if (bucketCoords.length === 0) return;
+            anySorted = true;
+
+            const startC = bucketCoords[0];
+            const endC = bucketCoords[bucketCoords.length - 1];
+            let endLat = endC.lat;
+            let endLng = endC.lng;
+            if (bucketCoords.length === 1 || Math.hypot(endC.lat - startC.lat, endC.lng - startC.lng) < 0.00003) {
+                endLat += 0.00007 * (bIdx + 1);
+                endLng += 0.00007 * (bIdx + 1);
             }
 
-            return [
-                {
-                    imei,
-                    markerId: `${imei}_speed_start`,
-                    latitude: startCoord.lat,
-                    longitude: startCoord.lng,
-                    speed: startSpeed,
-                    timestamp: startCoord.timestamp,
-                    last_updated: startCoord.timestamp,
-                    locked: true,
-                    raw_data: startCoord.raw_data,
-                    testNo,
-                    testName,
-                    testFeatureType: 'speed',
-                    pointType: 'start',
-                    pinColor: '#2e7d32',
-                    dotColor: '#ffffff',
-                    label: `Start Point | Speed: ${startSpeed} km/h\n${formatCoordLine(startCoord)}`
-                },
-                {
-                    imei,
-                    markerId: `${imei}_speed_end`,
-                    latitude: endLat,
-                    longitude: endLng,
-                    speed: endSpeed,
-                    timestamp: endCoord.timestamp,
-                    last_updated: endCoord.timestamp,
-                    locked: true,
-                    raw_data: endCoord.raw_data,
-                    testNo,
-                    testName,
-                    testFeatureType: 'speed',
-                    pointType: 'end',
-                    pinColor: '#d32f2f',
-                    dotColor: '#ffffff',
-                    label: `End Point | Speed: ${endSpeed} km/h\n${formatCoordLine(endCoord)}`
-                }
-            ];
-        }
+            // intermediate points for drawing the segment line
+            const intermediate = bucketCoords.slice(1, -1).map((c, i) => ({
+                imei,
+                markerId: `${imei}_spd${bucket.target}_mid_${i}`,
+                latitude: c.lat,
+                longitude: c.lng,
+                speed: Number(c.speed) || 0,
+                timestamp: c.timestamp,
+                last_updated: c.timestamp,
+                locked: true,
+                raw_data: c.raw_data,
+                testNo,
+                testName,
+                testFeatureType: 'speed_segment',
+                speedBucket: bucket.target,
+                segColor: bucket.segColor,
+                pointType: 'intermediate',
+                pinColor: bucket.pinColor,
+                dotColor: '#ffffff',
+                label: null
+            }));
 
+            points.push({
+                imei,
+                markerId: `${imei}_spd${bucket.target}_start`,
+                latitude: startC.lat,
+                longitude: startC.lng,
+                speed: Number(startC.speed) || 0,
+                timestamp: startC.timestamp,
+                last_updated: startC.timestamp,
+                locked: true,
+                raw_data: startC.raw_data,
+                testNo,
+                testName,
+                testFeatureType: 'speed_segment',
+                speedBucket: bucket.target,
+                segColor: bucket.segColor,
+                pointType: 'seg_start',
+                pinColor: bucket.pinColor,
+                dotColor: '#ffffff',
+                label: `${bucket.label} Start\n${formatCoordLine(startC)}`
+            });
+            points.push(...intermediate);
+            points.push({
+                imei,
+                markerId: `${imei}_spd${bucket.target}_end`,
+                latitude: endLat,
+                longitude: endLng,
+                speed: Number(endC.speed) || 0,
+                timestamp: endC.timestamp,
+                last_updated: endC.timestamp,
+                locked: true,
+                raw_data: endC.raw_data,
+                testNo,
+                testName,
+                testFeatureType: 'speed_segment',
+                speedBucket: bucket.target,
+                segColor: bucket.segColor,
+                pointType: 'seg_end',
+                pinColor: bucket.pinColor,
+                dotColor: '#ffffff',
+                label: `${bucket.label} End\n${formatCoordLine(endC)}`
+            });
+        });
+
+        if (points.length > 0) return points;
+
+        // Fallback: no bucketed data yet — show all valid coords with a generic marker
+        if (validCoords.length === 0) return [];
         const single = validCoords[0];
         const speedVal = Number(single.speed) || 0;
         return [{
@@ -804,6 +848,8 @@ const getShortLabel = (pt) => {
     if (pt.pointType === 'recovered') return 'Restored';
     if (pt.pointType === 'primary') return 'Primary';
     if (pt.pointType === 'secondary') return 'Sec';
+    if (pt.pointType === 'seg_start') return `${pt.speedBucket || ''}k S`;
+    if (pt.pointType === 'seg_end') return `${pt.speedBucket || ''}k E`;
     if (pt.markerId && /hist_(\d+)/.test(pt.markerId)) {
         const m = pt.markerId.match(/hist_(\d+)/);
         return `#${Number(m[1]) + 1}`;
@@ -818,7 +864,7 @@ const getShortLabel = (pt) => {
     }
     if (pt.label) {
         const firstLine = pt.label.split('\n')[0];
-        if (firstLine && firstLine.length <= 12) return firstLine;
+        if (firstLine && firstLine.length <= 16) return firstLine;
     }
     return '';
 };
@@ -855,7 +901,23 @@ const MiniLocationMap = ({ points = [], fallbackCoord, lat, lng, testNo, testNam
         const vectorSource = new OlVectorSource();
 
         // 1. Draw Connecting Route Line if multiple points exist
-        if (validPts.length >= 2) {
+        const isSpeedSegTest = validPts.some(p => p.testFeatureType === 'speed_segment');
+        if (isSpeedSegTest) {
+            // Draw one colored line per speed bucket
+            const buckets = [20, 40, 70];
+            buckets.forEach(bTarget => {
+                const bPts = validPts.filter(p => p.speedBucket === bTarget);
+                if (bPts.length >= 2) {
+                    const segColor = bPts[0].segColor || '#1a237e';
+                    const coords = bPts.map(p => fromLonLat([p.longitude, p.latitude]));
+                    const lineFeature = new Feature({ geometry: new LineString(coords) });
+                    lineFeature.setStyle(new OlStyle({
+                        stroke: new OlStroke({ color: segColor, width: 3 })
+                    }));
+                    vectorSource.addFeature(lineFeature);
+                }
+            });
+        } else if (validPts.length >= 2) {
             const coords = validPts.map(p => fromLonLat([p.longitude, p.latitude]));
             const isGeofence = validPts.some(p => p.testFeatureType === 'geofence' || p.pointType === 'entry' || p.pointType === 'exit');
             const lineFeature = new Feature({
@@ -1017,6 +1079,45 @@ const MiniLocationMap = ({ points = [], fallbackCoord, lat, lng, testNo, testNam
                 </Box>
             </Box>
         </Tooltip>
+    );
+};
+
+const SpeedSegmentsLegend = ({ points = [] }) => {
+    const buckets = [
+        { target: 20, min: 15, max: 25, color: '#2e7d32', label: '20 km/h' },
+        { target: 40, min: 35, max: 45, color: '#f57f17', label: '40 km/h' },
+        { target: 70, min: 65, max: 75, color: '#d32f2f', label: '70 km/h' }
+    ];
+
+    return (
+        <Box sx={{ mt: 0.75, width: '100%', maxWidth: 220, textAlign: 'left', bgcolor: '#fafafa', border: '1px solid #e0e0e0', borderRadius: 1, p: 0.75 }}>
+            <Typography variant="caption" sx={{ fontSize: '0.62rem', fontWeight: 700, color: '#37474f', display: 'block', mb: 0.4 }}>
+                📍 Speed Route Points:
+            </Typography>
+            {buckets.map(b => {
+                const bPts = points.filter(p => p.speedBucket === b.target);
+                const startPt = bPts.find(p => p.pointType === 'seg_start');
+                const endPt = bPts.find(p => p.pointType === 'seg_end');
+                const hasData = !!startPt;
+
+                return (
+                    <Box key={b.target} sx={{ mb: 0.5, borderLeft: `3px solid ${b.color}`, pl: 0.75 }}>
+                        <Typography variant="caption" sx={{ fontSize: '0.62rem', fontWeight: 700, color: b.color, display: 'block', lineHeight: 1.2 }}>
+                            {b.label} ({b.min}–{b.max} km/h): {hasData ? '✓' : '—'}
+                        </Typography>
+                        {hasData ? (
+                            <Typography variant="caption" sx={{ fontSize: '0.55rem', color: 'text.secondary', display: 'block', fontFamily: 'monospace', lineHeight: 1.15 }}>
+                                [{startPt.latitude?.toFixed(4)}, {startPt.longitude?.toFixed(4)}] → [{endPt?.latitude?.toFixed(4)}, {endPt?.longitude?.toFixed(4)}]
+                            </Typography>
+                        ) : (
+                            <Typography variant="caption" sx={{ fontSize: '0.55rem', color: 'text.disabled', fontStyle: 'italic', display: 'block' }}>
+                                Waiting packet...
+                            </Typography>
+                        )}
+                    </Box>
+                );
+            })}
+        </Box>
     );
 };
 
@@ -1309,6 +1410,7 @@ const generateMapSnapshot = async (points, width = 640, height = 360) => {
 
 const DeviceLocationMapModal = ({ open, onClose, imei, testNo, testName, rowId, samples, execution, fallbackCoord, onRefreshTestBoard }) => {
     const isGeofenceTest = Number(testNo) === 16 || (testName && /geofence/i.test(testName));
+    const isSpeedTest = Number(testNo) === 15 || (testName && /speed/i.test(testName));
     const [selectedInIdx, setSelectedInIdx] = useState(0);
     const [selectedOutIdx, setSelectedOutIdx] = useState(0);
     const [savingGeofence, setSavingGeofence] = useState(false);
@@ -1392,7 +1494,58 @@ const DeviceLocationMapModal = ({ open, onClose, imei, testNo, testName, rowId, 
                             if (pIdx === selectedInIdx) return { ...p, pointType: 'geofence_in', label: `Geofence IN (#${pIdx + 1})`, pinColor: '#2e7d32' };
                             if (pIdx === selectedOutIdx) return { ...p, pointType: 'geofence_out', label: `Geofence OUT (#${pIdx + 1})`, pinColor: '#c62828' };
                             return p;
-                        }) : points} autoFit={true} height={isGeofenceTest && execution?.status === 'in_progress' ? "520px" : "600px"} />
+                        }) : points} autoFit={true} height={isGeofenceTest && execution?.status === 'in_progress' ? "520px" : isSpeedTest && points.length > 0 ? "460px" : "600px"} />
+                    </Box>
+                )}
+                {isSpeedTest && points.length > 0 && (
+                    <Box sx={{ p: 2, bgcolor: '#f8f9fa', borderTop: '1px solid #e0e0e0' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: '#1a237e' }}>
+                            Speed Segments Route Breakdown:
+                        </Typography>
+                        <Grid container spacing={1.5}>
+                            {[
+                                { target: 20, min: 15, max: 25, color: '#2e7d32', label: '20 km/h' },
+                                { target: 40, min: 35, max: 45, color: '#f57f17', label: '40 km/h' },
+                                { target: 70, min: 65, max: 75, color: '#d32f2f', label: '70 km/h' }
+                            ].map(b => {
+                                const bPts = points.filter(p => p.speedBucket === b.target);
+                                const startPt = bPts.find(p => p.pointType === 'seg_start');
+                                const endPt = bPts.find(p => p.pointType === 'seg_end');
+                                const hasData = !!startPt;
+                                return (
+                                    <Grid item xs={12} sm={4} key={b.target}>
+                                        <Box sx={{ p: 1.25, bgcolor: '#fff', border: `1.5px solid ${b.color}`, borderRadius: 1.5, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                                                <Typography variant="body2" sx={{ fontWeight: 700, color: b.color }}>
+                                                    {b.label} ({b.min}–{b.max} km/h)
+                                                </Typography>
+                                                <Chip
+                                                    label={hasData ? "Recorded" : "Pending"}
+                                                    size="small"
+                                                    sx={{
+                                                        height: 20,
+                                                        fontSize: '0.65rem',
+                                                        bgcolor: hasData ? '#e8f5e9' : '#fff3e0',
+                                                        color: hasData ? '#2e7d32' : '#e65100',
+                                                        fontWeight: 600
+                                                    }}
+                                                />
+                                            </Box>
+                                            {hasData ? (
+                                                <Box sx={{ fontSize: '0.72rem', color: '#424242' }}>
+                                                    <div><b>From:</b> {startPt.latitude?.toFixed(5)}, {startPt.longitude?.toFixed(5)} ({startPt.speed} km/h)</div>
+                                                    <div><b>To:</b> {endPt?.latitude?.toFixed(5)}, {endPt?.longitude?.toFixed(5)} ({endPt?.speed} km/h)</div>
+                                                </Box>
+                                            ) : (
+                                                <Typography variant="caption" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                                                    No packets recorded between {b.min} and {b.max} km/h yet.
+                                                </Typography>
+                                            )}
+                                        </Box>
+                                    </Grid>
+                                );
+                            })}
+                        </Grid>
                     </Box>
                 )}
                 {isGeofenceTest && points.length >= 2 && execution?.status === 'in_progress' && (
@@ -2473,6 +2626,9 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
     const [startingDeviceTestId, setStartingDeviceTestId] = useState(null);
     const [completingExecId, setCompletingExecId] = useState(null);
     const [refreshingExecId, setRefreshingExecId] = useState(null);
+    // Speed polling state for test #15 (GPS Speed Accuracy)
+    const [speedPollingState, setSpeedPollingState] = useState({}); // { [execId]: { polling: 20|40|70|null, done: {20:bool,40:bool,70:bool} } }
+    const speedPollingIntervalsRef = useRef({});
 
     // Collapsible procedures state
     const [expandedProcedures, setExpandedProcedures] = useState({});
@@ -2644,6 +2800,73 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
             setRefreshingExecId(null);
         }
     };
+
+    // Start polling refresh-log every 30s for a specific speed bucket (test #15)
+    const handleStartSpeedPolling = (executionId, targetSpeed) => {
+        // Clear any existing interval for this execution
+        if (speedPollingIntervalsRef.current[executionId]) {
+            clearInterval(speedPollingIntervalsRef.current[executionId]);
+            delete speedPollingIntervalsRef.current[executionId];
+        }
+
+        setSpeedPollingState(prev => ({
+            ...prev,
+            [executionId]: { ...(prev[executionId] || {}), polling: targetSpeed }
+        }));
+
+        const poll = async () => {
+            try {
+                const res = await DeviceModelServices.refreshLogTestBoard({
+                    execution_id: executionId,
+                    target_speed: targetSpeed
+                });
+                fetchTestBoard(false);
+                // Stop polling if this speed segment has data (pass flag or samples present)
+                const snapshot = res?.data?.test_log_snapshot || res?.data?.snapshot || res?.data;
+                let hasData = false;
+                if (snapshot) {
+                    let snObj = snapshot;
+                    if (typeof snObj === 'string') { try { snObj = JSON.parse(snObj); } catch { snObj = null; } }
+                    if (snObj) {
+                        const samples = snObj.samples || snObj.route || [];
+                        const speedBuckets = { 20: [15,25], 40: [35,45], 70: [65,75] };
+                        const [mn, mx] = speedBuckets[targetSpeed] || [0, 999];
+                        hasData = Array.isArray(samples) && samples.some(s => {
+                            const spd = Number(s.speed);
+                            return spd >= mn && spd <= mx;
+                        });
+                        if (!hasData && snObj.pass === true) hasData = true;
+                    }
+                }
+                if (hasData) {
+                    clearInterval(speedPollingIntervalsRef.current[executionId]);
+                    delete speedPollingIntervalsRef.current[executionId];
+                    setSpeedPollingState(prev => ({
+                        ...prev,
+                        [executionId]: {
+                            ...(prev[executionId] || {}),
+                            polling: null,
+                            done: { ...(prev[executionId]?.done || {}), [targetSpeed]: true }
+                        }
+                    }));
+                }
+            } catch (err) {
+                console.error('Speed poll error:', err);
+            }
+        };
+
+        poll(); // immediate first call
+        speedPollingIntervalsRef.current[executionId] = setInterval(poll, 30000);
+    };
+
+    // Cleanup speed polling intervals on drawer close
+    useEffect(() => {
+        if (!open) {
+            Object.values(speedPollingIntervalsRef.current).forEach(clearInterval);
+            speedPollingIntervalsRef.current = {};
+            setSpeedPollingState({});
+        }
+    }, [open]);
 
     const handleCompleteTest = async (executionId, manualData = null) => {
         if (completingExecId) return;
@@ -3662,16 +3885,20 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                             };
 
                                                                             if (testPoints && testPoints.length > 0) {
+                                                                                const isSpeedTestStep = step.serial_no === 15 || (step.name && /speed/i.test(step.name));
                                                                                 return (
-                                                                                    <MiniLocationMap
-                                                                                        points={testPoints}
-                                                                                        fallbackCoord={lockedCoord}
-                                                                                        lat={lockedCoord?.lat}
-                                                                                        lng={lockedCoord?.lng}
-                                                                                        testNo={getDisplaySerialNo(step.serial_no)}
-                                                                                        testName={step.name}
-                                                                                        onClick={handleOpenBigMap}
-                                                                                    />
+                                                                                    <Box sx={{ my: 0.5, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                                                                                        <MiniLocationMap
+                                                                                            points={testPoints}
+                                                                                            fallbackCoord={lockedCoord}
+                                                                                            lat={lockedCoord?.lat}
+                                                                                            lng={lockedCoord?.lng}
+                                                                                            testNo={getDisplaySerialNo(step.serial_no)}
+                                                                                            testName={step.name}
+                                                                                            onClick={handleOpenBigMap}
+                                                                                        />
+                                                                                        {isSpeedTestStep && <SpeedSegmentsLegend points={testPoints} />}
+                                                                                    </Box>
                                                                                 );
                                                                             }
 
@@ -3739,7 +3966,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                                     Ext Vol: {sampleExtVoltage}V
                                                                                                 </Typography>
                                                                                             )}
-                                                                                            {step.serial_no === 15 && sampleSpeed && (
+                                                                                            {(step.serial_no === 15 || (step.name && /speed/i.test(step.name))) && sampleSpeed && (
                                                                                                 <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
                                                                                                     {resolvedSamples.length >= 2
                                                                                                         ? (sIdx === 0 ? `Start Speed: ${sampleSpeed} km/h` : sIdx === resolvedSamples.length - 1 ? `End Speed: ${sampleSpeed} km/h` : `Speed: ${sampleSpeed} km/h`)
@@ -3774,39 +4001,151 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                 );
                                                             })() : execStatus === "in_progress" ? (
                                                                 <>
-                                                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1, gap: 0.5, flexWrap: 'wrap' }}>
-                                                                        <Chip label="In progress" size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#fff9c4', color: '#f57f17', borderRadius: 1 }} />
-                                                                        <Tooltip title="Refresh Log">
-                                                                            <IconButton
-                                                                                size="small"
-                                                                                disabled={refreshingExecId === execution.id}
-                                                                                onClick={() => handleRefreshLog(execution.id)}
-                                                                                sx={{ p: 0.5 }}
-                                                                            >
-                                                                                {refreshingExecId === execution.id ? (
-                                                                                    <CircularProgress size={16} />
-                                                                                ) : (
-                                                                                    <RefreshIcon fontSize="small" color="primary" />
-                                                                                )}
-                                                                            </IconButton>
-                                                                        </Tooltip>
+                                                                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 1, gap: 0.5, flexWrap: "wrap" }}>
+                                                                        <Chip label="In progress" size="small" sx={{ height: 20, fontSize: "0.65rem", bgcolor: "#fff9c4", color: "#f57f17", borderRadius: 1 }} />
+                                                                        {(step.serial_no === 15 || (step.name && /speed/i.test(step.name))) ? (
+                                                                            // GPS Speed Accuracy: Sequential 3 speed buttons (20 -> 40 -> 70 km/h)
+                                                                            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "stretch", gap: 0.5, mt: 0.5, width: "100%" }}>
+                                                                                {(() => {
+                                                                                    const execSpeedState = speedPollingState[execution.id] || {};
+
+                                                                                    const checkSpeedDone = (targetSpeed) => {
+                                                                                        if (execSpeedState.done?.[targetSpeed]) return true;
+                                                                                        let snap = execution?.test_log_snapshot;
+                                                                                        if (typeof snap === "string") {
+                                                                                            try { snap = JSON.parse(snap); } catch { snap = null; }
+                                                                                        }
+                                                                                        if (snap) {
+                                                                                            const samples = snap.samples || snap.route || [];
+                                                                                            const ranges = { 20: [15, 25], 40: [35, 45], 70: [65, 75] };
+                                                                                            const [mn, mx] = ranges[targetSpeed] || [0, 999];
+                                                                                            if (Array.isArray(samples) && samples.some(s => {
+                                                                                                const spd = Number(s.speed);
+                                                                                                return spd >= mn && spd <= mx;
+                                                                                            })) {
+                                                                                                return true;
+                                                                                            }
+                                                                                        }
+                                                                                        return false;
+                                                                                    };
+
+                                                                                    const isDone20 = checkSpeedDone(20);
+                                                                                    const isDone40 = checkSpeedDone(40);
+                                                                                    const isDone70 = checkSpeedDone(70);
+
+                                                                                    const speedConfigs = [
+                                                                                        {
+                                                                                            speed: 20,
+                                                                                            color: "#2e7d32",
+                                                                                            hoverColor: "#1b5e20",
+                                                                                            isDone: isDone20,
+                                                                                            isUnlocked: true,
+                                                                                            lockReason: ""
+                                                                                        },
+                                                                                        {
+                                                                                            speed: 40,
+                                                                                            color: "#f57f17",
+                                                                                            hoverColor: "#e65100",
+                                                                                            isDone: isDone40,
+                                                                                            isUnlocked: isDone20,
+                                                                                            lockReason: "Complete 20 km/h first"
+                                                                                        },
+                                                                                        {
+                                                                                            speed: 70,
+                                                                                            color: "#d32f2f",
+                                                                                            hoverColor: "#b71c1c",
+                                                                                            isDone: isDone70,
+                                                                                            isUnlocked: isDone20 && isDone40,
+                                                                                            lockReason: "Complete 40 km/h first"
+                                                                                        }
+                                                                                    ];
+
+                                                                                    return speedConfigs.map(({ speed, color, hoverColor, isDone, isUnlocked, lockReason }) => {
+                                                                                        const isPolling = execSpeedState.polling === speed;
+                                                                                        const anyPolling = !!execSpeedState.polling;
+                                                                                        const isDisabled = !isUnlocked || isPolling || (anyPolling && !isPolling);
+
+                                                                                        const btn = (
+                                                                                            <Button
+                                                                                                key={speed}
+                                                                                                variant="contained"
+                                                                                                size="small"
+                                                                                                disabled={isDisabled}
+                                                                                                startIcon={isPolling ? <CircularProgress size={10} sx={{ color: "#fff" }} /> : null}
+                                                                                                onClick={() => handleStartSpeedPolling(execution.id, speed)}
+                                                                                                sx={{
+                                                                                                    bgcolor: !isUnlocked ? "#bdbdbd" : isDone ? "#616161" : color,
+                                                                                                    color: "#fff",
+                                                                                                    fontSize: "0.62rem",
+                                                                                                    fontWeight: 700,
+                                                                                                    textTransform: "none",
+                                                                                                    width: "100%",
+                                                                                                    py: "3px",
+                                                                                                    boxShadow: "none",
+                                                                                                    "&:hover": {
+                                                                                                        bgcolor: !isUnlocked ? "#bdbdbd" : isDone ? "#424242" : hoverColor,
+                                                                                                        boxShadow: "none"
+                                                                                                    },
+                                                                                                    "&:disabled": {
+                                                                                                        bgcolor: !isUnlocked ? "#e0e0e0" : color,
+                                                                                                        color: !isUnlocked ? "#9e9e9e" : "#fff",
+                                                                                                        opacity: !isUnlocked ? 0.7 : 0.75
+                                                                                                    }
+                                                                                                }}
+                                                                                            >
+                                                                                                {isPolling
+                                                                                                    ? `Polling ${speed} km/h...`
+                                                                                                    : isDone
+                                                                                                    ? `\u2713 ${speed} km/h Done`
+                                                                                                    : !isUnlocked
+                                                                                                    ? `\uD83D\uDD12 Start (${speed} km/h)`
+                                                                                                    : `Start (${speed} km/h)`}
+                                                                                            </Button>
+                                                                                        );
+
+                                                                                        return !isUnlocked ? (
+                                                                                            <Tooltip key={speed} title={lockReason} arrow placement="top">
+                                                                                                <span>{btn}</span>
+                                                                                            </Tooltip>
+                                                                                        ) : (
+                                                                                            btn
+                                                                                        );
+                                                                                    });
+                                                                                })()}
+                                                                            </Box>
+                                                                        ) : (
+                                                                            <Tooltip title="Refresh Log">
+                                                                                <IconButton
+                                                                                    size="small"
+                                                                                    disabled={refreshingExecId === execution.id}
+                                                                                    onClick={() => handleRefreshLog(execution.id)}
+                                                                                    sx={{ p: 0.5 }}
+                                                                                >
+                                                                                    {refreshingExecId === execution.id ? (
+                                                                                        <CircularProgress size={16} />
+                                                                                    ) : (
+                                                                                        <RefreshIcon fontSize="small" color="primary" />
+                                                                                    )}
+                                                                                </IconButton>
+                                                                            </Tooltip>
+                                                                        )}
                                                                         {step.requires_command && (
                                                                             <Tooltip title="Send MQTT Command">
                                                                                 <Button
                                                                                     variant="contained"
                                                                                     size="small"
-                                                                                    startIcon={<SendIcon sx={{ fontSize: '0.75rem !important' }} />}
+                                                                                    startIcon={<SendIcon sx={{ fontSize: "0.75rem !important" }} />}
                                                                                     sx={{
-                                                                                        bgcolor: '#0288d1',
-                                                                                        color: '#fff',
-                                                                                        fontSize: '0.62rem',
-                                                                                        minWidth: 'auto',
-                                                                                        py: '2px',
+                                                                                        bgcolor: "#0288d1",
+                                                                                        color: "#fff",
+                                                                                        fontSize: "0.62rem",
+                                                                                        minWidth: "auto",
+                                                                                        py: "2px",
                                                                                         px: 0.75,
-                                                                                        textTransform: 'none',
+                                                                                        textTransform: "none",
                                                                                         fontWeight: 600,
-                                                                                        boxShadow: 'none',
-                                                                                        '&:hover': { bgcolor: '#01579b', boxShadow: 'none' }
+                                                                                        boxShadow: "none",
+                                                                                        "&:hover": { bgcolor: "#01579b", boxShadow: "none" }
                                                                                     }}
                                                                                     onClick={() => handleOpenCommandModal(execution, step, imei)}
                                                                                 >
@@ -3869,8 +4208,9 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                         };
 
                                                                         if (testPoints && testPoints.length > 0) {
+                                                                            const isSpeedTestStep = step.serial_no === 15 || (step.name && /speed/i.test(step.name));
                                                                             return (
-                                                                                <Box sx={{ my: 1, display: 'flex', justifyContent: 'center' }}>
+                                                                                <Box sx={{ my: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
                                                                                     <MiniLocationMap
                                                                                         points={testPoints}
                                                                                         fallbackCoord={lockedCoord}
@@ -3880,6 +4220,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                         testName={step.name}
                                                                                         onClick={handleOpenBigMap}
                                                                                     />
+                                                                                    {isSpeedTestStep && <SpeedSegmentsLegend points={testPoints} />}
                                                                                 </Box>
                                                                             );
                                                                         }
