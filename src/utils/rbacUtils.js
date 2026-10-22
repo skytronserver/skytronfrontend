@@ -100,7 +100,9 @@ export const MENU_MODULE_MAP = {
   'approved-cops':               'vltd_approved_cops',
 
   // ── Whitelist & KYC ───────────────────────────────────────────────────────
+  'whitelist-kyc':               'wkyc_requests',
   'whitelist-requests':          'wkyc_requests',
+  'whitelist-request-report':    'wkyc_requests',
   'whitelist-dashboard':         'wkyc_device_dashboard',
 
   // ── POI ───────────────────────────────────────────────────────────────────
@@ -292,6 +294,7 @@ export const ROUTE_MODULE_MAP = {
 
   // Whitelist & KYC
   '/device/whitelist/requests':                                    'wkyc_requests',
+  '/device/whitelist/create-request':                              'wkyc_requests',
   '/device/whitelist/dashboard':                                   'wkyc_device_dashboard',
 
   // POI
