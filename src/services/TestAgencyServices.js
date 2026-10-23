@@ -69,6 +69,12 @@ const getAgencyDeviceModels = () => {
     return http.post('/api/testAgency/device_models/', {});
 };
 
+// Delete Test Agency Details
+const deleteAgencyDetails = (data) => {
+    const http = getAxiosInstance();
+
+    return http.post('/api/testAgency/details/delete/', data);
+};
 const TestAgencyServices = {
     createTestAgency,
     updateTestAgency,
@@ -78,6 +84,7 @@ const TestAgencyServices = {
     createAgencyDetails,
     updateAgencyDetails,
     listAgencyDetails,
+    deleteAgencyDetails,
 };
 
 export default TestAgencyServices;

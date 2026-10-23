@@ -572,16 +572,27 @@ export const deviceCOPModelColumns = [
   { name: "id", label: "ID", options: { filter: false, sort: false, display: false } },
   { name: "cop_no", label: "COP No", options: { filter: true, sort: false } },
   { name: "cop_file", label: "COP File", options: { filter: false, sort: false } },
-  { name: "device_model", label: "Device Model", options: { filter: false, sort: false } },
+  { name: "device_model_name", label: "Device Model", options: { filter: false, sort: false } },
+  // {
+  //   name: "manufacturer_name", label: "Manufacturer Name", options: {
+  //     filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => {
+  //       return (
+  //         <p>{value?.company_name || tableMeta.rowData?.[4] || 'N/A'}</p>
+  //       );
+  //     }, csvExportKey: "company_name"
+  //   }
+  // },
   {
-    name: "manufacturer_details", label: "Manufacturer Name", options: {
-      filter: false, sort: false, customBodyRender: (value, tableMeta, updateValue) => {
-        return (
-          <p>{value?.company_name || tableMeta.rowData?.[4] || 'N/A'}</p>
-        );
-      }, csvExportKey: "company_name"
-    }
-  },
+    name: "manufacturer_name",
+    label: "Manufacturer Name",
+    options: {
+      filter: false,
+      sort: false,
+      customBodyRender: (value) => {
+        return <p>{value || "N/A"}</p>;
+      },
+    },csvExportKey: "manufacturer_name"
+  }
 ];
 export const callListColumn = [
   { name: "call_id", label: "ID", options: { filter: false, sort: false, display: false } },

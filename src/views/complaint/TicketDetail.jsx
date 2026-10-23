@@ -331,13 +331,21 @@ const TicketDetail = () => {
                 <Typography variant="subtitle2" fontWeight={700} mb={1} color="text.secondary">
                   SOLUTION / FINAL REPORT
                 </Typography>
+
                 {ticket.solution ? (
                   <Box mb={1} p={1.5} bgcolor="#f0fdf4" borderRadius={1}>
                     <Typography variant="body2">{ticket.solution}</Typography>
                   </Box>
+                ) : ticket.final_report_file ? (
+                  <Typography variant="body2" color="text.secondary">
+                    Final report submitted.
+                  </Typography>
                 ) : (
-                  <Typography variant="body2" color="text.disabled">No resolution submitted yet.</Typography>
+                  <Typography variant="body2" color="text.disabled">
+                    No resolution submitted yet.
+                  </Typography>
                 )}
+
                 {ticket.final_report_file && (
                   <Button size="small" variant="outlined" href={`${process.env.REACT_APP_BASE_URL}files/${ticket.final_report_file}`} target="_blank" rel="noreferrer" sx={{ mt: 1 }}>
                     Download Final Report
