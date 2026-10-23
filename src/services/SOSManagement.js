@@ -7,6 +7,10 @@ const activateEmTeam = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/EM/activate_EMteam/", data);
 };
+const deactivateEmTeam = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/EM/deactivate_EMteam/", data);
+};
 const removeEmTeam = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/EM/remove_EMteam/", data);
@@ -36,6 +40,7 @@ const getExecutivePerformanceReport = (params) => {
 const SOSManagement = {
   createEmTeam,
   activateEmTeam,
+  deactivateEmTeam,
   removeEmTeam,
   viewEmTeam,
   listEmTeam,

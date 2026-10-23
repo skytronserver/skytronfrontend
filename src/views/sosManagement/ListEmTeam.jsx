@@ -1,9 +1,18 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 // project imports
-import { Grid, Button } from "@mui/material";
+import {
+  Grid,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 import { gridSpacing } from "../../store/constant";
 import SOSManagement from "../../services/SOSManagement";
-import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 //Datatables
@@ -17,66 +26,114 @@ const ListEmTeam = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [load, setLoad] = useState(false);
-  const [del, setDel] = useState(false);
+  const [refresh, setRefresh] = useState(false);
   const [emTeamList, setEmTeamList] = useState([]);
+
+  // Confirm Dialog state
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+  });
+
+  // Snackbar state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success', // 'success' | 'error'
+  });
 
   useEffect(() => {
     const fetchEmTeams = async () => {
       try {
         const response = await SOSManagement.listEmTeam();
-        setEmTeamList(response.data.teams);
+        setEmTeamList(response.data.teams.filter(team => team.status !== 'Removed'));
         setLoad(true);
       } catch (error) {
-        if (error.response && error.response.status === 404) {
-          console.log(t('emTeam.noDataFound'));
-        } else {
-          console.log(t('emTeam.noDataFound'));
-        }
+        console.log(t('emTeam.noDataFound'));
       }
     };
     fetchEmTeams();
-  }, [del, t]);
+  }, [refresh, t]);
 
-  const handleDelete = async (e, id) => {
-    e.preventDefault();
-    const confirmed = window.confirm(
-      t('emTeam.confirmDeleteTeam')
-    );
-    if (confirmed) {
-      try {
-        await SOSManagement.removeEmTeam({ team_id: id });
-        alert(t('emTeam.teamDeleteSuccess'));
-        setDel((prev) => !prev);
-      } catch (error) {
-        alert(t('emTeam.teamDeleteError'));
-      }
-    } else {
-      alert(t('emTeam.teamDeleteCanceled'));
-    }
+  const showSnackbar = (message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
   };
 
-  const handleActivate = async (e, id) => {
+  const openConfirm = (title, message, onConfirm) => {
+    setConfirmDialog({ open: true, title, message, onConfirm });
+  };
+
+  const closeConfirm = () => {
+    setConfirmDialog((prev) => ({ ...prev, open: false, onConfirm: null }));
+  };
+
+  const handleConfirmOk = async () => {
+    const fn = confirmDialog.onConfirm;
+    closeConfirm();
+    if (fn) await fn();
+  };
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
+
+  const handleDelete = (e, id) => {
     e.preventDefault();
-    const confirmed = window.confirm(
-      t('emTeam.confirmActivateTeam')
-    );
-    if (confirmed) {
-      try {
-        await SOSManagement.activateEmTeam({ team_id: id });
-        alert(t('emTeam.teamActivateSuccess'));
-        setDel((prev) => !prev);
-      } catch (error) {
-        alert(t('emTeam.teamActivateError'));
+    openConfirm(
+      'Delete Team',
+      'Are you sure you want to delete this team?',
+      async () => {
+        try {
+          await SOSManagement.removeEmTeam({ team_id: id });
+          showSnackbar(t('emTeam.teamDeleteSuccess') || 'Team deleted successfully.');
+          setRefresh((prev) => !prev);
+        } catch {
+          showSnackbar(t('emTeam.teamDeleteError') || 'Failed to delete team.', 'error');
+        }
       }
-    } else {
-      alert(t('emTeam.teamActivateCanceled'));
-    }
+    );
+  };
+
+  const handleActivate = (e, id) => {
+    e.preventDefault();
+    openConfirm(
+      'Activate Team',
+      'Are you sure you want to activate this team?',
+      async () => {
+        try {
+          await SOSManagement.activateEmTeam({ team_id: id });
+          showSnackbar(t('emTeam.teamActivateSuccess') || 'Team activated successfully.');
+          setRefresh((prev) => !prev);
+        } catch {
+          showSnackbar(t('emTeam.teamActivateError') || 'Failed to activate team.', 'error');
+        }
+      }
+    );
+  };
+
+  const handleDeactivate = (e, id) => {
+    e.preventDefault();
+    openConfirm(
+      'Deactivate Team',
+      'Are you sure you want to deactivate this team?',
+      async () => {
+        try {
+          await SOSManagement.deactivateEmTeam({ team_id: id });
+          showSnackbar('Team deactivated successfully.');
+          setRefresh((prev) => !prev);
+        } catch {
+          showSnackbar('Failed to deactivate team.', 'error');
+        }
+      }
+    );
   };
 
   const handleEdit = (e, id) => {
     e.preventDefault();
     navigate(`/new/em-team/${id}`);
   };
+
+  // ── Action Column ──────────────────────────────────────────────────────────
 
   const actionColumn = [
     {
@@ -85,33 +142,48 @@ const ListEmTeam = () => {
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {
-          // Note: tableMeta.rowData contains raw values from API (timestamps, where present, are in GMT/UTC).
+          // Note: tableMeta.rowData contains raw values from API (timestamps in UTC).
+          const status = tableMeta.rowData[6];
+          const teamId = tableMeta.rowData[0];
           return (
             <div className="cellAction" style={{ display: "flex" }}>
               <Button
                 color="primary"
-                onClick={(e) => handleEdit(e, tableMeta.rowData[0])}
-                title={t('emTeam.editTeam')}
+                onClick={(e) => handleEdit(e, teamId)}
+                title="Edit Team"
               >
                 <EditIcon />
               </Button>
-              {tableMeta.rowData[1]!=='Active' && tableMeta.rowData[1]!=='Removed' && <Button
-                color="primary"
-                onClick={(e) => handleActivate(e, tableMeta.rowData[0])}
-                title={t('emTeam.activateTeam')}
-              >
-                <CheckIcon />
-              </Button>
-              }
-              {tableMeta.rowData[1]!=='Removed' &&
-              <Button
-                color="primary"
-                onClick={(e) => handleDelete(e, tableMeta.rowData[0])}
-                title={t('emTeam.deleteTeam')}
-              >
-                <DeleteIcon />
-              </Button>
-            }
+
+              {status === 'Active' && (
+                <Button
+                  color="warning"
+                  onClick={(e) => handleDeactivate(e, teamId)}
+                  title="Deactivate Team"
+                >
+                  <CheckIcon style={{ color: 'orange' }} />
+                </Button>
+              )}
+
+              {status !== 'Active' && status !== 'Removed' && (
+                <Button
+                  color="primary"
+                  onClick={(e) => handleActivate(e, teamId)}
+                  title="Activate Team"
+                >
+                  <CheckIcon />
+                </Button>
+              )}
+
+              {status !== 'Removed' && (
+                <Button
+                  color="primary"
+                  onClick={(e) => handleDelete(e, teamId)}
+                  title="Delete Team"
+                >
+                  <DeleteIcon />
+                </Button>
+              )}
             </div>
           );
         },
@@ -124,12 +196,50 @@ const ListEmTeam = () => {
       <Grid item xs={12}>
         {load && (
           <DynamicDatatables
-            tableTitle={t('emTeam.emTeams')}
+            tableTitle="EM Teams"
             rows={emTeamList}
             columns={emTeamColumns.concat(actionColumn)}
           />
         )}
       </Grid>
+
+      {/* ── Confirm Dialog ── */}
+      <Dialog
+        open={confirmDialog.open}
+        onClose={closeConfirm}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>{confirmDialog.title}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{confirmDialog.message}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeConfirm} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmOk} variant="contained" color="primary" autoFocus>
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Snackbar ── */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Grid>
   );
 };
