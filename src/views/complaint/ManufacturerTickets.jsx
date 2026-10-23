@@ -16,28 +16,61 @@ import { useNavigate } from "react-router-dom";
 import { gridSpacing } from "../../store/constant";
 import HelpDeskService from "../../services/helpDeskServices";
 import { STATUS_CONFIG, formatDateTime } from "./complaintUtils";
+import { getRoleFromCookie } from "./complaintUtils";
+
+const ROLE_ESCALATION_FILTER = {
+  devicemanufacture: "manufacturer",
+};
 
 const PAGE_SIZE = 20;
 
 const ManufacturerTickets = () => {
   const navigate = useNavigate();
+  const userRole = (getRoleFromCookie() || "").toLowerCase().trim();
+
+  const escalationFilter = ROLE_ESCALATION_FILTER[userRole] || "any";
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: PAGE_SIZE });
   const [search, setSearch] = useState("");
 
-  const fetchTickets = useCallback(async () => {
-    setLoading(true);
-    const params = { page: paginationModel.page + 1, page_size: paginationModel.pageSize };
-    if (search) params.search = search;
+const fetchTickets = useCallback(async () => {
+  setLoading(true);
+
+  try {
+    const params = {
+  page: paginationModel.page + 1,
+  page_size: paginationModel.pageSize,
+  escalated_to: escalationFilter,
+};
+
+    if (escalationFilter) {
+      params.escalated_to = escalationFilter;
+    }
+
+    if (search.trim()) {
+      params.search = search.trim();
+    }
+
     const response = await HelpDeskService.getComplaints(params);
+
     if (response.success) {
       setRows(response.data.results || []);
       setTotal(response.data.total || 0);
+    } else {
+      setRows([]);
+      setTotal(0);
     }
+  } catch (error) {
+    console.error("Failed to fetch escalated tickets:", error);
+    setRows([]);
+    setTotal(0);
+  } finally {
     setLoading(false);
-  }, [paginationModel, search]);
+  }
+}, [paginationModel, search, escalationFilter]);
+
 
   useEffect(() => { fetchTickets(); }, [fetchTickets]);
 
@@ -91,7 +124,7 @@ const ManufacturerTickets = () => {
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
         <MainCard
-          title="Tickets Escalated to Your Company"
+          title="Escalated Tickets"
           secondary={
             <Tooltip title="Refresh">
               <IconButton size="small" onClick={fetchTickets}><RefreshIcon /></IconButton>
@@ -99,7 +132,7 @@ const ManufacturerTickets = () => {
           }
         >
           <Typography variant="body2" color="text.secondary" mb={2}>
-            These are complaint tickets that have been escalated to your manufacturer account for resolution.
+            These are complaint tickets that have been escalated for resolution.
           </Typography>
 
           <Box mb={2} maxWidth={300}>

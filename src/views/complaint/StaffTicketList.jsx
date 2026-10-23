@@ -31,7 +31,8 @@ const PAGE_SIZE = 20;
 const ESCALATED_TO_ME = {
   teamlead: "teamlead",
   stateadmin: "sosadmin",
-  superadmin: "sosadmin",
+  sosadmin: "sosadmin",
+  superadmin: "superadmin",
 };
 
 const TicketTable = ({ title, escalatedToFilter, navigate, detail: detailPath }) => {
@@ -206,23 +207,29 @@ const TicketTable = ({ title, escalatedToFilter, navigate, detail: detailPath })
 
 const StaffTicketList = () => {
   const navigate = useNavigate();
-  const userRole = getRoleFromCookie();
+  const userRole = (getRoleFromCookie() || "").toLowerCase().trim();
+
   const escalatedToMeFilter = ESCALATED_TO_ME[userRole] || null;
+
+  const titleByRole = {
+    teamlead: "Tickets Escalated to Me (Team Lead)",
+    stateadmin: "Tickets Escalated to Me (State Admin)",
+    sosadmin: "Tickets Escalated to Me (SOS Admin)",
+    superadmin: "Tickets Escalated to Me (System Admin)",
+  };
 
   return (
     <Grid container spacing={gridSpacing}>
-      {/* Escalated-to-me queue at top if applicable */}
       {escalatedToMeFilter && (
         <Grid item xs={12}>
           <TicketTable
-            title={`Tickets Escalated to Me (${ESCALATION_CONFIG[escalatedToMeFilter]?.label || escalatedToMeFilter})`}
+            title={titleByRole[userRole]}
             escalatedToFilter={escalatedToMeFilter}
             navigate={navigate}
           />
         </Grid>
       )}
 
-      {/* Full ticket list */}
       <Grid item xs={12}>
         <TicketTable
           title="All Complaint Tickets"

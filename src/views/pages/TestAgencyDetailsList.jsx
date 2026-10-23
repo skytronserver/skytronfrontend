@@ -57,7 +57,7 @@ const TestAgencyDetailsList = () => {
     // Delete confirmation dialog
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deleteRow, setDeleteRow] = useState(null);
-
+    const [deleteLoading, setDeleteLoading] = useState(false);
     const [snackbar, setSnackbar] = useState({
         open: false,
         severity: 'success',
@@ -104,7 +104,8 @@ const TestAgencyDetailsList = () => {
         return rows.filter(r =>
             String(r.name || '').toLowerCase().includes(q) ||
             String(r.address || '').toLowerCase().includes(q) ||
-            String(r.pincode || '').toLowerCase().includes(q)
+            String(r.pincode || '').toLowerCase().includes(q) ||
+            String(r.state_name || "").toLowerCase().includes(q)
         );
     }, [rows, search]);
 
@@ -223,22 +224,53 @@ const TestAgencyDetailsList = () => {
     };
 
     const handleDeleteClose = () => {
+        if (deleteLoading) return;
+
         setDeleteOpen(false);
         setDeleteRow(null);
     };
 
     /*
-     * Delete API is not included in the supplied service.
-     * Add the real delete endpoint and payload here before
-     * enabling server-side deletion.
+     * Delete API
      */
-    const handleDeleteConfirm = () => {
-        setErrorMsg(
-            'Delete API is not configured. Please provide the delete endpoint and required payload.'
-        );
-        setDeleteOpen(false);
-        setDeleteRow(null);
+
+    const handleDeleteConfirm = async () => {
+        if (!deleteRow?.id || deleteLoading) return;
+
+        setDeleteLoading(true);
+
+        try {
+            const res = await TestAgencyServices.deleteAgencyDetails({
+                detail_id: deleteRow.id,
+            });
+
+            // Treat a resolved 2xx response as a successful deletion.
+            showSnackbar(
+                res?.data?.message || 'Test agency details deleted successfully.',
+                'success'
+            );
+
+            setDeleteOpen(false);
+            setDeleteRow(null);
+
+            // Refresh the table after deletion.
+            await loadList();
+        } catch (err) {
+            const responseData = err?.response?.data;
+
+            const message =
+                responseData?.error ||
+                responseData?.message ||
+                (typeof responseData === 'string' ? responseData : '') ||
+                err?.message ||
+                'Failed to delete test agency details.';
+
+            showSnackbar(message, 'error');
+        } finally {
+            setDeleteLoading(false);
+        }
     };
+
 
 
     return (
@@ -293,6 +325,7 @@ const TestAgencyDetailsList = () => {
                                         <TableRow>
                                             <TableCell sx={{ fontWeight: 700 }}>ID</TableCell>
                                             <TableCell sx={{ fontWeight: 700 }}>Agency Name</TableCell>
+                                            <TableCell sx={{ fontWeight: 700 }}>State Name</TableCell>
                                             <TableCell sx={{ fontWeight: 700 }}>Address</TableCell>
                                             <TableCell sx={{ fontWeight: 700 }}>Pincode</TableCell>
                                             <TableCell sx={{ fontWeight: 700 }}>Created At</TableCell>
@@ -308,6 +341,11 @@ const TestAgencyDetailsList = () => {
                                                         <BusinessIcon fontSize="small" color="action" />
                                                         <Typography variant="body2" fontWeight={600}>{row.name}</Typography>
                                                     </Stack>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Typography variant="body2">
+                                                        {row.state_name || "N/A"}
+                                                    </Typography>
                                                 </TableCell>
                                                 <TableCell>
                                                     <Stack direction="row" alignItems="center" spacing={1}>
@@ -453,22 +491,31 @@ const TestAgencyDetailsList = () => {
 
                 <DialogContent>
                     Are you sure you want to delete the details for{' '}
-                    <strong>{deleteRow?.name || 'this agency'}</strong>
-                    {' '}(ID: {deleteRow?.id})?
+                    <strong>{deleteRow?.name || 'this agency'}</strong> ?
                 </DialogContent>
 
                 <DialogActions sx={{ px: 3, pb: 2 }}>
-                    <Button onClick={handleDeleteClose} color="inherit">
+                    <Button
+                        onClick={handleDeleteClose}
+                        color="inherit"
+                        disabled={deleteLoading}
+                    >
                         Cancel
                     </Button>
+
 
                     <Button
                         variant="contained"
                         color="error"
                         onClick={handleDeleteConfirm}
+                        disabled={deleteLoading}
+                        startIcon={
+                            deleteLoading ? <CircularProgress size={16} color="inherit" /> : null
+                        }
                     >
-                        Delete
+                        {deleteLoading ? 'Deleting...' : 'Delete'}
                     </Button>
+
                 </DialogActions>
             </Dialog>
             <Snackbar

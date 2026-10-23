@@ -208,6 +208,12 @@ const StateAdminDeviceModelView = () => {
 
   const deviceDetails = useSelector((state) => state.deviceModel.deviceModel);
 
+const isApproved =
+  String(deviceDetails?.status || "")
+    .replace(/[_\s]/g, "")
+    .toLowerCase() === "stateadminapproved";
+
+    
   return (
     <>
       <AutoHideAlert open={openAlert} onClose={handleCloseAlert} message={message} type={alertType} />
@@ -343,6 +349,7 @@ const StateAdminDeviceModelView = () => {
                   </Grid>
                 </Grid>
                 <br />
+                {!isApproved && (
                 <Typography align="center" sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 2 }}>
                   <Button
                     color="primary"
@@ -365,6 +372,7 @@ const StateAdminDeviceModelView = () => {
                     Reject
                   </Button>
                 </Typography>
+                )}
               </>)}
               <Dialog open={openRejectDialog} onClose={() => setOpenRejectDialog(false)} maxWidth="sm" fullWidth>
                 <DialogTitle>Reject Device Model</DialogTitle>

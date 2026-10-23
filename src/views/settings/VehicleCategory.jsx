@@ -50,12 +50,42 @@ function VehicleCategory({ fieldConfig, initialData }) {
     setAlert((prevAlert) => ({ ...prevAlert, message: message }));
     setOpen(true);
   };
-  const validationSchema = Yup.object(
-    Object.keys(fieldConfig).reduce((acc, field) => {
-      acc[field] = fieldConfig[field].validation;
-      return acc;
-    }, {})
-  );
+  
+const validationSchema = Yup.object(
+  Object.keys(fieldConfig).reduce((acc, field) => {
+    acc[field] = fieldConfig[field].validation;
+    return acc;
+  }, {})
+).test(
+  "warnSpeed-less-than-maxSpeed",
+  "Warning speed must be less than maximum speed",
+  function (values) {
+    const maxSpeed = Number(values?.maxSpeed);
+    const warnSpeed = Number(values?.warnSpeed);
+
+    // Let the individual field validations handle empty or invalid values.
+    if (
+      values?.maxSpeed === "" ||
+      values?.maxSpeed == null ||
+      values?.warnSpeed === "" ||
+      values?.warnSpeed == null ||
+      !Number.isFinite(maxSpeed) ||
+      !Number.isFinite(warnSpeed)
+    ) {
+      return true;
+    }
+
+    if (warnSpeed >= maxSpeed) {
+      return this.createError({
+        path: "warnSpeed",
+        message: "Warning speed must be less than maximum speed",
+      });
+    }
+
+    return true;
+  }
+);
+
   const createVehicleCategory = async (formData) => {
     try {
       const response = await SettingService.create_settings_VehicleCategory(formData);
