@@ -308,6 +308,7 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
       (call) =>
         call.call?.status === 'pending' &&
         call?.status === 'pending' &&
+        call?.escalated !== false && // teamlead: desk_ex already took this call
         !previousCallsRef.current.some((prevCall) => prevCall.id === call.id)
     );
     if (newCall) {

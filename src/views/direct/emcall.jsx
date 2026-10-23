@@ -1223,6 +1223,7 @@ const EMCall = () => {
           (c) =>
             c.call?.status === 'pending' &&
             c?.status === 'pending' &&
+            c?.escalated !== false && // teamlead: desk_ex already took this call
             c.id !== call?.id && // exclude the current active call
             !emCallPreviousCallsRef.current.some((prev) => prev.id === c.id)
         );
