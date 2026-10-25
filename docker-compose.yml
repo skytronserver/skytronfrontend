@@ -1,6 +1,8 @@
 version: '3.3'
 services:
   app:
+    # Fixed image name so NIC_deploy.sh can ship the same image to the second VM
+    image: skytron-frontend:latest
     build:
       context: .
       dockerfile: Dockerfile
