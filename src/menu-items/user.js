@@ -715,6 +715,14 @@ const user = {
           roles: ["superadmin"],
         },
         {
+          id: "airtel-sim-list",
+          title: "Airtel Sim List",
+          type: "item",
+          url: "/airtle-sim-list",
+          breadcrumbs: false,
+          roles: ["superadmin"],
+        },
+        {
           id: "m2m-ip-scan",
           title: "M2M IP Scan",
           type: "item",

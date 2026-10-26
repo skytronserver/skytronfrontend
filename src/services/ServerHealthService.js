@@ -116,6 +116,32 @@ const getDeviceDataHealthFormats = () => {
   );
 };
 
+const getAirtelSmsList = ({
+  page = 1,
+  pageSize = 50,
+  ordering = "-received_at",
+  dateFrom = "",
+  dateTo = "",
+  senderNo = "",
+  receiverNo = "",
+  search = "",
+} = {}) => {
+  const params = {
+    page,
+    page_size: pageSize,
+    ordering,
+  };
+
+  if (dateFrom) params.date_from = dateFrom;
+  if (dateTo) params.date_to = dateTo;
+  if (senderNo.trim()) params.sender_no = senderNo.trim();
+  if (receiverNo.trim()) params.receiver_no = receiverNo.trim();
+  if (search.trim()) params.search = search.trim();
+
+  return getAxiosInstance().get("/api/airtel-sms/list/", {
+    params,
+  });
+};
 // ─── EXPORT ─────────────────────────────────────────────────────────────────
 
 const ServerHealthService = {
@@ -127,6 +153,7 @@ const ServerHealthService = {
   getAlertStatsSummary,
   lookupDeviceDataHealth,
   getDeviceDataHealthFormats,
+  getAirtelSmsList,
 };
 
 export default ServerHealthService;
