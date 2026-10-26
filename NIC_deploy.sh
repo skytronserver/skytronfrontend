@@ -49,19 +49,28 @@ sudo docker-compose build --pull \
 # one. docker-compose 1.x crashes with "KeyError: 'ContainerConfig'" when it
 # tries to recreate a container in place on newer Docker engines — that is
 # why a manual prune + rerun used to be needed.
-sudo docker-compose rm -fsv app
-sudo docker-compose up -d --no-build app
-sudo docker system prune -f
+restart_local() {
+  sudo docker-compose rm -fsv app
+  sudo docker-compose up -d --no-build app
+  sudo docker system prune -f
+  echo "==> Deployed on $(hostname)"
+}
 
-echo "==> Deployed on $(hostname)"
+# Name of the main JS bundle a VM serves; both VMs behind the LB must match,
+# otherwise index.html from one VM points at a bundle the other lacks (blank page)
+bundle_on() {
+  curl -s -m 10 "http://$1:5003/" | grep -oE 'static/js/main\.[a-z0-9]+\.js' || echo "unreachable"
+}
 
-# ---------- Second VM: copy repo + .env and ship the image built above ----------
 if [ -z "$SECONDARY_HOST" ]; then
   echo "==> SECONDARY_HOST empty, skipping second VM"
+  restart_local
   exit 0
 fi
 
-echo "==> Deploying to $SECONDARY_HOST:$SECONDARY_DIR"
+# Ship and load the image on the second VM first, then restart both VMs
+# back-to-back so they serve different builds for seconds, not minutes.
+echo "==> Copying to $SECONDARY_HOST:$SECONDARY_DIR"
 
 # Reuse one SSH connection so the password (if no key is set up) is asked only once
 SSH_CTL="/tmp/nic-deploy-ssh-%r@%h:%p"
@@ -81,10 +90,25 @@ scp "${SSH_OPTS[@]}" "$IMAGE_TAR" "$SECONDARY_HOST:$IMAGE_TAR"
 
 # -t so sudo on the remote side can prompt for a password if needed
 ssh -t "${SSH_OPTS[@]}" "$SECONDARY_HOST" "set -e
-  cd '$SECONDARY_DIR'
   sudo docker load -i '$IMAGE_TAR'
-  rm -f '$IMAGE_TAR'
+  rm -f '$IMAGE_TAR'"
+
+restart_local
+
+ssh -t "${SSH_OPTS[@]}" "$SECONDARY_HOST" "set -e
+  cd '$SECONDARY_DIR'
   sudo docker-compose rm -fsv app
   sudo docker-compose up -d --no-build app
   sudo docker system prune -f
   echo \"==> Deployed on \$(hostname)\""
+
+sleep 3
+PRIMARY_BUNDLE="$(bundle_on 127.0.0.1)"
+SECONDARY_BUNDLE="$(bundle_on "${SECONDARY_HOST#*@}")"
+echo "==> This VM serves:   $PRIMARY_BUNDLE"
+echo "==> ${SECONDARY_HOST#*@} serves: $SECONDARY_BUNDLE"
+if [ "$PRIMARY_BUNDLE" != "$SECONDARY_BUNDLE" ] || [ "$PRIMARY_BUNDLE" = "unreachable" ]; then
+  echo "!!! VMs serve different builds — pages will load blank behind the load balancer" >&2
+  exit 1
+fi
+echo "==> Both VMs serve the same build"
