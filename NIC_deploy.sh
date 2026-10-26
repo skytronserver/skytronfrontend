@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -eo pipefail
 
 # Proxy settings — applied to this script and all child processes
 export http_proxy="http://192.0.2.12:8080"
@@ -9,7 +9,7 @@ export HTTPS_PROXY="http://192.0.2.12:8080"
 export ftp_proxy="http://192.0.2.12:8080"
 export FTP_PROXY="http://192.0.2.12:8080"
 # Internal VMs must not go through the proxy
-export no_proxy="localhost,127.0.0.1,10.192.136.0/24"
+export no_proxy="localhost,127.0.0.1,10.192.136.251,10.192.136.212"
 export NO_PROXY="$no_proxy"
 
 # Second frontend VM behind the load balancer. Set SECONDARY_HOST= to skip it.
@@ -59,7 +59,7 @@ restart_local() {
 # Name of the main JS bundle a VM serves; both VMs behind the LB must match,
 # otherwise index.html from one VM points at a bundle the other lacks (blank page)
 bundle_on() {
-  curl -s -m 10 "http://$1:5003/" | grep -oE 'static/js/main\.[a-z0-9]+\.js' || echo "unreachable"
+  curl -s -m 10 --noproxy '*' "http://$1:5003/" | grep -oE 'static/js/main\.[a-z0-9]+\.js' || echo "unreachable"
 }
 
 if [ -z "$SECONDARY_HOST" ]; then
@@ -79,9 +79,13 @@ trap 'ssh "${SSH_OPTS[@]}" -O exit "$SECONDARY_HOST" 2>/dev/null || true; rm -f 
 
 ssh "${SSH_OPTS[@]}" "$SECONDARY_HOST" "mkdir -p '$SECONDARY_DIR'"
 
-# Copy the working tree, including .env (gitignored, so git pull there would miss it)
-tar -czf - --exclude=./node_modules --exclude=./build --exclude=./.git . \
-  | ssh "${SSH_OPTS[@]}" "$SECONDARY_HOST" "tar -xzf - -C '$SECONDARY_DIR'"
+# Free disk on the second VM first — a full /var/log there breaks sudo and docker
+ssh -t "${SSH_OPTS[@]}" "$SECONDARY_HOST" "$(declare -f cleanup_logs); cleanup_logs"
+
+# Copy the working tree, including .env (gitignored, so git pull there would miss it).
+# sudo: .env is readable by root only.
+sudo tar -czf - --exclude=./node_modules --exclude=./build --exclude=./.git . \
+  | ssh "${SSH_OPTS[@]}" "$SECONDARY_HOST" "tar -xzf - --no-same-owner -C '$SECONDARY_DIR'"
 
 # Ship the exact image just built here instead of rebuilding on the second VM
 sudo docker save "$IMAGE" | gzip > "$IMAGE_TAR"
