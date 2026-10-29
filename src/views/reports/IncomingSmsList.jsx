@@ -72,7 +72,7 @@ const formatDate = (value) => {
   return date.toLocaleString();
 };
 
-const AirtelSms = () => {
+const IncomingSmsList = () => {
   const [filters, setFilters] = useState(initialFilters);
   const [appliedFilters, setAppliedFilters] = useState(initialFilters);
 
@@ -430,4 +430,4 @@ const AirtelSms = () => {
   );
 };
 
-export default AirtelSms;
+export default IncomingSmsList;

@@ -715,10 +715,10 @@ const user = {
           roles: ["superadmin"],
         },
         {
-          id: "airtel-sim-list",
-          title: "Airtel Sim List",
+          id: "incoming-sms-list",
+          title: "Incoming SMS List",
           type: "item",
-          url: "/airtle-sim-list",
+          url: "/incoming-sms-list",
           breadcrumbs: false,
           roles: ["superadmin"],
         },

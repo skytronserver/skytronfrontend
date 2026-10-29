@@ -42,7 +42,7 @@ const SOSReport = Loadable(lazy(() => import("../views/reports/SOSReport")));
 const StateAdminList = Loadable(lazy(() => import("../views/reports/StateAdminList")));
 const DTOUserList = Loadable(lazy(() => import("../views/reports/DTOUserList")));
 const M2MProviderList = Loadable(lazy(() => import("../views/reports/M2MProviderList")));
-const AirtelSimList = Loadable(lazy(() => import("../views/reports/AirtelSms")));
+const IncomingSmsList = Loadable(lazy(() => import("../views/reports/IncomingSmsList")));
 const NoticeList = Loadable(lazy(() => import("../views/reports/NoticeList")));
 const LoginReport = Loadable(lazy(() => import("../views/reports/LoginReport")));
 const CreateEMTeam = Loadable(lazy(() => import("../views/sosManagement/CreateEMTeam")));
@@ -242,8 +242,8 @@ const UserRoutes = {
       roles: ["superadmin"],
     },
     {
-      path: "/airtle-sim-list",
-      element: <AirtelSimList />,
+      path: "/incoming-sms-list",
+      element: <IncomingSmsList />,
       roles: ["superadmin"],
     },
     {
