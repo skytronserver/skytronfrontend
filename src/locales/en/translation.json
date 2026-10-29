@@ -1288,7 +1288,7 @@
     "title": "Emergency Data Logs"
   },
   "apiData": {
-    "title": "Event Data Log",
+    "title": "API Data Log",
     "requestUrl": "Request URL",
     "ipAddress": "IP Address",
     "method": "Method",
@@ -1297,7 +1297,25 @@
     "errorDisplayingData": "Error displaying data",
     "searchLabel": "Search by URL",
     "searchPlaceholder": "Type 'Post' to find POST requests",
-    "searchHelperText": ""
+    "searchHelperText": "",
+    "urlLabel": "URL contains",
+    "urlPlaceholder": "e.g. /api/login",
+    "ipLabel": "IP address contains",
+    "ipPlaceholder": "e.g. 10.0.0",
+    "methodLabel": "Method",
+    "statusLabel": "Status",
+    "statusSuccess": "Success (< 400)",
+    "statusFailed": "Failed (any error)",
+    "status4xx": "Client error (4xx)",
+    "status5xx": "Server error (5xx)",
+    "statusCodeLabel": "Exact error code",
+    "dataLabel": "Request data contains",
+    "dataPlaceholder": "e.g. IMEI or field value",
+    "fromLabel": "From",
+    "toLabel": "To",
+    "any": "Any",
+    "reset": "Reset",
+    "rangeHelperText": "Leave empty for the last 24 hours. Text searches scan the most recent 50,000 records in the range."
   },
   "holiday": {
     "listTitle": "School Holiday List",

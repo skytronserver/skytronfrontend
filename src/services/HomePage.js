@@ -314,20 +314,18 @@ const getDeviceIpByImei = (params = {}) => {
 const getApiDataLog = (params = {}, config = {}) => {
     const http = getAxiosInstance();
 
-    // Build query string to match the exact format
-    let queryString = '?';
+    // Supported filters: q (partial URL), ip, method, status, data (partial request body), from, to
+    const query = new URLSearchParams();
+    ['q', 'ip', 'method', 'status', 'data', 'from', 'to', 'include_payload'].forEach((key) => {
+        const value = params[key];
+        if (value !== undefined && value !== null && String(value).trim() !== '') {
+            query.append(key, String(value).trim());
+        }
+    });
+    query.append('page', params.page || 1);
+    query.append('per_page', params.per_page || 10);
 
-    // Add 'q' parameter if provided (search term)
-    if (params.q) {
-        queryString += `q=${encodeURIComponent(params.q)}&`;
-    }
-
-    // Add required pagination parameters
-    queryString += `page=${params.page || 1}&per_page=${params.per_page || 10}`;
-
-    // Make POST request with the exact URL format
-    console.log(`Sending request to: /api/apiLog/${queryString}`);
-    return http.post(`/api/apiLog/${queryString}`, {}, { ...config });
+    return http.post(`/api/apiLog/?${query.toString()}`, {}, { ...config });
 };
 
 const getIncidentData = (data) => {

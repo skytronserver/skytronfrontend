@@ -4,6 +4,7 @@ import DynamicDatatables from '../../datatables/DynamicDatatables';
 import Grid from "@mui/material/Grid";
 import { gridSpacing } from "../../store/constant";
 import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
 import Button from '@mui/material/Button';
 import SearchIcon from '@mui/icons-material/Search';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -11,11 +12,43 @@ import Chip from '@mui/material/Chip';
 import Box from '@mui/material/Box';
 import { useTranslation } from 'react-i18next';
 
+const EMPTY_FILTERS = {
+    q: '',
+    ip: '',
+    method: '',
+    status: '',
+    statusCode: '',
+    data: '',
+    from: '',
+    to: '',
+};
+
+const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'];
+
+// datetime-local value (browser local time) -> ISO UTC string for the API
+const toIsoUtc = (value) => {
+    if (!value) return '';
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? '' : d.toISOString();
+};
+
+const buildApiFilters = (filters) => ({
+    q: filters.q,
+    ip: filters.ip,
+    method: filters.method,
+    status: filters.status === 'code' ? filters.statusCode : filters.status,
+    data: filters.data,
+    from: toIsoUtc(filters.from),
+    to: toIsoUtc(filters.to),
+});
+
 const ApiDataLog = () => {
     const { t } = useTranslation();
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(true)
-    const [searchQuery, setSearchQuery] = useState("")
+    // filters = what is typed in the form; searchQuery = filters last submitted (used for paging)
+    const [filters, setFilters] = useState(EMPTY_FILTERS)
+    const [searchQuery, setSearchQuery] = useState(EMPTY_FILTERS)
     const [page, setPage] = useState(0)
     const [rowsPerPage, setRowsPerPage] = useState(10)
     const [totalCount, setTotalCount] = useState(0)
@@ -132,7 +165,7 @@ const ApiDataLog = () => {
                 // Most likely structure for a POST response
                 if (Array.isArray(response.data.results)) {
                     results = response.data.results;
-                    count = response.data.count || results.length;
+                    count = response.data.total_results ?? response.data.count ?? results.length;
                 } else if (Array.isArray(response.data)) {
                     results = response.data;
                     count = results.length;
@@ -178,20 +211,16 @@ const ApiDataLog = () => {
     }
 
     // Use useCallback to prevent unnecessary re-renders
-    const fetchData = useCallback(async (pageNum, rowsPerPageNum, searchQuery = "") => {
+    const fetchData = useCallback(async (pageNum, rowsPerPageNum, appliedFilters = EMPTY_FILTERS) => {
         setLoading(true);
         try {
-            // Format parameters exactly as specified
             const params = {
+                ...buildApiFilters(appliedFilters),
+                include_payload: 1, // needed for the Request Data column
                 page: pageNum + 1, // API is 1-based, MUI is 0-based
                 per_page: rowsPerPageNum
             };
-            
-            // Add search query if provided
-            if (searchQuery && searchQuery.trim() !== '') {
-                params.q = searchQuery.trim();
-            }
-            
+
             console.log('Fetching API logs with params:', params);
             
             // Make API call with params in URL
@@ -227,9 +256,21 @@ const ApiDataLog = () => {
     // Handle search form submission
     const handleSearch = (event) => {
         event.preventDefault();
-        console.log('Search query:', searchQuery);
+        setSearchQuery(filters);
         setPage(0); // Reset to first page when searching
-        fetchData(0, rowsPerPage, searchQuery);
+        fetchData(0, rowsPerPage, filters);
+    };
+
+    const handleReset = () => {
+        setFilters(EMPTY_FILTERS);
+        setSearchQuery(EMPTY_FILTERS);
+        setPage(0);
+        fetchData(0, rowsPerPage, EMPTY_FILTERS);
+    };
+
+    const setFilter = (key) => (event) => {
+        const value = event.target.value;
+        setFilters((prev) => ({ ...prev, [key]: value }));
     };
 
     // Handle page change
@@ -312,27 +353,125 @@ const ApiDataLog = () => {
             <Grid item xs={12}>
                 <form onSubmit={handleSearch}>
                     <Grid container spacing={2} alignItems="flex-start">
-                        <Grid item xs={12} sm={8} md={6} lg={4}>
+                        <Grid item xs={12} sm={6} md={4}>
                             <TextField
                                 fullWidth
-                                label={t('apiData.searchLabel')}
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                label={t('apiData.urlLabel')}
+                                value={filters.q}
+                                onChange={setFilter('q')}
                                 variant="outlined"
-                                placeholder={t('apiData.searchPlaceholder')}
-                                helperText={t('apiData.searchHelperText')}
+                                placeholder={t('apiData.urlPlaceholder')}
                             />
                         </Grid>
-                        <Grid item>
-                            <Button
-                                type="submit"
-                                variant="contained"
-                                color="primary"
-                                startIcon={<SearchIcon />}
-                                disabled={loading}
+                        <Grid item xs={12} sm={6} md={4}>
+                            <TextField
+                                fullWidth
+                                label={t('apiData.ipLabel')}
+                                value={filters.ip}
+                                onChange={setFilter('ip')}
+                                variant="outlined"
+                                placeholder={t('apiData.ipPlaceholder')}
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6} md={4}>
+                            <TextField
+                                fullWidth
+                                label={t('apiData.dataLabel')}
+                                value={filters.data}
+                                onChange={setFilter('data')}
+                                variant="outlined"
+                                placeholder={t('apiData.dataPlaceholder')}
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6} md={2}>
+                            <TextField
+                                select
+                                fullWidth
+                                label={t('apiData.methodLabel')}
+                                value={filters.method}
+                                onChange={setFilter('method')}
+                                variant="outlined"
                             >
-                                {t('common.search')}
-                            </Button>
+                                <MenuItem value="">{t('apiData.any')}</MenuItem>
+                                {HTTP_METHODS.map((m) => (
+                                    <MenuItem key={m} value={m}>{m}</MenuItem>
+                                ))}
+                            </TextField>
+                        </Grid>
+                        <Grid item xs={12} sm={6} md={2}>
+                            <TextField
+                                select
+                                fullWidth
+                                label={t('apiData.statusLabel')}
+                                value={filters.status}
+                                onChange={setFilter('status')}
+                                variant="outlined"
+                            >
+                                <MenuItem value="">{t('apiData.any')}</MenuItem>
+                                <MenuItem value="success">{t('apiData.statusSuccess')}</MenuItem>
+                                <MenuItem value="failed">{t('apiData.statusFailed')}</MenuItem>
+                                <MenuItem value="4xx">{t('apiData.status4xx')}</MenuItem>
+                                <MenuItem value="5xx">{t('apiData.status5xx')}</MenuItem>
+                                <MenuItem value="code">{t('apiData.statusCodeLabel')}</MenuItem>
+                            </TextField>
+                        </Grid>
+                        {filters.status === 'code' && (
+                            <Grid item xs={12} sm={6} md={2}>
+                                <TextField
+                                    fullWidth
+                                    type="number"
+                                    label={t('apiData.statusCodeLabel')}
+                                    value={filters.statusCode}
+                                    onChange={setFilter('statusCode')}
+                                    variant="outlined"
+                                    placeholder="404"
+                                    inputProps={{ min: 100, max: 599 }}
+                                />
+                            </Grid>
+                        )}
+                        <Grid item xs={12} sm={6} md={filters.status === 'code' ? 3 : 4}>
+                            <TextField
+                                fullWidth
+                                type="datetime-local"
+                                label={t('apiData.fromLabel')}
+                                value={filters.from}
+                                onChange={setFilter('from')}
+                                InputLabelProps={{ shrink: true }}
+                                inputProps={{ max: filters.to || undefined }}
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6} md={filters.status === 'code' ? 3 : 4}>
+                            <TextField
+                                fullWidth
+                                type="datetime-local"
+                                label={t('apiData.toLabel')}
+                                value={filters.to}
+                                onChange={setFilter('to')}
+                                InputLabelProps={{ shrink: true }}
+                                inputProps={{ min: filters.from || undefined }}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Box display="flex" gap={2} alignItems="center" flexWrap="wrap">
+                                <Button
+                                    type="submit"
+                                    variant="contained"
+                                    color="primary"
+                                    startIcon={<SearchIcon />}
+                                    disabled={loading}
+                                >
+                                    {t('common.search')}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outlined"
+                                    onClick={handleReset}
+                                    disabled={loading}
+                                >
+                                    {t('apiData.reset')}
+                                </Button>
+                                <small style={{ color: '#666' }}>{t('apiData.rangeHelperText')}</small>
+                            </Box>
                         </Grid>
                     </Grid>
                 </form>
