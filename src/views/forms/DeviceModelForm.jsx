@@ -249,6 +249,9 @@ const DeviceModelForm = () => {
       modelPayload.append("vendor_id", values.vendor_id);
       modelPayload.append("hardware_version", values.hardware_version);
       modelPayload.append("tac_doc_path", values.tac_doc_path);
+      modelPayload.append("closed_box_image", values.closed_box_image);
+      modelPayload.append("pcb_top_image", values.pcb_top_image);
+      modelPayload.append("pcb_bottom_image", values.pcb_bottom_image);
       modelPayload.append("whitelisted_ip", values.whitelisted_ip);
       if (values.whitelisted_phone_number) modelPayload.append("whitelisted_phone_number", values.whitelisted_phone_number);
       modelPayload.append("approval", "0");

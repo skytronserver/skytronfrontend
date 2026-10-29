@@ -31,10 +31,73 @@ import MainCard from "../../ui-component/cards/MainCard";
 import { gridSpacing } from "../../store/constant";
 import DeviceModelServices from "../../services/DeviceModelServices";
 import OtpServices from "../../services/OtpServices";
+import SettingService from "../../services/SettingService";
 import { openFile } from "../../helper";
 const docViewStyle = {
   padding: "0px"
 }
+
+const DEVICE_MODEL_IMAGES = [
+  { field: "closed_box_image", label: "Closed Box Device with Harness" },
+  { field: "pcb_top_image", label: "PCB Top with Antenna & Battery Position" },
+  { field: "pcb_bottom_image", label: "PCB Bottom" },
+];
+
+// Thumbnail for an uploaded image. /api/download/ needs the auth header, so
+// the image is fetched as a blob instead of being linked directly.
+const DeviceModelImage = ({ path, label }) => {
+  const [src, setSrc] = useState(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    if (!path) return undefined;
+    let objectUrl;
+    let cancelled = false;
+    const filePath = path.startsWith("/") ? path.substring(1) : path;
+    const ext = filePath.split(".").pop().toLowerCase();
+    SettingService.file_Download({ file_path: filePath })
+      .then((response) => {
+        if (cancelled) return;
+        const type = ext === "png" ? "image/png" : "image/jpeg";
+        objectUrl = URL.createObjectURL(new Blob([response.data], { type }));
+        setSrc(objectUrl);
+      })
+      .catch(() => !cancelled && setFailed(true));
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [path]);
+
+  let content;
+  if (!path) {
+    content = <Typography color="text.secondary">None</Typography>;
+  } else if (failed) {
+    content = <Typography color="error">Unable to load image</Typography>;
+  } else if (!src) {
+    content = <Typography color="text.secondary">Loading...</Typography>;
+  } else {
+    content = (
+      <Tooltip title="Click to open full size" arrow>
+        <img
+          src={src}
+          alt={label}
+          onClick={(e) => openFile(e, path)}
+          style={{ maxWidth: "100%", maxHeight: 220, objectFit: "contain", cursor: "pointer" }}
+        />
+      </Tooltip>
+    );
+  }
+
+  return (
+    <Paper variant="outlined" sx={{ p: 2, height: "100%", textAlign: "center" }}>
+      <Typography variant="subtitle2" sx={{ mb: 1 }}>{label}</Typography>
+      <div style={{ minHeight: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {content}
+      </div>
+    </Paper>
+  );
+};
 const StateAdminDeviceModelView = () => {
   const { t } = useTranslation();
   /* packages helper functionality */
@@ -347,6 +410,14 @@ const isApproved =
                       </Table>
                     </TableContainer>
                   </Grid>
+                </Grid>
+                <Typography variant="h5" sx={{ mt: 3, mb: 1 }}>Device Images</Typography>
+                <Grid container spacing={2}>
+                  {DEVICE_MODEL_IMAGES.map(({ field, label }) => (
+                    <Grid item xs={12} md={4} key={field}>
+                      <DeviceModelImage path={deviceDetails[field]} label={label} />
+                    </Grid>
+                  ))}
                 </Grid>
                 <br />
                 {!isApproved && (

@@ -453,7 +453,8 @@ formik.setFieldValue(fieldConfig.name, letterOnlyValue);
             id={fieldConfig.name}
             name={fieldConfig.name}
             type="file"
-            accept={fieldConfig.name === 'excel_file' ?
+            accept={fieldConfig.accept ? fieldConfig.accept :
+              fieldConfig.name === 'excel_file' ?
               '.xlsx,.xls,.csv' :
               fieldConfig.name === 'file_bin' ?
                 '.bin,.pac' :

@@ -5,6 +5,18 @@ const SUPPORTED_FORMATS = [
   "image/jpeg",
   "application/pdf",
 ];
+const IMAGE_FORMATS = ["image/png", "image/jpeg"];
+const requiredImage = (requiredMsg) =>
+  Yup.mixed()
+    .required(requiredMsg)
+    .test("fileSize", "File size is too large (max 2 MB)", value => {
+      if (!value) return false;
+      return value.size <= FILE_SIZE;
+    })
+    .test("fileFormat", "Unsupported format (must be JPG or PNG)", value => {
+      if (!value) return false;
+      return IMAGE_FORMATS.includes(value.type);
+    });
 export const providerList = []
 export const today = new Date().toISOString().split('T')[0];
 export const deviceModelInitials = {
@@ -16,6 +28,9 @@ export const deviceModelInitials = {
   vendor_id: "",
   hardware_version: "",
   tac_doc_path: null,
+  closed_box_image: null,
+  pcb_top_image: null,
+  pcb_bottom_image: null,
   cop_no: "",
   cop_validity: "",
   cop_file: null,
@@ -97,6 +112,27 @@ export const deviceModelFormField = {
         if (!value) return false;
         return SUPPORTED_FORMATS.includes(value.type);
       }),
+  },
+  closed_box_image: {
+    name: "closed_box_image",
+    type: "file",
+    accept: ".png,.jpg,.jpeg",
+    label: "Closed Box Device with Harness (Image)",
+    validation: requiredImage("Closed box device with harness image is required"),
+  },
+  pcb_top_image: {
+    name: "pcb_top_image",
+    type: "file",
+    accept: ".png,.jpg,.jpeg",
+    label: "PCB Top with Antenna & Battery Position (Image)",
+    validation: requiredImage("PCB top image is required"),
+  },
+  pcb_bottom_image: {
+    name: "pcb_bottom_image",
+    type: "file",
+    accept: ".png,.jpg,.jpeg",
+    label: "PCB Bottom (Image)",
+    validation: requiredImage("PCB bottom image is required"),
   },
   cop_no: {
     name: "cop_no",
