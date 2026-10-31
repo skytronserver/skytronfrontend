@@ -1705,6 +1705,218 @@ const resolveManufacturer = (row) => {
 };
 
 /* ═══════════════════════════════════════════════════
+   TIME-BOUND SCANNING (start → scan until detected / Stop / time limit)
+═══════════════════════════════════════════════════ */
+const SCAN_POLL_MS = 5000;
+
+const parseSnapshot = (execution) => {
+    const snap = execution?.test_log_snapshot;
+    if (!snap) return null;
+    if (typeof snap === "string") {
+        try { return JSON.parse(snap); } catch { return null; }
+    }
+    return snap;
+};
+
+const isSpeedTestCase = (step) =>
+    step?.source_table === "speed_accuracy" || Number(step?.serial_no) === 15;
+
+// An in-progress execution keeps being scanned until its snapshot says the
+// event was detected or the scan ended; the speed test only while one of its
+// speed segments is running.
+const needsScan = (execution, step) => {
+    if (execution?.status !== "in_progress" || !execution?.id) return false;
+    const snap = parseSnapshot(execution);
+    if (isSpeedTestCase(step || execution.test_case)) return snap?.active_speed_kmph != null;
+    return !snap?.scan_state || snap.scan_state === "scanning";
+};
+
+const formatClock = (value) => {
+    if (!value) return "—";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return String(value);
+    return d.toLocaleString("en-IN", {
+        day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+    });
+};
+
+const formatSeconds = (total) => {
+    const s = Math.max(0, Math.round(Number(total) || 0));
+    const m = Math.floor(s / 60);
+    return `${String(m).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+};
+
+const formatLimit = (seconds) => {
+    const s = Number(seconds) || 0;
+    if (s % 60 === 0) return `${s / 60} min`;
+    return s > 60 ? `${Math.floor(s / 60)} min ${s % 60} s` : `${s} s`;
+};
+
+// Own 1-second timer, so only the countdown re-renders (not the whole board).
+const ScanCountdown = ({ deadline, totalSeconds, color = "#0d47a1" }) => {
+    const [now, setNow] = useState(Date.now());
+    useEffect(() => {
+        const t = setInterval(() => setNow(Date.now()), 1000);
+        return () => clearInterval(t);
+    }, []);
+    if (!deadline) return null;
+    const remaining = Math.max(0, Math.floor((new Date(deadline).getTime() - now) / 1000));
+    const pct = totalSeconds ? Math.min(100, Math.max(0, ((totalSeconds - remaining) / totalSeconds) * 100)) : 0;
+    return (
+        <Box sx={{ width: "100%" }}>
+            <Typography variant="caption" sx={{ fontSize: "0.62rem", fontWeight: 700, color, display: "block" }}>
+                ⏱ {formatSeconds(remaining)} left{totalSeconds ? ` of ${formatLimit(totalSeconds)}` : ""}
+            </Typography>
+            <LinearProgress variant="determinate" value={pct} sx={{ height: 4, borderRadius: 2, bgcolor: "#bbdefb" }} />
+        </Box>
+    );
+};
+
+const TestTimes = ({ started, ended, startLabel = "Started", endLabel = "Ended" }) => (
+    <Box sx={{ width: "100%", textAlign: "left", mt: 0.5 }}>
+        <Typography variant="caption" sx={{ fontSize: "0.58rem", color: "text.secondary", display: "block", fontFamily: "monospace", lineHeight: 1.3 }}>
+            {startLabel}: {formatClock(started)}
+        </Typography>
+        <Typography variant="caption" sx={{ fontSize: "0.58rem", color: "text.secondary", display: "block", fontFamily: "monospace", lineHeight: 1.3 }}>
+            {endLabel}: {ended ? formatClock(ended) : "—"}
+        </Typography>
+    </Box>
+);
+
+const ScanStatusPanel = ({ execution, snapshot, onStop, stopping }) => {
+    const state = snapshot?.scan_state || "scanning";
+    const deadline = snapshot?.scan_deadline || execution?.scan_deadline;
+    const total = snapshot?.scan_time_limit_seconds || execution?.test_case?.time_limit_seconds;
+    const detected = state === "detected";
+    return (
+        <Box sx={{ width: "100%", p: 0.75, mb: 0.75, borderRadius: 1, border: "1px solid", borderColor: detected ? "#a5d6a7" : "#90caf9", bgcolor: detected ? "#e8f5e9" : "#e3f2fd" }}>
+            {detected ? (
+                <Typography variant="caption" sx={{ fontSize: "0.64rem", fontWeight: 700, color: "#2e7d32", display: "block" }}>
+                    ✓ Event detected — scanning stopped
+                </Typography>
+            ) : (
+                <>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 0.5 }}>
+                        <CircularProgress size={10} />
+                        <Typography variant="caption" sx={{ fontSize: "0.64rem", fontWeight: 700, color: "#0d47a1" }}>
+                            Scanning recorded packets…
+                        </Typography>
+                    </Box>
+                    <ScanCountdown deadline={deadline} totalSeconds={total} />
+                    <Button
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        disabled={stopping}
+                        onClick={onStop}
+                        sx={{ mt: 0.75, fontSize: "0.6rem", py: "1px", px: 1, minWidth: "auto", textTransform: "none", fontWeight: 700 }}
+                    >
+                        {stopping ? "Stopping..." : "Stop"}
+                    </Button>
+                </>
+            )}
+            <TestTimes started={snapshot?.test_started_at || execution?.started_at} ended={snapshot?.scan_ended_at} endLabel={detected ? "Detected" : "Ended"} />
+        </Box>
+    );
+};
+
+const SPEED_COLORS = { 20: "#2e7d32", 40: "#f57f17", 70: "#d32f2f" };
+const SEGMENT_STATE_LABEL = {
+    not_started: { label: "Not started", color: "#757575", bg: "#f5f5f5" },
+    scanning: { label: "Scanning", color: "#0d47a1", bg: "#e3f2fd" },
+    passed: { label: "Passed", color: "#2e7d32", bg: "#e8f5e9" },
+    stopped: { label: "Stopped", color: "#c62828", bg: "#ffebee" },
+    timed_out: { label: "Timed out", color: "#c62828", bg: "#ffebee" },
+};
+
+// GPS speed accuracy: one timed segment per target speed, run in order.
+const SpeedSegmentsPanel = ({ execution, snapshot, onAction, busyKey, readOnly = false }) => {
+    const step = execution?.test_case || {};
+    const targets = snapshot?.criteria?.target_speeds_kmph || step?.check_config?.target_speeds_kmph || [20, 40, 70];
+    const minDuration = snapshot?.criteria?.min_duration_seconds || step?.check_config?.min_duration_seconds || 30;
+    const segLimit = snapshot?.criteria?.segment_time_limit_seconds || step?.speed_segment_time_limit_seconds;
+    const segments = snapshot?.speed_segments || {};
+    const stretches = Array.isArray(snapshot?.stretches) ? snapshot.stretches : [];
+    const anyScanning = targets.some((t) => segments[String(t)]?.state === "scanning");
+
+    return (
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, width: "100%", mt: 0.5 }}>
+            {!readOnly && (
+                <Typography variant="caption" sx={{ fontSize: "0.58rem", color: "text.secondary", textAlign: "left" }}>
+                    Hold each speed for {minDuration} s{segLimit ? ` (each speed scans up to ${formatLimit(segLimit)})` : ""}.
+                </Typography>
+            )}
+            {targets.map((target, i) => {
+                const seg = segments[String(target)];
+                const stretch = stretches.find((s) => Number(s.target_speed_kmph) === Number(target)) || {};
+                const state = seg?.state || "not_started";
+                const stateCfg = SEGMENT_STATE_LABEL[state] || SEGMENT_STATE_LABEL.not_started;
+                const color = SPEED_COLORS[target] || "#1a237e";
+                const previousPassed = targets.slice(0, i).every((t) => segments[String(t)]?.state === "passed");
+                const canStart = !readOnly && previousPassed && !anyScanning && state !== "passed" && state !== "scanning";
+                const key = `${execution?.id}_${target}`;
+                const busy = busyKey === key;
+                const lockReason = !previousPassed ? `Pass ${targets[i - 1]} km/h first` : anyScanning ? "Another speed is being scanned" : "";
+
+                return (
+                    <Box key={target} sx={{ borderLeft: `3px solid ${color}`, bgcolor: "#fafafa", border: "1px solid #e0e0e0", borderRadius: 1, p: 0.6, textAlign: "left" }}>
+                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 0.5 }}>
+                            <Typography variant="caption" sx={{ fontSize: "0.66rem", fontWeight: 800, color }}>
+                                {target} km/h
+                            </Typography>
+                            <Chip label={stateCfg.label} size="small" sx={{ height: 16, fontSize: "0.56rem", fontWeight: 700, color: stateCfg.color, bgcolor: stateCfg.bg }} />
+                        </Box>
+                        {state === "scanning" && (
+                            <Box sx={{ mt: 0.5 }}>
+                                <ScanCountdown deadline={seg?.deadline} totalSeconds={seg?.time_limit_seconds} />
+                            </Box>
+                        )}
+                        {seg?.started_at && (
+                            <TestTimes started={seg.started_at} ended={seg.ended_at} startLabel="Start" endLabel="End" />
+                        )}
+                        {stretch.stretch_started_at && (
+                            <Typography variant="caption" sx={{ fontSize: "0.56rem", color: "#37474f", display: "block", fontFamily: "monospace", lineHeight: 1.3, mt: 0.25 }}>
+                                Steady {formatClock(stretch.stretch_started_at)} → {formatClock(stretch.stretch_ended_at)} ({Math.round(stretch.duration_seconds || 0)} s, avg {stretch.average_speed_kmph} km/h)
+                            </Typography>
+                        )}
+                        {!readOnly && (
+                            <Box sx={{ mt: 0.5, display: "flex", gap: 0.5 }}>
+                                {state === "scanning" ? (
+                                    <Button
+                                        variant="outlined"
+                                        color="error"
+                                        size="small"
+                                        disabled={busy}
+                                        onClick={() => onAction(execution.id, target, "stop")}
+                                        sx={{ fontSize: "0.6rem", py: "1px", px: 1, minWidth: "auto", textTransform: "none", fontWeight: 700 }}
+                                    >
+                                        {busy ? "Stopping..." : "Stop"}
+                                    </Button>
+                                ) : state !== "passed" && (
+                                    <Tooltip title={canStart ? "" : lockReason} arrow placement="top">
+                                        <span>
+                                            <Button
+                                                variant="contained"
+                                                size="small"
+                                                disabled={!canStart || busy}
+                                                onClick={() => onAction(execution.id, target, "start")}
+                                                sx={{ bgcolor: color, color: "#fff", fontSize: "0.6rem", py: "1px", px: 1, minWidth: "auto", textTransform: "none", fontWeight: 700, boxShadow: "none", "&:hover": { bgcolor: color, opacity: 0.9, boxShadow: "none" } }}
+                                            >
+                                                {busy ? "Starting..." : !previousPassed ? `🔒 Start ${target} km/h` : state === "not_started" ? `Start ${target} km/h` : `Retry ${target} km/h`}
+                                            </Button>
+                                        </span>
+                                    </Tooltip>
+                                )}
+                            </Box>
+                        )}
+                    </Box>
+                );
+            })}
+        </Box>
+    );
+};
+
+/* ═══════════════════════════════════════════════════
    MARK ONGOING DIALOG
 ═══════════════════════════════════════════════════ */
 const MarkOngoingDialog = ({ open, row, onClose, onSuccess }) => {
@@ -2067,9 +2279,10 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
             const res = await DeviceModelServices.listTestCommands({ execution_id: execution.id });
             const data = res?.data?.data || res?.data || {};
             const cmdList = data.commands || data.available_commands || (Array.isArray(data) ? data : []);
-            const histList = data.history || data.sent_commands || data.logs || [];
+            // Backend: commands_sent = this attempt's dispatches, oldest first, each with device replies
+            const histList = data.commands_sent || data.history || data.sent_commands || [];
             setCommands(cmdList);
-            setHistory(histList);
+            setHistory([...histList].reverse());
         } catch (err) {
             console.error("Failed to fetch test commands:", err);
         } finally {
@@ -2087,14 +2300,29 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
         }
     }, [open, execution?.id, fetchCommands]);
 
+    // Device replies arrive over the next ~2 minutes; keep checking while open.
+    useEffect(() => {
+        if (!open || !execution?.id) return undefined;
+        const t = setInterval(() => fetchCommands(false), 5000);
+        return () => clearInterval(t);
+    }, [open, execution?.id, fetchCommands]);
+
+    const commandKey = (cmd, idx) => cmd.key || cmd.command_key || cmd.name || `cmd_${idx}`;
+    const commandTemplate = (cmd) => cmd.command || cmd.command_template || "";
+
     const handleSendConfigured = async (cmd) => {
         if (execution?.status !== 'in_progress') {
             setFeedback({ type: 'error', text: 'Commands can only be sent while test is actively in progress.' });
             return;
         }
-        const key = cmd.command_key || cmd.key || cmd.name;
-        const val = paramValues[key] || "";
+        const key = commandKey(cmd);
+        const val = (paramValues[key] || "").trim();
+        const label = cmd.label || cmd.command_name || key;
 
+        if (commandTemplate(cmd).includes("{value}") && !val) {
+            setFeedback({ type: 'error', text: `Enter a value for "${label}"${cmd.value_hint ? ` (e.g. ${cmd.value_hint})` : ''}.` });
+            return;
+        }
         if (cmd.value_regex && val) {
             try {
                 const re = new RegExp(cmd.value_regex);
@@ -2119,14 +2347,15 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
             const resData = res?.data?.data || res?.data || {};
             setFeedback({
                 type: 'success',
-                text: resData.message || `Command "${key}" dispatched via MQTT. Status: ${resData.send_status || 'queued'}`
+                text: `Sent ${resData.command_sent || label} to the device over MQTT. Waiting for the device reply…`
             });
             setParamValues(prev => ({ ...prev, [key]: '' }));
             fetchCommands(false);
             if (onCommandSent) onCommandSent();
         } catch (err) {
-            const msg = err?.response?.data?.message || err?.response?.data?.error || err.message || "Failed to send command";
+            const msg = err?.response?.data?.error || err?.response?.data?.message || err.message || "Failed to send command";
             setFeedback({ type: 'error', text: msg });
+            fetchCommands(false);
         } finally {
             setSendingKey(null);
         }
@@ -2148,14 +2377,15 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
             const resData = res?.data?.data || res?.data || {};
             setFeedback({
                 type: 'success',
-                text: resData.message || `Custom command dispatched via MQTT. Status: ${resData.send_status || 'queued'}`
+                text: `Sent ${resData.command_sent || customCmd.trim()} to the device over MQTT. Waiting for the device reply…`
             });
             setCustomCmd("");
             fetchCommands(false);
             if (onCommandSent) onCommandSent();
         } catch (err) {
-            const msg = err?.response?.data?.message || err?.response?.data?.error || err.message || "Failed to send custom command";
+            const msg = err?.response?.data?.error || err?.response?.data?.message || err.message || "Failed to send custom command";
             setFeedback({ type: 'error', text: msg });
+            fetchCommands(false);
         } finally {
             setSendingCustom(false);
         }
@@ -2219,8 +2449,9 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                             ) : (
                                 <Stack spacing={1.5}>
                                     {commands.map((cmd, idx) => {
-                                        const key = cmd.command_key || cmd.key || cmd.name || `cmd_${idx}`;
-                                        const requiresVal = Boolean(cmd.command_template && cmd.command_template.includes("{value}")) || Boolean(cmd.value_hint);
+                                        const key = commandKey(cmd, idx);
+                                        const template = commandTemplate(cmd);
+                                        const requiresVal = template.includes("{value}") || Boolean(cmd.value_hint);
                                         const isSending = sendingKey === key;
 
                                         return (
@@ -2228,16 +2459,16 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                                                 <Grid container spacing={1.5} alignItems="center">
                                                     <Grid item xs={12} sm={requiresVal ? 4 : 8}>
                                                         <Typography variant="body2" sx={{ fontWeight: 600, color: '#0d1b2a' }}>
-                                                            {cmd.command_name || cmd.name || key}
+                                                            {cmd.label || cmd.command_name || cmd.name || key}
                                                         </Typography>
                                                         {cmd.description && (
                                                             <Typography variant="caption" color="text.secondary" display="block">
                                                                 {cmd.description}
                                                             </Typography>
                                                         )}
-                                                        {cmd.command_template && (
+                                                        {template && (
                                                             <Typography variant="caption" sx={{ fontFamily: 'monospace', color: '#0277bd', display: 'block', mt: 0.25 }}>
-                                                                Template: {cmd.command_template}
+                                                                Command: @{template}*
                                                             </Typography>
                                                         )}
                                                     </Grid>
@@ -2364,68 +2595,63 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                                         ) : (
                                             history.map((item, idx) => {
                                                 const replies = Array.isArray(item.replies) ? item.replies : (item.replies ? [item.replies] : []);
-                                                const status = item.send_status || item.status || "queued";
+                                                const failed = (item.send_status || item.status) === "failed";
+                                                const statusLabel = failed ? "send failed" : replies.length > 0 ? "replied" : "sent";
+                                                const statusSx = failed
+                                                    ? { bgcolor: '#ffebee', color: '#c62828' }
+                                                    : replies.length > 0 ? { bgcolor: '#e8f5e9', color: '#2e7d32' } : { bgcolor: '#e1f5fe', color: '#0277bd' };
+                                                const awaiting = !failed && item.sent_at && (Date.now() - new Date(item.sent_at).getTime()) < 2 * 60 * 1000;
 
                                                 return (
-                                                    <TableRow key={idx}>
+                                                    <TableRow key={item.id || idx}>
                                                         <TableCell sx={{ whiteSpace: 'nowrap', fontSize: '0.75rem', color: 'text.secondary', fontFamily: 'monospace' }}>
-                                                            {item.sent_at || item.created_at || item.timestamp ? formatDateTime(item.sent_at || item.created_at || item.timestamp) : 'Just now'}
+                                                            {formatClock(item.sent_at || item.created_at || item.timestamp)}
                                                         </TableCell>
                                                         <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.78rem', fontWeight: 600, color: '#0d1b2a', wordBreak: 'break-all' }}>
-                                                            {item.command || item.command_key || '—'}
-                                                            {item.value && (
-                                                                <Typography component="span" variant="caption" sx={{ color: '#0277bd', ml: 0.5 }}>
-                                                                    ({item.value})
+                                                            {item.command_sent || item.command || item.command_key || '—'}
+                                                            {item.command_label && (
+                                                                <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontFamily: 'inherit', fontSize: '0.65rem' }}>
+                                                                    {item.command_label}{item.value ? ` (${item.value})` : ''}
                                                                 </Typography>
                                                             )}
                                                         </TableCell>
                                                         <TableCell>
-                                                            <Chip
-                                                                label={status}
-                                                                size="small"
-                                                                sx={{
-                                                                    height: 18,
-                                                                    fontSize: '0.62rem',
-                                                                    fontWeight: 600,
-                                                                    bgcolor: status === 'delivered' || status === 'completed' ? '#e8f5e9' : status === 'sent' ? '#e1f5fe' : '#fff9c4',
-                                                                    color: status === 'delivered' || status === 'completed' ? '#2e7d32' : status === 'sent' ? '#0277bd' : '#f57f17'
-                                                                }}
-                                                            />
+                                                            <Chip label={statusLabel} size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 600, ...statusSx }} />
+                                                            {item.error && (
+                                                                <Typography variant="caption" color="error" sx={{ display: 'block', fontSize: '0.62rem', mt: 0.25 }}>
+                                                                    {item.error}
+                                                                </Typography>
+                                                            )}
                                                         </TableCell>
                                                         <TableCell>
                                                             {replies.length > 0 ? (
                                                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                                                                    {replies.map((rep, rIdx) => (
-                                                                        <Box
-                                                                            key={rIdx}
-                                                                            sx={{
-                                                                                bgcolor: '#e8f5e9',
-                                                                                border: '1px solid #c8e6c9',
-                                                                                borderRadius: 1,
-                                                                                px: 1,
-                                                                                py: 0.25,
-                                                                                display: 'flex',
-                                                                                alignItems: 'center',
-                                                                                justifyContent: 'space-between',
-                                                                                gap: 0.5
-                                                                            }}
-                                                                        >
-                                                                            <Typography variant="caption" sx={{ fontFamily: 'monospace', fontSize: '0.72rem', color: '#1b5e20', fontWeight: 600 }}>
-                                                                                {typeof rep === 'object' ? JSON.stringify(rep) : String(rep)}
-                                                                            </Typography>
-                                                                            <Button
-                                                                                size="small"
-                                                                                sx={{ minWidth: 'auto', p: '1px 4px', fontSize: '0.55rem' }}
-                                                                                onClick={() => navigator.clipboard.writeText(typeof rep === 'object' ? JSON.stringify(rep) : String(rep))}
-                                                                            >
-                                                                                Copy
-                                                                            </Button>
-                                                                        </Box>
-                                                                    ))}
+                                                                    {replies.map((rep, rIdx) => {
+                                                                        const text = typeof rep === 'object' ? (rep.raw_data || JSON.stringify(rep)) : String(rep);
+                                                                        return (
+                                                                            <Box key={rIdx} sx={{ bgcolor: '#e8f5e9', border: '1px solid #c8e6c9', borderRadius: 1, px: 1, py: 0.25 }}>
+                                                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.5 }}>
+                                                                                    <Typography variant="caption" sx={{ fontSize: '0.62rem', color: 'text.secondary', fontFamily: 'monospace' }}>
+                                                                                        {rep?.timestamp ? formatClock(rep.timestamp) : ''}
+                                                                                    </Typography>
+                                                                                    <Button
+                                                                                        size="small"
+                                                                                        sx={{ minWidth: 'auto', p: '1px 4px', fontSize: '0.55rem' }}
+                                                                                        onClick={() => navigator.clipboard.writeText(text)}
+                                                                                    >
+                                                                                        Copy
+                                                                                    </Button>
+                                                                                </Box>
+                                                                                <Typography variant="caption" sx={{ fontFamily: 'monospace', fontSize: '0.7rem', color: '#1b5e20', fontWeight: 600, wordBreak: 'break-all', display: 'block' }}>
+                                                                                    {text}
+                                                                                </Typography>
+                                                                            </Box>
+                                                                        );
+                                                                    })}
                                                                 </Box>
                                                             ) : (
                                                                 <Typography variant="caption" sx={{ color: 'text.secondary', fontStyle: 'italic', fontSize: '0.7rem' }}>
-                                                                    Awaiting response...
+                                                                    {failed ? 'Not delivered' : awaiting ? 'Awaiting response...' : 'No reply within 2 min'}
                                                                 </Typography>
                                                             )}
                                                         </TableCell>
@@ -2626,9 +2852,12 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
     const [startingDeviceTestId, setStartingDeviceTestId] = useState(null);
     const [completingExecId, setCompletingExecId] = useState(null);
     const [refreshingExecId, setRefreshingExecId] = useState(null);
-    // Speed polling state for test #15 (GPS Speed Accuracy)
-    const [speedPollingState, setSpeedPollingState] = useState({}); // { [execId]: { polling: 20|40|70|null, done: {20:bool,40:bool,70:bool} } }
-    const speedPollingIntervalsRef = useRef({});
+    const [stoppingExecId, setStoppingExecId] = useState(null);
+    // Speed test (#15): `${execId}_${speed}` while a segment start/stop is in flight
+    const [speedBusyKey, setSpeedBusyKey] = useState(null);
+    // Latest board for the scan loop, and a guard so scan rounds never overlap
+    const boardRef = useRef([]);
+    const scanInFlightRef = useRef(false);
 
     // Collapsible procedures state
     const [expandedProcedures, setExpandedProcedures] = useState({});
@@ -2775,11 +3004,15 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
         setStartingDeviceTestId(key);
         setApiError("");
         try {
-            await DeviceModelServices.startTestBoard({
+            const res = await DeviceModelServices.startTestBoard({
                 onboarding_request_id: row.id,
                 demo_device_id: demoDeviceId,
                 test_case_id: testCaseId
             });
+            const startedExec = res?.data;
+            if (startedExec?.id && !isSpeedTestCase(startedExec.test_case)) {
+                await DeviceModelServices.refreshLogTestBoard({ execution_id: startedExec.id }).catch(e => console.error(e));
+            }
             fetchTestBoard(false);
         } catch (err) {
             setApiError(extractError(err));
@@ -2801,72 +3034,73 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
         }
     };
 
-    // Start polling refresh-log every 30s for a specific speed bucket (test #15)
-    const handleStartSpeedPolling = (executionId, targetSpeed) => {
-        // Clear any existing interval for this execution
-        if (speedPollingIntervalsRef.current[executionId]) {
-            clearInterval(speedPollingIntervalsRef.current[executionId]);
-            delete speedPollingIntervalsRef.current[executionId];
+    // Speed test (#15): start / stop scanning for one target speed. The scan
+    // loop below keeps polling while a segment is running.
+    const handleSpeedAction = async (executionId, targetSpeed, action) => {
+        const key = `${executionId}_${targetSpeed}`;
+        if (speedBusyKey) return;
+        setSpeedBusyKey(key);
+        setApiError("");
+        try {
+            await DeviceModelServices.refreshLogTestBoard({
+                execution_id: executionId,
+                target_speed: targetSpeed,
+                speed_action: action
+            });
+            await fetchTestBoard(false);
+        } catch (err) {
+            setApiError(extractError(err));
+        } finally {
+            setSpeedBusyKey(null);
         }
-
-        setSpeedPollingState(prev => ({
-            ...prev,
-            [executionId]: { ...(prev[executionId] || {}), polling: targetSpeed }
-        }));
-
-        const poll = async () => {
-            try {
-                const res = await DeviceModelServices.refreshLogTestBoard({
-                    execution_id: executionId,
-                    target_speed: targetSpeed
-                });
-                fetchTestBoard(false);
-                // Stop polling if this speed segment has data (pass flag or samples present)
-                const snapshot = res?.data?.test_log_snapshot || res?.data?.snapshot || res?.data;
-                let hasData = false;
-                if (snapshot) {
-                    let snObj = snapshot;
-                    if (typeof snObj === 'string') { try { snObj = JSON.parse(snObj); } catch { snObj = null; } }
-                    if (snObj) {
-                        const samples = snObj.samples || snObj.route || [];
-                        const speedBuckets = { 20: [15,25], 40: [35,45], 70: [65,75] };
-                        const [mn, mx] = speedBuckets[targetSpeed] || [0, 999];
-                        hasData = Array.isArray(samples) && samples.some(s => {
-                            const spd = Number(s.speed);
-                            return spd >= mn && spd <= mx;
-                        });
-                        if (!hasData && snObj.pass === true) hasData = true;
-                    }
-                }
-                if (hasData) {
-                    clearInterval(speedPollingIntervalsRef.current[executionId]);
-                    delete speedPollingIntervalsRef.current[executionId];
-                    setSpeedPollingState(prev => ({
-                        ...prev,
-                        [executionId]: {
-                            ...(prev[executionId] || {}),
-                            polling: null,
-                            done: { ...(prev[executionId]?.done || {}), [targetSpeed]: true }
-                        }
-                    }));
-                }
-            } catch (err) {
-                console.error('Speed poll error:', err);
-            }
-        };
-
-        poll(); // immediate first call
-        speedPollingIntervalsRef.current[executionId] = setInterval(poll, 30000);
     };
 
-    // Cleanup speed polling intervals on drawer close
-    useEffect(() => {
-        if (!open) {
-            Object.values(speedPollingIntervalsRef.current).forEach(clearInterval);
-            speedPollingIntervalsRef.current = {};
-            setSpeedPollingState({});
+    // Tester pressed Stop: scan once more, then the backend ends the attempt.
+    const handleStopScan = async (executionId) => {
+        if (stoppingExecId) return;
+        setStoppingExecId(executionId);
+        setApiError("");
+        try {
+            await DeviceModelServices.refreshLogTestBoard({ execution_id: executionId, stop: true });
+            await fetchTestBoard(false);
+        } catch (err) {
+            setApiError(extractError(err));
+        } finally {
+            setStoppingExecId(null);
         }
-    }, [open]);
+    };
+
+    useEffect(() => {
+        boardRef.current = testBoardCategories;
+    }, [testBoardCategories]);
+
+    // Scan loop: every started test is re-checked against the recorded packets
+    // until the event is detected, the tester presses Stop, or the test's time
+    // limit runs out (the backend times it out and marks it incomplete).
+    useEffect(() => {
+        if (!open) return undefined;
+        const tick = async () => {
+            if (scanInFlightRef.current) return;
+            const ids = [];
+            (boardRef.current || []).forEach(cat => {
+                (cat.executions || []).forEach(exec => {
+                    if (needsScan(exec, cat.test_case)) ids.push(exec.id);
+                });
+            });
+            if (ids.length === 0) return;
+            scanInFlightRef.current = true;
+            try {
+                await Promise.all(ids.map(id =>
+                    DeviceModelServices.refreshLogTestBoard({ execution_id: id }).catch(e => console.error(e))
+                ));
+                await fetchTestBoard(false);
+            } finally {
+                scanInFlightRef.current = false;
+            }
+        };
+        const interval = setInterval(tick, SCAN_POLL_MS);
+        return () => clearInterval(interval);
+    }, [open, fetchTestBoard]);
 
     const handleCompleteTest = async (executionId, manualData = null) => {
         if (completingExecId) return;
@@ -3839,7 +4073,20 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
 
                                                                 return (
                                                                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                                                        <Chip label="pass" size="small" color="success" sx={{ height: 20, fontSize: '0.65rem', mb: 1 }} />
+                                                                        <Chip label="pass" size="small" color="success" sx={{ height: 20, fontSize: '0.65rem', mb: 0.5 }} />
+                                                                        <TestTimes started={snapshotObj?.test_started_at || execution?.started_at} ended={execution?.completed_at} endLabel="Completed" />
+                                                                        {snapshotObj?.scan_state === 'detected' && snapshotObj?.scan_ended_at && (
+                                                                            <Typography variant="caption" sx={{ fontSize: '0.58rem', color: '#2e7d32', display: 'block', fontFamily: 'monospace', width: '100%', textAlign: 'left' }}>
+                                                                                Detected: {formatClock(snapshotObj.scan_ended_at)}
+                                                                            </Typography>
+                                                                        )}
+                                                                        {isSpeedTestCase(step) && snapshotObj?.speed_segments && (
+                                                                            <SpeedSegmentsPanel
+                                                                                execution={{ ...execution, test_case: execution.test_case || step }}
+                                                                                snapshot={snapshotObj}
+                                                                                readOnly
+                                                                            />
+                                                                        )}
 
                                                                         {isLocationTest(step.serial_no, step.name, step) && (() => {
                                                                             let lockedCoord = null;
@@ -3968,8 +4215,8 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                             )}
                                                                                             {(step.serial_no === 15 || (step.name && /speed/i.test(step.name))) && sampleSpeed && (
                                                                                                 <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
-                                                                                                    {resolvedSamples.length >= 2
-                                                                                                        ? (sIdx === 0 ? `Start Speed: ${sampleSpeed} km/h` : sIdx === resolvedSamples.length - 1 ? `End Speed: ${sampleSpeed} km/h` : `Speed: ${sampleSpeed} km/h`)
+                                                                                                    {sample.role === 'stretch_start' ? `Start Speed: ${sampleSpeed} km/h`
+                                                                                                        : sample.role === 'stretch_end' ? `End Speed: ${sampleSpeed} km/h`
                                                                                                         : `Speed: ${sampleSpeed} km/h`}
                                                                                                 </Typography>
                                                                                             )}
@@ -4003,118 +4250,8 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                 <>
                                                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 1, gap: 0.5, flexWrap: "wrap" }}>
                                                                         <Chip label="In progress" size="small" sx={{ height: 20, fontSize: "0.65rem", bgcolor: "#fff9c4", color: "#f57f17", borderRadius: 1 }} />
-                                                                        {(step.serial_no === 15 || (step.name && /speed/i.test(step.name))) ? (
-                                                                            // GPS Speed Accuracy: Sequential 3 speed buttons (20 -> 40 -> 70 km/h)
-                                                                            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "stretch", gap: 0.5, mt: 0.5, width: "100%" }}>
-                                                                                {(() => {
-                                                                                    const execSpeedState = speedPollingState[execution.id] || {};
-
-                                                                                    const checkSpeedDone = (targetSpeed) => {
-                                                                                        if (execSpeedState.done?.[targetSpeed]) return true;
-                                                                                        let snap = execution?.test_log_snapshot;
-                                                                                        if (typeof snap === "string") {
-                                                                                            try { snap = JSON.parse(snap); } catch { snap = null; }
-                                                                                        }
-                                                                                        if (snap) {
-                                                                                            const samples = snap.samples || snap.route || [];
-                                                                                            const ranges = { 20: [15, 25], 40: [35, 45], 70: [65, 75] };
-                                                                                            const [mn, mx] = ranges[targetSpeed] || [0, 999];
-                                                                                            if (Array.isArray(samples) && samples.some(s => {
-                                                                                                const spd = Number(s.speed);
-                                                                                                return spd >= mn && spd <= mx;
-                                                                                            })) {
-                                                                                                return true;
-                                                                                            }
-                                                                                        }
-                                                                                        return false;
-                                                                                    };
-
-                                                                                    const isDone20 = checkSpeedDone(20);
-                                                                                    const isDone40 = checkSpeedDone(40);
-                                                                                    const isDone70 = checkSpeedDone(70);
-
-                                                                                    const speedConfigs = [
-                                                                                        {
-                                                                                            speed: 20,
-                                                                                            color: "#2e7d32",
-                                                                                            hoverColor: "#1b5e20",
-                                                                                            isDone: isDone20,
-                                                                                            isUnlocked: true,
-                                                                                            lockReason: ""
-                                                                                        },
-                                                                                        {
-                                                                                            speed: 40,
-                                                                                            color: "#f57f17",
-                                                                                            hoverColor: "#e65100",
-                                                                                            isDone: isDone40,
-                                                                                            isUnlocked: isDone20,
-                                                                                            lockReason: "Complete 20 km/h first"
-                                                                                        },
-                                                                                        {
-                                                                                            speed: 70,
-                                                                                            color: "#d32f2f",
-                                                                                            hoverColor: "#b71c1c",
-                                                                                            isDone: isDone70,
-                                                                                            isUnlocked: isDone20 && isDone40,
-                                                                                            lockReason: "Complete 40 km/h first"
-                                                                                        }
-                                                                                    ];
-
-                                                                                    return speedConfigs.map(({ speed, color, hoverColor, isDone, isUnlocked, lockReason }) => {
-                                                                                        const isPolling = execSpeedState.polling === speed;
-                                                                                        const anyPolling = !!execSpeedState.polling;
-                                                                                        const isDisabled = !isUnlocked || isPolling || (anyPolling && !isPolling);
-
-                                                                                        const btn = (
-                                                                                            <Button
-                                                                                                key={speed}
-                                                                                                variant="contained"
-                                                                                                size="small"
-                                                                                                disabled={isDisabled}
-                                                                                                startIcon={isPolling ? <CircularProgress size={10} sx={{ color: "#fff" }} /> : null}
-                                                                                                onClick={() => handleStartSpeedPolling(execution.id, speed)}
-                                                                                                sx={{
-                                                                                                    bgcolor: !isUnlocked ? "#bdbdbd" : isDone ? "#616161" : color,
-                                                                                                    color: "#fff",
-                                                                                                    fontSize: "0.62rem",
-                                                                                                    fontWeight: 700,
-                                                                                                    textTransform: "none",
-                                                                                                    width: "100%",
-                                                                                                    py: "3px",
-                                                                                                    boxShadow: "none",
-                                                                                                    "&:hover": {
-                                                                                                        bgcolor: !isUnlocked ? "#bdbdbd" : isDone ? "#424242" : hoverColor,
-                                                                                                        boxShadow: "none"
-                                                                                                    },
-                                                                                                    "&:disabled": {
-                                                                                                        bgcolor: !isUnlocked ? "#e0e0e0" : color,
-                                                                                                        color: !isUnlocked ? "#9e9e9e" : "#fff",
-                                                                                                        opacity: !isUnlocked ? 0.7 : 0.75
-                                                                                                    }
-                                                                                                }}
-                                                                                            >
-                                                                                                {isPolling
-                                                                                                    ? `Polling ${speed} km/h...`
-                                                                                                    : isDone
-                                                                                                    ? `\u2713 ${speed} km/h Done`
-                                                                                                    : !isUnlocked
-                                                                                                    ? `\uD83D\uDD12 Start (${speed} km/h)`
-                                                                                                    : `Start (${speed} km/h)`}
-                                                                                            </Button>
-                                                                                        );
-
-                                                                                        return !isUnlocked ? (
-                                                                                            <Tooltip key={speed} title={lockReason} arrow placement="top">
-                                                                                                <span>{btn}</span>
-                                                                                            </Tooltip>
-                                                                                        ) : (
-                                                                                            btn
-                                                                                        );
-                                                                                    });
-                                                                                })()}
-                                                                            </Box>
-                                                                        ) : (
-                                                                            <Tooltip title="Refresh Log">
+                                                                        {!isSpeedTestCase(step) && (
+                                                                            <Tooltip title="Scan now">
                                                                                 <IconButton
                                                                                     size="small"
                                                                                     disabled={refreshingExecId === execution.id}
@@ -4154,6 +4291,46 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                             </Tooltip>
                                                                         )}
                                                                     </Box>
+                                                                    {isSpeedTestCase(step) ? (
+                                                                        <SpeedSegmentsPanel
+                                                                            execution={{ ...execution, test_case: execution.test_case || step }}
+                                                                            snapshot={parseSnapshot(execution)}
+                                                                            onAction={handleSpeedAction}
+                                                                            busyKey={speedBusyKey}
+                                                                        />
+                                                                    ) : (
+                                                                        <ScanStatusPanel
+                                                                            execution={{ ...execution, test_case: execution.test_case || step }}
+                                                                            snapshot={parseSnapshot(execution)}
+                                                                            onStop={() => handleStopScan(execution.id)}
+                                                                            stopping={stoppingExecId === execution.id}
+                                                                        />
+                                                                    )}
+                                                                    {(() => {
+                                                                        const sent = parseSnapshot(execution)?.commands_sent;
+                                                                        if (!Array.isArray(sent) || sent.length === 0) return null;
+                                                                        return (
+                                                                            <Box sx={{ width: '100%', textAlign: 'left', mb: 0.5, p: 0.5, bgcolor: '#f1f8e9', border: '1px solid #dcedc8', borderRadius: 1 }}>
+                                                                                {sent.slice(-3).map(cmd => (
+                                                                                    <Box key={cmd.id} sx={{ mb: 0.25 }}>
+                                                                                        <Typography variant="caption" sx={{ fontSize: '0.58rem', fontFamily: 'monospace', fontWeight: 700, color: cmd.send_status === 'failed' ? '#c62828' : '#0d1b2a', display: 'block', wordBreak: 'break-all' }}>
+                                                                                            ▶ {cmd.command_sent} {cmd.send_status === 'failed' ? '(send failed)' : ''}
+                                                                                        </Typography>
+                                                                                        {(cmd.replies || []).slice(0, 2).map((rep, rIdx) => (
+                                                                                            <Typography key={rIdx} variant="caption" sx={{ fontSize: '0.55rem', fontFamily: 'monospace', color: '#1b5e20', display: 'block', wordBreak: 'break-all' }}>
+                                                                                                ◀ {String(rep.raw_data || '').slice(0, 90)}{String(rep.raw_data || '').length > 90 ? '…' : ''}
+                                                                                            </Typography>
+                                                                                        ))}
+                                                                                        {cmd.send_status !== 'failed' && (!cmd.replies || cmd.replies.length === 0) && (
+                                                                                            <Typography variant="caption" sx={{ fontSize: '0.55rem', color: 'text.secondary', fontStyle: 'italic', display: 'block' }}>
+                                                                                                awaiting reply…
+                                                                                            </Typography>
+                                                                                        )}
+                                                                                    </Box>
+                                                                                ))}
+                                                                            </Box>
+                                                                        );
+                                                                    })()}
                                                                     {isLocationTest(step.serial_no, step.name, step) && (() => {
                                                                         let snapshotObj = null;
                                                                         if (typeof execution?.test_log_snapshot === 'string') {
@@ -4376,8 +4553,8 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                                         )}
                                                                                                         {step.serial_no === 15 && speed && (
                                                                                                             <Typography variant="caption" display="block" color="primary.main" sx={{ fontSize: '0.62rem', fontWeight: 600 }}>
-                                                                                                                {snapshotObj.samples && snapshotObj.samples.length >= 2
-                                                                                                                    ? (idx === 0 ? `Start Speed: ${speed} km/h` : idx === snapshotObj.samples.length - 1 ? `End Speed: ${speed} km/h` : `Speed: ${speed} km/h`)
+                                                                                                                {sample.role === 'stretch_start' ? `Start Speed: ${speed} km/h`
+                                                                                                                    : sample.role === 'stretch_end' ? `End Speed: ${speed} km/h`
                                                                                                                     : `Speed: ${speed} km/h`}
                                                                                                             </Typography>
                                                                                                         )}
@@ -4511,6 +4688,20 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                             borderRadius: 1
                                                                         }}
                                                                     />
+                                                                    {execStatus === 'incomplete' && (() => {
+                                                                        const lastSnap = parseSnapshot(execution);
+                                                                        if (!lastSnap && !execution?.started_at) return null;
+                                                                        return (
+                                                                            <Box sx={{ width: '100%', textAlign: 'left' }}>
+                                                                                {lastSnap?.reason && (
+                                                                                    <Typography variant="caption" color="error" sx={{ fontSize: '0.6rem', display: 'block', lineHeight: 1.3 }}>
+                                                                                        {lastSnap.reason}
+                                                                                    </Typography>
+                                                                                )}
+                                                                                <TestTimes started={lastSnap?.test_started_at || execution?.started_at} ended={lastSnap?.scan_ended_at || execution?.completed_at} />
+                                                                            </Box>
+                                                                        );
+                                                                    })()}
                                                                     <Button
                                                                         variant="contained"
                                                                         disableElevation
