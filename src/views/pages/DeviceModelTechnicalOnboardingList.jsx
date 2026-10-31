@@ -57,10 +57,11 @@ const formatDateTime = (value) => {
     }
 };
 
-const getDisplaySerialNo = (serialNo) => {
-    const sNo = Number(serialNo);
-    if (!sNo) return 0;
-    return sNo > 23 ? sNo - 1 : sNo;
+// Tests completed on one demo device. The backend sends completed_count /
+// total_tests; old responses only had the last completed serial number.
+const completedTests = (cp) => {
+    if (typeof cp?.completed_count === 'number') return cp.completed_count;
+    return Number(cp?.last_completed_sequence ?? cp?.last_completed_test_no) || 0;
 };
 
 const DocumentButton = ({ label, path }) => {
@@ -163,6 +164,7 @@ const RequestRow = ({ row, index }) => {
 
         // Extract progress from demo_devices checkpoint_status
         let maxCompleted = 0;
+        let totalTests = 0;
         let lastTestName = "";
         let nextTestName = "";
         let hasStarted = false;
@@ -171,8 +173,8 @@ const RequestRow = ({ row, index }) => {
             for (const d of demoDevices) {
                 const cp = d.checkpoint_status;
                 if (cp) {
-                    const rawComp = cp.last_completed_test_no || 0;
-                    const comp = getDisplaySerialNo(rawComp);
+                    const comp = completedTests(cp);
+                    totalTests = Math.max(totalTests, Number(cp.total_tests) || 0);
                     if (comp >= maxCompleted) {
                         maxCompleted = comp;
                         lastTestName = cp.last_completed_test_name || lastTestName;
@@ -188,7 +190,7 @@ const RequestRow = ({ row, index }) => {
         }
 
         if (hasStarted) {
-            const total = 40;
+            const total = totalTests || 40;
             const cappedCompleted = Math.min(maxCompleted, total);
             const pct = Math.min(Math.round((cappedCompleted / total) * 100), 100);
 

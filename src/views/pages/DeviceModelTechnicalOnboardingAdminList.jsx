@@ -93,10 +93,22 @@ const isLocationTest = (testNo, testName, step) => {
     return LOCATION_TEST_NOS.includes(Number(testNo));
 };
 
+// serial_no is a test's fixed identity; testers see its run-order number
+// (test_case.sequence: indoor tests first, then outdoor). Filled from the
+// test board so every place that has only a serial_no can show it.
+const DISPLAY_NO_BY_SERIAL = {};
+const rememberDisplayNumbers = (rows = []) => {
+    rows.forEach((row) => {
+        const tc = row?.test_case || row;
+        if (tc?.serial_no && tc?.sequence) DISPLAY_NO_BY_SERIAL[Number(tc.serial_no)] = tc.sequence;
+    });
+};
+
 const getDisplaySerialNo = (serialNo) => {
     const sNo = Number(serialNo);
     if (!sNo) return "";
-    return sNo > 23 ? sNo - 1 : sNo;
+    // Old backends (no sequence): #23 was removed, so later tests shift down by one.
+    return DISPLAY_NO_BY_SERIAL[sNo] ?? (sNo > 23 ? sNo - 1 : sNo);
 };
 
 const parseCoordinate = (rawVal, dir) => {
@@ -312,7 +324,7 @@ const processTestPointsForMap = (arg1, arg2, arg3, arg4, arg5) => {
                     last_updated: entryCoord.timestamp,
                     locked: true,
                     raw_data: entryCoord.raw_data,
-                    testNo,
+                    testNo: getDisplaySerialNo(testNo),
                     testName,
                     testFeatureType: 'geofence',
                     pointType: 'entry',
@@ -330,7 +342,7 @@ const processTestPointsForMap = (arg1, arg2, arg3, arg4, arg5) => {
                     last_updated: exitCoord.timestamp,
                     locked: true,
                     raw_data: exitCoord.raw_data,
-                    testNo,
+                    testNo: getDisplaySerialNo(testNo),
                     testName,
                     testFeatureType: 'geofence',
                     pointType: 'exit',
@@ -352,7 +364,7 @@ const processTestPointsForMap = (arg1, arg2, arg3, arg4, arg5) => {
             last_updated: single.timestamp,
             locked: true,
             raw_data: single.raw_data,
-            testNo,
+            testNo: getDisplaySerialNo(testNo),
             testName,
             testFeatureType: 'geofence',
             pinColor: '#2e7d32',
@@ -405,7 +417,7 @@ const processTestPointsForMap = (arg1, arg2, arg3, arg4, arg5) => {
                 last_updated: c.timestamp,
                 locked: true,
                 raw_data: c.raw_data,
-                testNo,
+                testNo: getDisplaySerialNo(testNo),
                 testName,
                 testFeatureType: 'speed_segment',
                 speedBucket: bucket.target,
@@ -426,7 +438,7 @@ const processTestPointsForMap = (arg1, arg2, arg3, arg4, arg5) => {
                 last_updated: startC.timestamp,
                 locked: true,
                 raw_data: startC.raw_data,
-                testNo,
+                testNo: getDisplaySerialNo(testNo),
                 testName,
                 testFeatureType: 'speed_segment',
                 speedBucket: bucket.target,
@@ -447,7 +459,7 @@ const processTestPointsForMap = (arg1, arg2, arg3, arg4, arg5) => {
                 last_updated: endC.timestamp,
                 locked: true,
                 raw_data: endC.raw_data,
-                testNo,
+                testNo: getDisplaySerialNo(testNo),
                 testName,
                 testFeatureType: 'speed_segment',
                 speedBucket: bucket.target,
@@ -475,7 +487,7 @@ const processTestPointsForMap = (arg1, arg2, arg3, arg4, arg5) => {
             last_updated: single.timestamp,
             locked: true,
             raw_data: single.raw_data,
-            testNo,
+            testNo: getDisplaySerialNo(testNo),
             testName,
             testFeatureType: 'speed',
             pointType: 'start',
@@ -516,7 +528,7 @@ const processTestPointsForMap = (arg1, arg2, arg3, arg4, arg5) => {
                 last_updated: c.timestamp,
                 locked: true,
                 raw_data: c.raw_data,
-                testNo,
+                testNo: getDisplaySerialNo(testNo),
                 testName,
                 testFeatureType: 'history_storage',
                 pointType: isStart ? 'start' : isEnd ? 'end' : 'history_point',
@@ -558,7 +570,7 @@ const processTestPointsForMap = (arg1, arg2, arg3, arg4, arg5) => {
                 last_updated: c.timestamp,
                 locked: true,
                 raw_data: c.raw_data,
-                testNo,
+                testNo: getDisplaySerialNo(testNo),
                 testName,
                 testFeatureType: 'network',
                 pointType: isStart ? 'start' : isEnd ? 'end' : 'network_point',
@@ -598,7 +610,7 @@ const processTestPointsForMap = (arg1, arg2, arg3, arg4, arg5) => {
                 last_updated: c.timestamp,
                 locked: true,
                 raw_data: c.raw_data,
-                testNo,
+                testNo: getDisplaySerialNo(testNo),
                 testName,
                 testFeatureType: 'location',
                 pointType: isStart ? 'start' : isEnd ? 'end' : 'intermediate',
@@ -607,111 +619,6 @@ const processTestPointsForMap = (arg1, arg2, arg3, arg4, arg5) => {
                 label: `Packet #${idx + 1} (${isStart ? 'Initial Fix' : isEnd ? 'Latest Fix' : 'Verified Fix'})\n${formatCoordLine(c)}`
             };
         });
-    }
-
-    // ─────────────────────────────────────────────
-    // TEST #23: Satellite/GPS Signal Loss and Recovery
-    // ─────────────────────────────────────────────
-    if (tNo === 23 || (testName && /(loss|recovery|satellite)/i.test(testName) && !/esim/i.test(testName))) {
-        let beforeLossCoord = null;
-        let recoveredCoord = null;
-
-        if (validCoords.length >= 2) {
-            beforeLossCoord = validCoords[0];
-            recoveredCoord = validCoords[validCoords.length - 1];
-        } else if (validCoords.length === 1) {
-            recoveredCoord = validCoords[0];
-            const hasDistinctFallback = fallbackCoord &&
-                Number.isFinite(fallbackCoord.lat) && Number.isFinite(fallbackCoord.lng) &&
-                (fallbackCoord.lat !== 0 || fallbackCoord.lng !== 0) &&
-                (Math.abs(fallbackCoord.lat - recoveredCoord.lat) > 0.00001 || Math.abs(fallbackCoord.lng - recoveredCoord.lng) > 0.00001);
-
-            if (hasDistinctFallback) {
-                beforeLossCoord = {
-                    lat: fallbackCoord.lat,
-                    lng: fallbackCoord.lng,
-                    speed: 0,
-                    timestamp: (sorted.length >= 2 && sorted[0].timestamp) ? sorted[0].timestamp : recoveredCoord.timestamp,
-                    raw_data: sorted[0]?.raw_data
-                };
-            } else {
-                beforeLossCoord = {
-                    lat: recoveredCoord.lat - 0.00012,
-                    lng: recoveredCoord.lng - 0.00012,
-                    speed: 0,
-                    timestamp: (sorted.length >= 2 && sorted[0].timestamp) ? sorted[0].timestamp : recoveredCoord.timestamp,
-                    raw_data: sorted[0]?.raw_data
-                };
-            }
-        } else {
-            recoveredCoord = {
-                lat: fbLat,
-                lng: fbLng,
-                speed: 0,
-                timestamp: sorted[sorted.length - 1]?.timestamp || null,
-                raw_data: sorted[sorted.length - 1]?.raw_data
-            };
-            beforeLossCoord = {
-                lat: fbLat - 0.00012,
-                lng: fbLng - 0.00012,
-                speed: 0,
-                timestamp: sorted[0]?.timestamp || null,
-                raw_data: sorted[0]?.raw_data
-            };
-        }
-
-        let lossLat = beforeLossCoord.lat;
-        let lossLng = beforeLossCoord.lng;
-        let recLat = recoveredCoord.lat;
-        let recLng = recoveredCoord.lng;
-
-        // If coordinates are identical or too close to distinguish visually, apply a small offset so both pins render distinctly
-        if (Math.hypot(recLat - lossLat, recLng - lossLng) < 0.00003) {
-            lossLat -= 0.00010;
-            lossLng -= 0.00010;
-        }
-
-        const lossTs = beforeLossCoord.timestamp;
-        const recTs = recoveredCoord.timestamp;
-
-        return [
-            {
-                imei,
-                markerId: `${imei}_loss`,
-                latitude: lossLat,
-                longitude: lossLng,
-                speed: beforeLossCoord.speed || 0,
-                timestamp: lossTs,
-                last_updated: lossTs,
-                locked: true,
-                raw_data: beforeLossCoord.raw_data,
-                testNo,
-                testName,
-                testFeatureType: 'gps_recovery',
-                pointType: 'loss',
-                pinColor: '#e65100',
-                dotColor: '#ffffff',
-                label: `Signal Loss Point\n${formatCoordLine({ lat: lossLat, lng: lossLng, timestamp: lossTs })}`
-            },
-            {
-                imei,
-                markerId: `${imei}_recovered`,
-                latitude: recLat,
-                longitude: recLng,
-                speed: recoveredCoord.speed || 0,
-                timestamp: recTs,
-                last_updated: recTs,
-                locked: true,
-                raw_data: recoveredCoord.raw_data,
-                testNo,
-                testName,
-                testFeatureType: 'gps_recovery',
-                pointType: 'recovered',
-                pinColor: '#2e7d32',
-                dotColor: '#ffffff',
-                label: `Signal Recovery Point (Signal Restored)\n${formatCoordLine({ lat: recLat, lng: recLng, timestamp: recTs })}`
-            }
-        ];
     }
 
     // ─────────────────────────────────────────────
@@ -735,7 +642,7 @@ const processTestPointsForMap = (arg1, arg2, arg3, arg4, arg5) => {
                     last_updated: primaryCoord.timestamp,
                     locked: true,
                     raw_data: primaryCoord.raw_data,
-                    testNo,
+                    testNo: getDisplaySerialNo(testNo),
                     testName,
                     testFeatureType: 'esim',
                     pointType: 'primary',
@@ -753,7 +660,7 @@ const processTestPointsForMap = (arg1, arg2, arg3, arg4, arg5) => {
                     last_updated: secondaryCoord.timestamp,
                     locked: true,
                     raw_data: secondaryCoord.raw_data,
-                    testNo,
+                    testNo: getDisplaySerialNo(testNo),
                     testName,
                     testFeatureType: 'esim',
                     pointType: 'secondary',
@@ -776,7 +683,7 @@ const processTestPointsForMap = (arg1, arg2, arg3, arg4, arg5) => {
             last_updated: single.timestamp,
             locked: true,
             raw_data: single.raw_data,
-            testNo,
+            testNo: getDisplaySerialNo(testNo),
             testName,
             testFeatureType: 'esim',
             pinColor: '#1a237e',
@@ -1467,7 +1374,7 @@ const DeviceLocationMapModal = ({ open, onClose, imei, testNo, testName, rowId, 
                     <LocationOnIcon sx={{ color: '#ffffff', fontSize: 30 }} />
                     <Box sx={{ flex: 1 }}>
                         <Typography variant="h6" sx={{ color: '#ffffff', fontWeight: 700, lineHeight: 1.2 }}>
-                            Test #{testNo}{testName ? `: ${testName}` : ''}
+                            Test #{getDisplaySerialNo(testNo)}{testName ? `: ${testName}` : ''}
                         </Typography>
                         <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.92)', display: 'block', mt: 0.4 }}>
                             IMEI: <b>{imei}</b>
@@ -1850,6 +1757,237 @@ const CommandRepliesPanel = ({ snapshot }) => {
                 );
             })}
         </Box>
+    );
+};
+
+// SMS tests (activation reply, SMS fallback): SMS from the device that came in
+// through the SMS receive mechanism during this attempt.
+const SmsReceivedPanel = ({ snapshot }) => {
+    if (!["activation_sms", "sms_fallback"].includes(snapshot?.mode)) return null;
+    const messages = snapshot?.sms_received || [];
+    return (
+        <Box sx={{ width: "100%", textAlign: "left", mb: 0.5, p: 0.5, bgcolor: "#fafafa", border: "1px solid #e0e0e0", borderRadius: 1 }}>
+            <Typography variant="caption" sx={{ fontSize: "0.6rem", fontWeight: 700, color: "#37474f", display: "block" }}>
+                SMS received from the device
+                {Array.isArray(snapshot?.keys_sent) && snapshot.keys_sent.length > 0 && ` · key sent: ${snapshot.keys_sent.join(", ")}`}
+            </Typography>
+            {messages.length === 0 ? (
+                <Typography variant="caption" sx={{ fontSize: "0.58rem", color: "text.secondary", fontStyle: "italic", display: "block" }}>
+                    No SMS yet. SMS can take a few minutes to arrive.
+                </Typography>
+            ) : messages.slice(-4).map((m, idx) => (
+                <Typography key={`${m.timestamp}_${idx}`} variant="caption" sx={{ fontSize: "0.58rem", fontFamily: "monospace", color: "#1b5e20", display: "block", wordBreak: "break-all" }}>
+                    ◀ {formatClock(m.timestamp)} [{m.sender}] {m.raw_data}
+                </Typography>
+            ))}
+        </Box>
+    );
+};
+
+/* ═══════════════════════════════════════════════════
+   LIVE STATUS OF THE DEMO DEVICES (top of the test board)
+   ═══════════════════════════════════════════════════ */
+const LIVE_STATUS_POLL_MS = 10000;
+const CONNECTION_STYLE = {
+    online: { label: "Online", color: "#2e7d32", bg: "#e8f5e9" },
+    stale: { label: "Delayed", color: "#e65100", bg: "#fff3e0" },
+    offline: { label: "Offline", color: "#c62828", bg: "#ffebee" },
+    no_data: { label: "No data", color: "#757575", bg: "#f5f5f5" },
+};
+
+const formatAge = (seconds) => {
+    if (seconds === null || seconds === undefined) return "—";
+    if (seconds < 60) return `${seconds}s ago`;
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    return `${Math.floor(seconds / 86400)}d ago`;
+};
+
+const onOff = (value, on = "ON", off = "OFF") => (value === "1" ? on : value === "0" ? off : "—");
+
+const LiveDevicesMap = ({ devices }) => {
+    const mapRef = useRef(null);
+    const mapInstanceRef = useRef(null);
+    const sourceRef = useRef(null);
+    const fittedRef = useRef(false);
+
+    useEffect(() => {
+        if (!mapRef.current) return undefined;
+        const tileSource = process.env.REACT_APP_TILE_SERVER_URL
+            ? new OlXYZ({ url: process.env.REACT_APP_TILE_SERVER_URL, maxZoom: 20 })
+            : new OlOSM();
+        sourceRef.current = new OlVectorSource();
+        mapInstanceRef.current = new OlMap({
+            target: mapRef.current,
+            layers: [new OlTileLayer({ source: tileSource }), new OlVectorLayer({ source: sourceRef.current, zIndex: 10 })],
+            view: new OlView({ center: fromLonLat([91.75, 26.19]), zoom: 12, maxZoom: 19 }),
+            controls: [],
+        });
+        return () => {
+            mapInstanceRef.current?.setTarget(null);
+            mapInstanceRef.current = null;
+        };
+    }, []);
+
+    useEffect(() => {
+        const source = sourceRef.current;
+        const map = mapInstanceRef.current;
+        if (!source || !map) return;
+        source.clear();
+        devices.forEach((d, idx) => {
+            const lat = d.pvt?.latitude;
+            const lng = d.pvt?.longitude;
+            if (!Number.isFinite(lat) || !Number.isFinite(lng) || (lat === 0 && lng === 0)) return;
+            const color = (CONNECTION_STYLE[d.connection] || CONNECTION_STYLE.no_data).color;
+            const feature = new Feature({ geometry: new Point(fromLonLat([lng, lat])) });
+            feature.setStyle(new OlStyle({
+                image: new OlIcon({ anchor: [0.5, 1.0], src: getCustomPinSvg(color, "#ffffff"), scale: 0.6 }),
+                text: new OlText({
+                    text: `${idx + 1}: ${d.pvt?.vehicle_reg_no || String(d.imei).slice(-5)}`,
+                    font: 'bold 10px "Roboto", Arial, sans-serif',
+                    fill: new OlFill({ color }),
+                    stroke: new OlStroke({ color: "#ffffff", width: 2.5 }),
+                    offsetY: -32,
+                }),
+            }));
+            source.addFeature(feature);
+        });
+        if (!fittedRef.current && source.getFeatures().length > 0) {
+            map.updateSize();
+            map.getView().fit(source.getExtent(), { padding: [40, 40, 40, 40], maxZoom: 16 });
+            fittedRef.current = true;
+        }
+    }, [devices]);
+
+    return <Box ref={mapRef} sx={{ width: "100%", height: 300, borderRadius: 1, overflow: "hidden", border: "1px solid #e0e0e0" }} />;
+};
+
+const LiveDeviceStatusPanel = ({ onboardingRequestId }) => {
+    const [devices, setDevices] = useState([]);
+    const [refreshedAt, setRefreshedAt] = useState(null);
+    const [error, setError] = useState("");
+    const [expanded, setExpanded] = useState(true);
+
+    const fetchStatus = useCallback(async () => {
+        if (!onboardingRequestId) return;
+        try {
+            const res = await DeviceModelServices.getDemoDeviceLiveStatus({ onboarding_request_id: onboardingRequestId });
+            const data = res?.data?.data || res?.data || {};
+            setDevices(Array.isArray(data.devices) ? data.devices : []);
+            setRefreshedAt(data.refreshed_at || new Date().toISOString());
+            setError("");
+        } catch (err) {
+            setError(err?.response?.data?.error || err.message || "Could not load the live status.");
+        }
+    }, [onboardingRequestId]);
+
+    useEffect(() => {
+        fetchStatus();
+        const t = setInterval(fetchStatus, LIVE_STATUS_POLL_MS);
+        return () => clearInterval(t);
+    }, [fetchStatus]);
+
+    const cell = { fontSize: "0.72rem", py: 0.75, px: 1, verticalAlign: "top" };
+    const sub = { fontSize: "0.62rem", color: "text.secondary", display: "block" };
+
+    return (
+        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mb: 3, bgcolor: "#fff", borderColor: "#e0e0e0" }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: expanded ? 1.5 : 0 }}>
+                <Box>
+                    <Typography variant="subtitle1" fontWeight={700}>Live status of the test devices</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                        From each device's latest packet · refreshes every {LIVE_STATUS_POLL_MS / 1000}s
+                        {refreshedAt ? ` · updated ${formatClock(refreshedAt)}` : ""}
+                    </Typography>
+                </Box>
+                <Box sx={{ display: "flex", gap: 0.5 }}>
+                    <Tooltip title="Refresh now">
+                        <IconButton size="small" onClick={fetchStatus}><RefreshIcon fontSize="small" /></IconButton>
+                    </Tooltip>
+                    <IconButton size="small" onClick={() => setExpanded((v) => !v)}>
+                        {expanded ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />}
+                    </IconButton>
+                </Box>
+            </Box>
+            <Collapse in={expanded}>
+                {error && <Alert severity="warning" sx={{ mb: 1.5, py: 0.25 }}>{error}</Alert>}
+                <Grid container spacing={2}>
+                    <Grid item xs={12} lg={8}>
+                        <TableContainer sx={{ border: "1px solid #e0e0e0", borderRadius: 1 }}>
+                            <Table size="small">
+                                <TableHead sx={{ bgcolor: "#f9fafb" }}>
+                                    <TableRow>
+                                        {["Device", "Last data", "Reg. no / FW", "Profile / network", "Location", "Ignition / power", "Battery / SOS", "Running test"].map((h) => (
+                                            <TableCell key={h} sx={{ ...cell, fontWeight: 700 }}>{h}</TableCell>
+                                        ))}
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {devices.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={8} align="center" sx={{ ...cell, py: 2, color: "text.secondary" }}>
+                                                {error ? "—" : "Loading…"}
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : devices.map((d, idx) => {
+                                        const p = d.pvt || {};
+                                        const conn = CONNECTION_STYLE[d.connection] || CONNECTION_STYLE.no_data;
+                                        const hasFix = Number.isFinite(p.latitude) && Number.isFinite(p.longitude) && (p.latitude !== 0 || p.longitude !== 0);
+                                        return (
+                                            <TableRow key={d.demo_device_id || d.imei}>
+                                                <TableCell sx={cell}>
+                                                    <b>{idx + 1}.</b> <span style={{ fontFamily: "monospace" }}>{d.imei}</span>
+                                                    <Typography component="span" sx={sub}>SIM: {d.msisdn1 || "—"}{d.msisdn2 ? ` / ${d.msisdn2}` : ""}</Typography>
+                                                </TableCell>
+                                                <TableCell sx={cell}>
+                                                    <Chip label={conn.label} size="small" sx={{ height: 18, fontSize: "0.6rem", fontWeight: 700, bgcolor: conn.bg, color: conn.color }} />
+                                                    <Typography component="span" sx={sub}>{d.last_data_at ? `${formatClock(d.last_data_at)} (${formatAge(d.last_data_age_seconds)})` : "never"}</Typography>
+                                                    {p.packet_type && <Typography component="span" sx={sub}>Last PVT: {p.packet_type},{p.alert_id} {p.packet_status === "H" ? "(history)" : ""}</Typography>}
+                                                    {d.last_health_at && <Typography component="span" sx={sub}>Health: {formatClock(d.last_health_at)}</Typography>}
+                                                </TableCell>
+                                                <TableCell sx={cell}>
+                                                    <b>{p.vehicle_reg_no || "—"}</b>
+                                                    <Typography component="span" sx={sub}>FW {p.firmware || "—"}</Typography>
+                                                </TableCell>
+                                                <TableCell sx={cell}>
+                                                    {d.sim_profile ? <b>Profile {d.sim_profile.profile}</b> : <span style={{ color: "#757575" }}>Profile —</span>}
+                                                    <Typography component="span" sx={sub}>{p.network_operator || "—"}{p.mcc ? ` (${p.mcc}-${p.mnc})` : ""}</Typography>
+                                                    {p.gsm_signal && <Typography component="span" sx={sub}>Signal {p.gsm_signal}/31</Typography>}
+                                                </TableCell>
+                                                <TableCell sx={cell}>
+                                                    {hasFix ? `${p.latitude.toFixed(6)}, ${p.longitude.toFixed(6)}` : "No fix"}
+                                                    <Typography component="span" sx={sub}>
+                                                        GPS {p.gps_fix === "1" ? "fix" : "no fix"}{p.satellites ? ` · ${p.satellites} sats` : ""} · {p.speed ?? "—"} km/h
+                                                    </Typography>
+                                                </TableCell>
+                                                <TableCell sx={cell}>
+                                                    <Chip label={`Ign ${onOff(p.ignition)}`} size="small" sx={{ height: 18, fontSize: "0.6rem", fontWeight: 700, bgcolor: p.ignition === "1" ? "#e8f5e9" : "#eceff1", color: p.ignition === "1" ? "#2e7d32" : "#455a64" }} />
+                                                    <Typography component="span" sx={sub}>Main power {onOff(p.main_power, "connected", "disconnected")}</Typography>
+                                                    <Typography component="span" sx={sub}>Ext {p.external_voltage ?? "—"} V</Typography>
+                                                </TableCell>
+                                                <TableCell sx={cell}>
+                                                    Int {p.internal_voltage ?? "—"} V
+                                                    <Typography component="span" sx={{ ...sub, color: p.emergency_status === "1" ? "#c62828" : "text.secondary", fontWeight: p.emergency_status === "1" ? 700 : 400 }}>
+                                                        SOS {onOff(p.emergency_status)}
+                                                    </Typography>
+                                                    <Typography component="span" sx={sub}>Box {p.box_tamper === "O" ? "open" : p.box_tamper === "C" ? "closed" : "—"}</Typography>
+                                                </TableCell>
+                                                <TableCell sx={cell}>
+                                                    {d.running_test ? `#${d.running_test.sequence ?? getDisplaySerialNo(d.running_test.serial_no)} ${d.running_test.name}` : "—"}
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Grid>
+                    <Grid item xs={12} lg={4}>
+                        <LiveDevicesMap devices={devices} />
+                    </Grid>
+                </Grid>
+            </Collapse>
+        </Paper>
     );
 };
 
@@ -2299,6 +2437,9 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
     const [commands, setCommands] = useState([]);
     const [history, setHistory] = useState([]);
     const [paramValues, setParamValues] = useState({});
+    // Per-command channel override ("mqtt" | "sms"); default is the command's own channel.
+    const [channels, setChannels] = useState({});
+    const [customChannel, setCustomChannel] = useState("mqtt");
     const [customCmd, setCustomCmd] = useState("");
     const [sendingKey, setSendingKey] = useState(null);
     const [sendingCustom, setSendingCustom] = useState(false);
@@ -2329,6 +2470,8 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
             setFeedback(null);
             setCustomCmd("");
             setParamValues({});
+            setChannels({});
+            setCustomChannel("mqtt");
             fetchCommands(true);
         }
     }, [open, execution?.id, fetchCommands]);
@@ -2342,6 +2485,8 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
 
     const commandKey = (cmd, idx) => cmd.key || cmd.command_key || cmd.name || `cmd_${idx}`;
     const commandTemplate = (cmd) => cmd.command || cmd.command_template || "";
+    const commandChannel = (cmd, key) => channels[key] || cmd.channel || "mqtt";
+    const channelText = (channel) => (channel === "sms" ? `by SMS to ${execution?.demo_device?.msisdn1 || "the device SIM"}` : "over MQTT");
 
     const handleSendConfigured = async (cmd) => {
         if (execution?.status !== 'in_progress') {
@@ -2352,7 +2497,7 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
         const val = (paramValues[key] || "").trim();
         const label = cmd.label || cmd.command_name || key;
 
-        if (commandTemplate(cmd).includes("{value}") && !val) {
+        if (commandTemplate(cmd).includes("{value}") && !val && !cmd.auto_value) {
             setFeedback({ type: 'error', text: `Enter a value for "${label}"${cmd.value_hint ? ` (e.g. ${cmd.value_hint})` : ''}.` });
             return;
         }
@@ -2372,15 +2517,17 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
         setSendingKey(key);
         setFeedback(null);
         try {
+            const channel = commandChannel(cmd, key);
             const res = await DeviceModelServices.sendTestCommand({
                 execution_id: execution.id,
                 command_key: key,
-                value: val
+                value: val,
+                channel
             });
             const resData = res?.data?.data || res?.data || {};
             setFeedback({
                 type: 'success',
-                text: `Sent ${resData.command_sent || label} to the device over MQTT. Waiting for the device reply…`
+                text: `Sent ${resData.command_sent || label} ${channelText(resData.channel || channel)}. Waiting for the device reply…`
             });
             setParamValues(prev => ({ ...prev, [key]: '' }));
             fetchCommands(false);
@@ -2405,12 +2552,13 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
         try {
             const res = await DeviceModelServices.sendTestCommand({
                 execution_id: execution.id,
-                command: customCmd.trim()
+                command: customCmd.trim(),
+                channel: customChannel
             });
             const resData = res?.data?.data || res?.data || {};
             setFeedback({
                 type: 'success',
-                text: `Sent ${resData.command_sent || customCmd.trim()} to the device over MQTT. Waiting for the device reply…`
+                text: `Sent ${resData.command_sent || customCmd.trim()} ${channelText(resData.channel || customChannel)}. Waiting for the device reply…`
             });
             setCustomCmd("");
             fetchCommands(false);
@@ -2431,7 +2579,7 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                     <SendIcon sx={{ color: '#00e5ff' }} />
                     <Box>
                         <Typography variant="subtitle1" sx={{ color: '#fff', fontWeight: 700, lineHeight: 1.2 }}>
-                            Device MQTT Commands & Live Replies
+                            Device Commands (MQTT / SMS) & Live Replies
                         </Typography>
                         <Typography variant="caption" sx={{ color: '#b0bec5', fontSize: '0.72rem' }}>
                             Test #{getDisplaySerialNo(step?.serial_no)}: {step?.name} • IMEI: {imei || 'N/A'}
@@ -2446,6 +2594,11 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                 {execution?.status !== 'in_progress' && (
                     <Alert severity="warning" sx={{ mb: 2, py: 0.5, fontSize: '0.78rem' }}>
                         Test is currently <b>{execution?.status || 'inactive'}</b>. Commands can only be sent while the test is actively running.
+                    </Alert>
+                )}
+                {['activation_sms', 'sms_fallback'].includes(step?.source_table) && (
+                    <Alert severity="info" sx={{ mb: 2, py: 0.5, fontSize: '0.78rem' }}>
+                        The device's SMS reply comes in through the SMS gateway and shows up under Device Replies. SMS can take a few minutes.
                     </Alert>
                 )}
                 {step?.source_table === 'command_reply' && (
@@ -2506,9 +2659,21 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                                                         )}
                                                         {template && (
                                                             <Typography variant="caption" sx={{ fontFamily: 'monospace', color: '#0277bd', display: 'block', mt: 0.25 }}>
-                                                                Command: @{template}*
+                                                                Command: {cmd.frame === false ? template : `@${template}*`}
                                                             </Typography>
                                                         )}
+                                                        <TextField
+                                                            select
+                                                            size="small"
+                                                            value={commandChannel(cmd, key)}
+                                                            onChange={(e) => setChannels(prev => ({ ...prev, [key]: e.target.value }))}
+                                                            sx={{ mt: 0.75, minWidth: 120 }}
+                                                            inputProps={{ style: { fontSize: '0.75rem' } }}
+                                                            SelectProps={{ sx: { fontSize: '0.75rem' } }}
+                                                        >
+                                                            <MenuItem value="mqtt" sx={{ fontSize: '0.75rem' }}>Send via MQTT</MenuItem>
+                                                            <MenuItem value="sms" sx={{ fontSize: '0.75rem' }}>Send via SMS</MenuItem>
+                                                        </TextField>
                                                     </Grid>
                                                     {requiresVal && (
                                                         <Grid item xs={12} sm={5}>
@@ -2516,7 +2681,7 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                                                                 size="small"
                                                                 fullWidth
                                                                 placeholder={cmd.value_hint || "Enter parameter value"}
-                                                                helperText={cmd.value_hint ? `Format: ${cmd.value_hint}` : undefined}
+                                                                helperText={cmd.auto_value ? cmd.value_hint : cmd.value_hint ? `Format: ${cmd.value_hint}` : undefined}
                                                                 value={paramValues[key] || ""}
                                                                 onChange={(e) => setParamValues(prev => ({ ...prev, [key]: e.target.value }))}
                                                                 inputProps={{ style: { fontSize: '0.85rem' } }}
@@ -2563,7 +2728,7 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                                             placeholder="e.g. OT,12,0,192.168.1.1,5000 or FACTORY_RESET"
                                             value={customCmd}
                                             onChange={(e) => setCustomCmd(e.target.value)}
-                                            helperText="Backend automatically wraps command delimiters and delivers to device via MQTT."
+                                            helperText="The backend adds the @…* framing and sends it over the channel chosen on the right."
                                             inputProps={{ style: { fontFamily: 'monospace', fontSize: '0.85rem' } }}
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter' && !sendingCustom && customCmd.trim()) {
@@ -2574,6 +2739,18 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                                         />
                                     </Grid>
                                     <Grid item xs={12} sm={3} sx={{ textAlign: 'right' }}>
+                                        <TextField
+                                            select
+                                            size="small"
+                                            fullWidth
+                                            value={customChannel}
+                                            onChange={(e) => setCustomChannel(e.target.value)}
+                                            sx={{ mb: 1 }}
+                                            SelectProps={{ sx: { fontSize: '0.75rem' } }}
+                                        >
+                                            <MenuItem value="mqtt" sx={{ fontSize: '0.75rem' }}>Via MQTT</MenuItem>
+                                            <MenuItem value="sms" sx={{ fontSize: '0.75rem' }}>Via SMS</MenuItem>
+                                        </TextField>
                                         <Button
                                             variant="contained"
                                             size="small"
@@ -2647,6 +2824,9 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                                                         </TableCell>
                                                         <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.78rem', fontWeight: 600, color: '#0d1b2a', wordBreak: 'break-all' }}>
                                                             {item.command_sent || item.command || item.command_key || '—'}
+                                                            {item.channel && (
+                                                                <Chip label={item.channel === 'sms' ? 'SMS' : 'MQTT'} size="small" sx={{ ml: 0.5, height: 16, fontSize: '0.55rem' }} />
+                                                            )}
                                                             {item.command_label && (
                                                                 <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontFamily: 'inherit', fontSize: '0.65rem' }}>
                                                                     {item.command_label}{item.value ? ` (${item.value})` : ''}
@@ -2886,6 +3066,8 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
 
     // Checklist states
     const [activeTestId, setActiveTestId] = useState(1);
+    // Run-order number of the unlocked test (null on old backends, then serial order is used).
+    const [activeSequence, setActiveSequence] = useState(null);
     const [deviceTestResults, setDeviceTestResults] = useState({});
     const [startingDeviceTestId, setStartingDeviceTestId] = useState(null);
     const [completingExecId, setCompletingExecId] = useState(null);
@@ -2968,7 +3150,9 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
             }
 
             if (categories.length > 0) {
+                rememberDisplayNumbers(categories);
                 setTestBoardCategories(categories);
+                setActiveSequence(res?.data?.current_unlocked_sequence ?? null);
                 if (res?.data?.current_unlocked_serial_no !== undefined && res?.data?.current_unlocked_serial_no !== null) {
                     setActiveTestId(res.data.current_unlocked_serial_no);
                 } else {
@@ -3003,6 +3187,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
             setFieldErrors({});
             setApiError("");
             setActiveTestId(1);
+            setActiveSequence(null);
             setDeviceTestResults({});
 
             // Fetch test board data
@@ -3851,6 +4036,9 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
 
             <DialogContent sx={{ p: 0, bgcolor: '#f5f7fa' }}>
                 <Box p={3}>
+                    {/* Live status of the demo devices */}
+                    {row?.id && <LiveDeviceStatusPanel onboardingRequestId={row.id} />}
+
                     {/* Top Block */}
                     <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mb: 3, bgcolor: '#f9fbfd', borderColor: '#e0e0e0' }}>
                         <Grid container rowSpacing={1} columnSpacing={2}>
@@ -3967,7 +4155,9 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                         // NOTE: Op NOT shown in title for test #23/24 — per-device display instead.
 
                                         const isUnlocked = step.serial_no === activeTestId;
-                                        const isCompleted = step.serial_no < activeTestId;
+                                        const isCompleted = activeSequence !== null && step.sequence
+                                            ? step.sequence < activeSequence
+                                            : step.serial_no < activeTestId;
                                         return (
                                             <TableRow key={step.id}>
                                                 <TableCell sx={{ verticalAlign: 'top', pt: 2 }}>{getDisplaySerialNo(step.serial_no)}</TableCell>
@@ -4160,7 +4350,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                 setLocationMapState({
                                                                                     open: true,
                                                                                     imei: deviceImei,
-                                                                                    testNo: getDisplaySerialNo(step.serial_no),
+                                                                                    testNo: step.serial_no,
                                                                                     testName: step.name,
                                                                                     rowId: row.id,
                                                                                     samples: resolvedSamples,
@@ -4178,7 +4368,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                             fallbackCoord={lockedCoord}
                                                                                             lat={lockedCoord?.lat}
                                                                                             lng={lockedCoord?.lng}
-                                                                                            testNo={getDisplaySerialNo(step.serial_no)}
+                                                                                            testNo={step.serial_no}
                                                                                             testName={step.name}
                                                                                             onClick={handleOpenBigMap}
                                                                                         />
@@ -4305,7 +4495,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                             </Tooltip>
                                                                         )}
                                                                         {step.requires_command && (
-                                                                            <Tooltip title="Send MQTT Command">
+                                                                            <Tooltip title="Send a command (MQTT or SMS)">
                                                                                 <Button
                                                                                     variant="contained"
                                                                                     size="small"
@@ -4370,6 +4560,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                         );
                                                                     })()}
                                                                     <CommandRepliesPanel snapshot={parseSnapshot(execution)} />
+                                                                    <SmsReceivedPanel snapshot={parseSnapshot(execution)} />
                                                                     {isLocationTest(step.serial_no, step.name, step) && (() => {
                                                                         let snapshotObj = null;
                                                                         if (typeof execution?.test_log_snapshot === 'string') {
@@ -4414,7 +4605,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                             setLocationMapState({
                                                                                 open: true,
                                                                                 imei: deviceImei,
-                                                                                testNo: getDisplaySerialNo(step.serial_no),
+                                                                                testNo: step.serial_no,
                                                                                 testName: step.name,
                                                                                 rowId: row.id,
                                                                                 samples: resolvedSamples,
@@ -4432,7 +4623,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                         fallbackCoord={lockedCoord}
                                                                                         lat={lockedCoord?.lat}
                                                                                         lng={lockedCoord?.lng}
-                                                                                        testNo={getDisplaySerialNo(step.serial_no)}
+                                                                                        testNo={step.serial_no}
                                                                                         testName={step.name}
                                                                                         onClick={handleOpenBigMap}
                                                                                     />
@@ -4738,6 +4929,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                     </Typography>
                                                                                 )}
                                                                                 <CommandRepliesPanel snapshot={lastSnap} />
+                                                                                <SmsReceivedPanel snapshot={lastSnap} />
                                                                                 <TestTimes started={lastSnap?.test_started_at || execution?.started_at} ended={lastSnap?.scan_ended_at || execution?.completed_at} />
                                                                             </Box>
                                                                         );
@@ -4945,7 +5137,8 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
         if (!demoDevices || demoDevices.length === 0) return null;
 
         let hasAnyProgress = false;
-        let completed = 40;
+        let completed = Infinity;
+        let totalTests = 0;
         let currentTestName = "";
         let lastCompletedName = "";
 
@@ -4953,8 +5146,10 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
             const cp = d.checkpoint_status;
             if (cp && (cp.last_completed_test_no !== null || cp.next_test_no !== null || cp.next_test_name || cp.last_completed_test_name)) {
                 hasAnyProgress = true;
-                const rawDevCompleted = cp.last_completed_test_no || 0;
-                const devCompleted = Math.min(getDisplaySerialNo(rawDevCompleted) || 0, 40);
+                totalTests = Math.max(totalTests, Number(cp.total_tests) || 0);
+                const devCompleted = typeof cp.completed_count === 'number'
+                    ? cp.completed_count
+                    : Number(getDisplaySerialNo(cp.last_completed_test_no)) || 0;
                 if (devCompleted < completed) {
                     completed = devCompleted;
                     currentTestName = cp.next_test_name || "";
@@ -4966,11 +5161,13 @@ const RequestRow = ({ row, onMarkReceived, onConfirmReceipt, onDeviceConfirmRece
         });
 
         if (!hasAnyProgress) return null;
+        const total = totalTests || 40;
+        completed = Math.min(completed === Infinity ? 0 : completed, total);
 
         return {
-            total: 40,
+            total,
             completed,
-            currentTestName: currentTestName || (completed >= 40 ? "All tests completed" : ""),
+            currentTestName: currentTestName || (completed >= total ? "All tests completed" : ""),
             lastCompletedName
         };
     }, [demoDevices]);

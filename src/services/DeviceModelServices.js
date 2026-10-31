@@ -143,6 +143,11 @@ const getDemoDeviceHistory = (data) => {
   return http.post("/api/devicemodel/technical-onboarding/superadmin/demo-device-history/", data);
 };
 
+const getDemoDeviceLiveStatus = (data) => {
+  const http = getAxiosInstance();
+  return http.post("/api/devicemodel/technical-onboarding/superadmin/demo-device-live-status/", data);
+};
+
 const listTestCommands = (data) => {
   const http = getAxiosInstance();
   return http.post("/api/devicemodel/technical-onboarding/superadmin/test-commands/", data);
@@ -204,6 +209,7 @@ const DeviceModelServices = {
   refreshLogTestBoard,
   completeTestBoard,
   getDemoDeviceHistory,
+  getDemoDeviceLiveStatus,
   listTestCommands,
   sendTestCommand,
   listTestCases,
