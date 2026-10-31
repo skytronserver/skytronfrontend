@@ -3195,31 +3195,26 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
         }
     }, [open, row?.id, fetchTestBoard]);
 
-    // Polling effect for in-progress tests
+    // Heartbeat for in-progress tests. Reads the board through boardRef so the
+    // timer isn't recreated on every board refresh (the scan loop refreshes it
+    // every ~5s, which used to reset this 5s timer before it ever fired, and
+    // the backend then dropped the test as abandoned after ~45s).
     useEffect(() => {
-        if (!open) return;
-
-        const inProgressExecutions = [];
-        testBoardCategories.forEach(cat => {
-            if (cat.executions) {
-                cat.executions.forEach(exec => {
-                    if (exec.status === "in_progress" && exec.id) {
-                        inProgressExecutions.push(exec.id);
-                    }
+        if (!open) return undefined;
+        const beat = () => {
+            const ids = [];
+            (boardRef.current || []).forEach(cat => {
+                (cat.executions || []).forEach(exec => {
+                    if (exec.status === "in_progress" && exec.id) ids.push(exec.id);
                 });
-            }
-        });
-
-        if (inProgressExecutions.length === 0) return;
-
-        const interval = setInterval(() => {
-            Promise.all(inProgressExecutions.map(execId =>
+            });
+            ids.forEach(execId =>
                 DeviceModelServices.heartbeatTestBoard({ execution_id: execId }).catch(e => console.error(e))
-            ));
-        }, 5000);
-
+            );
+        };
+        const interval = setInterval(beat, 5000);
         return () => clearInterval(interval);
-    }, [open, testBoardCategories, fetchTestBoard]);
+    }, [open]);
 
     const handleStartTest = async (testCaseId, demoDeviceId) => {
         const key = `${testCaseId}_${demoDeviceId}`;
