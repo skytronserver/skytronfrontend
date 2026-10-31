@@ -1820,6 +1820,39 @@ const ScanStatusPanel = ({ execution, snapshot, onStop, stopping }) => {
     );
 };
 
+// Command reply tests (#42-#59): the device's OT,12 replies seen in this attempt,
+// whether the command came from the board (SERVER) or by SMS from a phone.
+const CommandRepliesPanel = ({ snapshot }) => {
+    const replies = (snapshot?.command_replies || []).filter((r) => r.command_key);
+    if (snapshot?.mode !== "command_reply") return null;
+    return (
+        <Box sx={{ width: "100%", textAlign: "left", mb: 0.5, p: 0.5, bgcolor: "#fafafa", border: "1px solid #e0e0e0", borderRadius: 1 }}>
+            <Typography variant="caption" sx={{ fontSize: "0.6rem", fontWeight: 700, color: "#37474f", display: "block" }}>
+                Device replies (OT,12)
+            </Typography>
+            {replies.length === 0 ? (
+                <Typography variant="caption" sx={{ fontSize: "0.58rem", color: "text.secondary", fontStyle: "italic", display: "block" }}>
+                    No reply yet. Send the command from Send Cmd, or by SMS to the device.
+                </Typography>
+            ) : replies.slice(-4).map((r, idx) => {
+                const color = r.reply_ok === true ? "#2e7d32" : r.reply_ok === false ? "#c62828" : "#455a64";
+                return (
+                    <Box key={`${r.timestamp}_${idx}`} sx={{ mt: 0.25 }}>
+                        <Typography variant="caption" sx={{ fontSize: "0.58rem", fontFamily: "monospace", color, display: "block", wordBreak: "break-all" }}>
+                            {r.reply_ok === true ? "✓" : r.reply_ok === false ? "✗" : "•"} {formatClock(r.timestamp)} [{r.source}] {r.text}
+                        </Typography>
+                        {r.reply_ok === false && Array.isArray(r.expected_reply) && (
+                            <Typography variant="caption" sx={{ fontSize: "0.55rem", color: "#c62828", display: "block" }}>
+                                Expected: {r.expected_reply.join(" + ")}
+                            </Typography>
+                        )}
+                    </Box>
+                );
+            })}
+        </Box>
+    );
+};
+
 const SPEED_COLORS = { 20: "#2e7d32", 40: "#f57f17", 70: "#d32f2f" };
 const SEGMENT_STATE_LABEL = {
     not_started: { label: "Not started", color: "#757575", bg: "#f5f5f5" },
@@ -2413,6 +2446,11 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                 {execution?.status !== 'in_progress' && (
                     <Alert severity="warning" sx={{ mb: 2, py: 0.5, fontSize: '0.78rem' }}>
                         Test is currently <b>{execution?.status || 'inactive'}</b>. Commands can only be sent while the test is actively running.
+                    </Alert>
+                )}
+                {step?.source_table === 'command_reply' && (
+                    <Alert severity="info" sx={{ mb: 2, py: 0.5, fontSize: '0.78rem' }}>
+                        Send the command from here, or by SMS to the device SIM. Either way the test passes on the device's OT reply. The Read command is optional and shows the value the device now holds.
                     </Alert>
                 )}
                 {feedback && (
@@ -4331,6 +4369,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                             </Box>
                                                                         );
                                                                     })()}
+                                                                    <CommandRepliesPanel snapshot={parseSnapshot(execution)} />
                                                                     {isLocationTest(step.serial_no, step.name, step) && (() => {
                                                                         let snapshotObj = null;
                                                                         if (typeof execution?.test_log_snapshot === 'string') {
@@ -4698,6 +4737,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                         {lastSnap.reason}
                                                                                     </Typography>
                                                                                 )}
+                                                                                <CommandRepliesPanel snapshot={lastSnap} />
                                                                                 <TestTimes started={lastSnap?.test_started_at || execution?.started_at} ended={lastSnap?.scan_ended_at || execution?.completed_at} />
                                                                             </Box>
                                                                         );
