@@ -45,6 +45,7 @@ sudo docker-compose build --pull \
   --build-arg FTP_PROXY=http://192.0.2.12:8080 \
   --no-cache app
 
+
 # Remove the old container (and its anonymous volume) before starting the new
 # one. docker-compose 1.x crashes with "KeyError: 'ContainerConfig'" when it
 # tries to recreate a container in place on newer Docker engines — that is
