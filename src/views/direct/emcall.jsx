@@ -1212,20 +1212,32 @@ const EMCall = () => {
         //   );
         // }
 
-        if (emCallNewIncomingCallRef.current && !processableCalls.some(c => c.id === emCallNewIncomingCallRef.current.id)) {
-          setNewIncomingCall(null);
-          emCallAudio.pause();
-          emCallAudio.currentTime = 0;
-          clearTimeout(emBuzzerTimeout.current);
+        // Rings while pending; for the team lead only once escalated
+        // (desk_ex has not accepted it in time).
+        const isAlertable = (c) =>
+          c?.call?.status === 'pending' &&
+          c?.status === 'pending' &&
+          c?.escalated !== false;
+
+        // Close the popup once its call is gone or no longer needs attention
+        // (e.g. a desk executive accepted it while the team lead was alerted).
+        if (emCallNewIncomingCallRef.current) {
+          const current = processableCalls.find(c => c.id === emCallNewIncomingCallRef.current.id);
+          if (!current || !isAlertable(current)) {
+            setNewIncomingCall(null);
+            emCallAudio.pause();
+            emCallAudio.currentTime = 0;
+            clearTimeout(emBuzzerTimeout.current);
+          }
         }
 
+        // Ring for rows that just became alertable: new rows, and team lead
+        // rows that were listed quietly and have now escalated.
         const found = processableCalls.find(
           (c) =>
-            c.call?.status === 'pending' &&
-            c?.status === 'pending' &&
-            c?.escalated !== false && // teamlead: desk_ex already took this call
+            isAlertable(c) &&
             c.id !== call?.id && // exclude the current active call
-            !emCallPreviousCallsRef.current.some((prev) => prev.id === c.id)
+            !emCallPreviousCallsRef.current.some((prev) => prev.id === c.id && isAlertable(prev))
         );
         if (found) {
           setNewIncomingCall(found);

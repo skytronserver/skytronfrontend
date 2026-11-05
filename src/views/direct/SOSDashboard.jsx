@@ -296,20 +296,32 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
     }
   };
 
+  // A row rings while it is pending; for the team lead only once escalated
+  // (desk_ex has not accepted it in time), so escalated=false never rings.
+  const isAlertable = (call) =>
+    call?.call?.status === 'pending' &&
+    call?.status === 'pending' &&
+    call?.escalated !== false;
+
   const checkForNewPendingCall = (calls) => {
-    if (newPendingCallRef.current && !calls.some(c => c.id === newPendingCallRef.current.id)) {
-      setNewPendingCall(null);
-      audio.pause();
-      audio.currentTime = 0;
-      clearTimeout(buzzerTimeout);
+    // Close the popup once its call is gone or no longer needs attention
+    // (e.g. a desk executive accepted it while the team lead was alerted).
+    if (newPendingCallRef.current) {
+      const current = calls.find(c => c.id === newPendingCallRef.current.id);
+      if (!current || !isAlertable(current)) {
+        setNewPendingCall(null);
+        audio.pause();
+        audio.currentTime = 0;
+        clearTimeout(buzzerTimeout);
+      }
     }
 
+    // Ring for rows that just became alertable: new rows, and team lead rows
+    // that were listed quietly and have now escalated.
     const newCall = calls.find(
       (call) =>
-        call.call?.status === 'pending' &&
-        call?.status === 'pending' &&
-        call?.escalated !== false && // teamlead: desk_ex already took this call
-        !previousCallsRef.current.some((prevCall) => prevCall.id === call.id)
+        isAlertable(call) &&
+        !previousCallsRef.current.some((prevCall) => prevCall.id === call.id && isAlertable(prevCall))
     );
     if (newCall) {
       setNewPendingCall(newCall);
