@@ -1727,21 +1727,45 @@ const ScanStatusPanel = ({ execution, snapshot, onStop, stopping }) => {
     );
 };
 
-// Command reply tests (#42-#59): the device's OT,12 replies seen in this attempt,
-// whether the command came from the board (SERVER) or by SMS from a phone.
+const CHANNEL_NAME = { mqtt: "MQTT", sms: "SMS" };
+const tick = (v) => (v === true ? "✓" : v === false ? "✗" : "·");
+const tickColor = (v) => (v === true ? "#2e7d32" : v === false ? "#c62828" : "#90a4ae");
+
+// Command reply tests (OT parameters): each required command must pass on
+// MQTT and on SMS -- OT,12 reply on that channel, plus the reply SMS on SMS.
 const CommandRepliesPanel = ({ snapshot }) => {
-    const replies = (snapshot?.command_replies || []).filter((r) => r.command_key);
     if (snapshot?.mode !== "command_reply") return null;
+    const replies = (snapshot?.command_replies || []).filter((r) => r.command_key);
+    const legs = snapshot?.legs || [];
     return (
         <Box sx={{ width: "100%", textAlign: "left", mb: 0.5, p: 0.5, bgcolor: "#fafafa", border: "1px solid #e0e0e0", borderRadius: 1 }}>
+            {legs.length > 0 && (
+                <Box sx={{ mb: 0.5 }}>
+                    <Typography variant="caption" sx={{ fontSize: "0.6rem", fontWeight: 700, color: "#37474f", display: "block" }}>
+                        Per channel ({legs.filter((l) => l.pass).length}/{legs.length} passed)
+                    </Typography>
+                    {legs.map((leg) => (
+                        <Typography key={`${leg.command_key}_${leg.channel}`} variant="caption" sx={{ fontSize: "0.58rem", display: "block", color: leg.pass ? "#2e7d32" : "#455a64" }}>
+                            <b style={{ color: tickColor(leg.pass) }}>{tick(leg.pass)}</b> [{CHANNEL_NAME[leg.channel] || leg.channel}] {leg.command_label}
+                            {" — "}OT reply <b style={{ color: tickColor(leg.ot_reply) }}>{tick(leg.ot_reply)}</b>
+                            {leg.channel === "sms" && leg.sms_reply !== null && (
+                                <> · SMS reply <b style={{ color: tickColor(leg.sms_reply) }}>{tick(leg.sms_reply)}</b></>
+                            )}
+                            {leg.after_packet !== null && leg.after_packet !== undefined && (
+                                <> · follow-up packet <b style={{ color: tickColor(leg.after_packet) }}>{tick(leg.after_packet)}</b></>
+                            )}
+                        </Typography>
+                    ))}
+                </Box>
+            )}
             <Typography variant="caption" sx={{ fontSize: "0.6rem", fontWeight: 700, color: "#37474f", display: "block" }}>
                 Device replies (OT,12)
             </Typography>
             {replies.length === 0 ? (
                 <Typography variant="caption" sx={{ fontSize: "0.58rem", color: "text.secondary", fontStyle: "italic", display: "block" }}>
-                    No reply yet. Send the command from Send Cmd, or by SMS to the device.
+                    No reply yet. Send each command from Send Cmd, over MQTT and by SMS.
                 </Typography>
-            ) : replies.slice(-4).map((r, idx) => {
+            ) : replies.slice(-6).map((r, idx) => {
                 const color = r.reply_ok === true ? "#2e7d32" : r.reply_ok === false ? "#c62828" : "#455a64";
                 return (
                     <Box key={`${r.timestamp}_${idx}`} sx={{ mt: 0.25 }}>
@@ -1756,17 +1780,44 @@ const CommandRepliesPanel = ({ snapshot }) => {
                     </Box>
                 );
             })}
+            {(snapshot?.sms_received || []).length > 0 && (
+                <>
+                    <Typography variant="caption" sx={{ fontSize: "0.6rem", fontWeight: 700, color: "#37474f", display: "block", mt: 0.5 }}>
+                        SMS replies from the device
+                    </Typography>
+                    {snapshot.sms_received.slice(-4).map((m, idx) => (
+                        <Typography key={`${m.timestamp}_${idx}`} variant="caption" sx={{ fontSize: "0.58rem", fontFamily: "monospace", color: "#1b5e20", display: "block", wordBreak: "break-all" }}>
+                            ◀ {formatClock(m.timestamp)} [{m.sender}] {m.raw_data}
+                        </Typography>
+                    ))}
+                </>
+            )}
         </Box>
     );
 };
 
-// SMS tests (activation reply, SMS fallback): SMS from the device that came in
-// through the SMS receive mechanism during this attempt.
+// SMS tests (activation reply, health check on both profiles, SMS fallback):
+// SMS from the device that came in through the SMS receive mechanism.
 const SmsReceivedPanel = ({ snapshot }) => {
-    if (!["activation_sms", "sms_fallback"].includes(snapshot?.mode)) return null;
+    if (!["activation_sms", "sms_fallback", "health_sms"].includes(snapshot?.mode)) return null;
     const messages = snapshot?.sms_received || [];
+    const profiles = snapshot?.mode === "health_sms" ? snapshot?.profiles || [] : [];
     return (
         <Box sx={{ width: "100%", textAlign: "left", mb: 0.5, p: 0.5, bgcolor: "#fafafa", border: "1px solid #e0e0e0", borderRadius: 1 }}>
+            {profiles.length > 0 && (
+                <Box sx={{ mb: 0.5 }}>
+                    <Typography variant="caption" sx={{ fontSize: "0.6rem", fontWeight: 700, color: "#37474f", display: "block" }}>
+                        Health check (HCHKR) per profile
+                        {snapshot?.current_profile ? ` · device on profile ${snapshot.current_profile}` : ""}
+                    </Typography>
+                    {profiles.map((p) => (
+                        <Typography key={p.profile} variant="caption" sx={{ fontSize: "0.58rem", display: "block", color: p.received ? "#2e7d32" : "#455a64" }}>
+                            <b style={{ color: tickColor(p.received) }}>{tick(p.received)}</b> Profile {p.profile}
+                            {p.received ? ` — ${formatClock(p.received_at)} from ${p.sender}, network ${p.network}` : " — waiting for the reply"}
+                        </Typography>
+                    ))}
+                </Box>
+            )}
             <Typography variant="caption" sx={{ fontSize: "0.6rem", fontWeight: 700, color: "#37474f", display: "block" }}>
                 SMS received from the device
                 {Array.isArray(snapshot?.keys_sent) && snapshot.keys_sent.length > 0 && ` · key sent: ${snapshot.keys_sent.join(", ")}`}
@@ -1776,8 +1827,8 @@ const SmsReceivedPanel = ({ snapshot }) => {
                     No SMS yet. SMS can take a few minutes to arrive.
                 </Typography>
             ) : messages.slice(-4).map((m, idx) => (
-                <Typography key={`${m.timestamp}_${idx}`} variant="caption" sx={{ fontSize: "0.58rem", fontFamily: "monospace", color: "#1b5e20", display: "block", wordBreak: "break-all" }}>
-                    ◀ {formatClock(m.timestamp)} [{m.sender}] {m.raw_data}
+                <Typography key={`${m.timestamp}_${idx}`} variant="caption" sx={{ fontSize: "0.58rem", fontFamily: "monospace", color: m.counted === false ? "#9e9e9e" : "#1b5e20", display: "block", wordBreak: "break-all" }}>
+                    ◀ {formatClock(m.timestamp)} [{m.sender}{m.sim ? ` · SIM ${m.sim}` : ""}] {m.raw_data}{m.counted === false ? " (not counted)" : ""}
                 </Typography>
             ))}
         </Box>
@@ -2439,7 +2490,10 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
     const [paramValues, setParamValues] = useState({});
     // Per-command channel override ("mqtt" | "sms"); default is the command's own channel.
     const [channels, setChannels] = useState({});
+    // SMS only: which SIM number ("auto" = the profile the device is on now).
+    const [smsTargets, setSmsTargets] = useState({});
     const [customChannel, setCustomChannel] = useState("mqtt");
+    const [customSmsTarget, setCustomSmsTarget] = useState("auto");
     const [customCmd, setCustomCmd] = useState("");
     const [sendingKey, setSendingKey] = useState(null);
     const [sendingCustom, setSendingCustom] = useState(false);
@@ -2471,7 +2525,9 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
             setCustomCmd("");
             setParamValues({});
             setChannels({});
+            setSmsTargets({});
             setCustomChannel("mqtt");
+            setCustomSmsTarget("auto");
             fetchCommands(true);
         }
     }, [open, execution?.id, fetchCommands]);
@@ -2486,7 +2542,26 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
     const commandKey = (cmd, idx) => cmd.key || cmd.command_key || cmd.name || `cmd_${idx}`;
     const commandTemplate = (cmd) => cmd.command || cmd.command_template || "";
     const commandChannel = (cmd, key) => channels[key] || cmd.channel || "mqtt";
-    const channelText = (channel) => (channel === "sms" ? `by SMS to ${execution?.demo_device?.msisdn1 || "the device SIM"}` : "over MQTT");
+    const channelText = (channel, smsTo) => (channel === "sms" ? `by SMS to ${smsTo || "the device SIM"}` : "over MQTT");
+    const msisdn1 = execution?.demo_device?.msisdn1;
+    const msisdn2 = execution?.demo_device?.msisdn2;
+    const smsTargetParam = (target) => (target && target !== "auto" ? { sms_target: target } : {});
+    // A render helper, not a component: the modal re-renders every 5 s and a
+    // component defined here would remount and close an open menu.
+    const smsTargetSelect = (value, onChange) => (
+        <TextField
+            select
+            size="small"
+            value={value || "auto"}
+            onChange={(e) => onChange(e.target.value)}
+            sx={{ mt: 0.75, ml: 0.75, minWidth: 150 }}
+            SelectProps={{ sx: { fontSize: '0.75rem' } }}
+        >
+            <MenuItem value="auto" sx={{ fontSize: '0.75rem' }}>SIM of current profile</MenuItem>
+            <MenuItem value="msisdn1" sx={{ fontSize: '0.75rem' }}>Primary {msisdn1 ? `(${msisdn1})` : ''}</MenuItem>
+            <MenuItem value="msisdn2" sx={{ fontSize: '0.75rem' }} disabled={!msisdn2}>Secondary {msisdn2 ? `(${msisdn2})` : ''}</MenuItem>
+        </TextField>
+    );
 
     const handleSendConfigured = async (cmd) => {
         if (execution?.status !== 'in_progress') {
@@ -2522,12 +2597,13 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                 execution_id: execution.id,
                 command_key: key,
                 value: val,
-                channel
+                channel,
+                ...(channel === "sms" ? smsTargetParam(smsTargets[key]) : {})
             });
             const resData = res?.data?.data || res?.data || {};
             setFeedback({
                 type: 'success',
-                text: `Sent ${resData.command_sent || label} ${channelText(resData.channel || channel)}. Waiting for the device reply…`
+                text: `Sent ${resData.command_sent || label} ${channelText(resData.channel || channel, resData.sms_to)}. Waiting for the device reply…`
             });
             setParamValues(prev => ({ ...prev, [key]: '' }));
             fetchCommands(false);
@@ -2553,12 +2629,13 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
             const res = await DeviceModelServices.sendTestCommand({
                 execution_id: execution.id,
                 command: customCmd.trim(),
-                channel: customChannel
+                channel: customChannel,
+                ...(customChannel === "sms" ? smsTargetParam(customSmsTarget) : {})
             });
             const resData = res?.data?.data || res?.data || {};
             setFeedback({
                 type: 'success',
-                text: `Sent ${resData.command_sent || customCmd.trim()} ${channelText(resData.channel || customChannel)}. Waiting for the device reply…`
+                text: `Sent ${resData.command_sent || customCmd.trim()} ${channelText(resData.channel || customChannel, resData.sms_to)}. Waiting for the device reply…`
             });
             setCustomCmd("");
             fetchCommands(false);
@@ -2596,14 +2673,25 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                         Test is currently <b>{execution?.status || 'inactive'}</b>. Commands can only be sent while the test is actively running.
                     </Alert>
                 )}
-                {['activation_sms', 'sms_fallback'].includes(step?.source_table) && (
+                {['activation_sms', 'sms_fallback', 'health_sms'].includes(step?.source_table) && (
                     <Alert severity="info" sx={{ mb: 2, py: 0.5, fontSize: '0.78rem' }}>
                         The device's SMS reply comes in through the SMS gateway and shows up under Device Replies. SMS can take a few minutes.
                     </Alert>
                 )}
+                {step?.source_table === 'health_sms' && (
+                    <Alert severity="info" sx={{ mb: 2, py: 0.5, fontSize: '0.78rem' }}>
+                        Switch to profile 1, wait 2-5 minutes, send the health check by SMS and wait for HCHKR. Then switch to profile 2, wait 2-5 minutes and send it again.
+                        "SIM of current profile" sends the SMS to the primary number on profile 1 and the secondary number on profile 2.
+                    </Alert>
+                )}
+                {step?.source_table === 'sms_fallback' && (
+                    <Alert severity="info" sx={{ mb: 2, py: 0.5, fontSize: '0.78rem' }}>
+                        Read the emergency IP first. Then set a wrong emergency IP and trigger SOS: the device must send the fallback SMS from its primary or secondary number. Restore the emergency IP when done.
+                    </Alert>
+                )}
                 {step?.source_table === 'command_reply' && (
                     <Alert severity="info" sx={{ mb: 2, py: 0.5, fontSize: '0.78rem' }}>
-                        Send the command from here, or by SMS to the device SIM. Either way the test passes on the device's OT reply. The Read command is optional and shows the value the device now holds.
+                        Send every command twice: once via MQTT and once via SMS. Each channel passes on the device's OT reply on that channel; by SMS the device's reply SMS must reach us too.
                     </Alert>
                 )}
                 {feedback && (
@@ -2674,6 +2762,9 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                                                             <MenuItem value="mqtt" sx={{ fontSize: '0.75rem' }}>Send via MQTT</MenuItem>
                                                             <MenuItem value="sms" sx={{ fontSize: '0.75rem' }}>Send via SMS</MenuItem>
                                                         </TextField>
+                                                        {commandChannel(cmd, key) === "sms" && (
+                                                            smsTargetSelect(smsTargets[key], (v) => setSmsTargets(prev => ({ ...prev, [key]: v })))
+                                                        )}
                                                     </Grid>
                                                     {requiresVal && (
                                                         <Grid item xs={12} sm={5}>
@@ -2751,6 +2842,9 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                                             <MenuItem value="mqtt" sx={{ fontSize: '0.75rem' }}>Via MQTT</MenuItem>
                                             <MenuItem value="sms" sx={{ fontSize: '0.75rem' }}>Via SMS</MenuItem>
                                         </TextField>
+                                        {customChannel === "sms" && (
+                                            smsTargetSelect(customSmsTarget, setCustomSmsTarget)
+                                        )}
                                         <Button
                                             variant="contained"
                                             size="small"
@@ -2815,7 +2909,7 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                                                 const statusSx = failed
                                                     ? { bgcolor: '#ffebee', color: '#c62828' }
                                                     : replies.length > 0 ? { bgcolor: '#e8f5e9', color: '#2e7d32' } : { bgcolor: '#e1f5fe', color: '#0277bd' };
-                                                const awaiting = !failed && item.sent_at && (Date.now() - new Date(item.sent_at).getTime()) < 2 * 60 * 1000;
+                                                const awaiting = !failed && item.sent_at && (Date.now() - new Date(item.sent_at).getTime()) < (item.channel === 'sms' ? 10 : 2) * 60 * 1000;
 
                                                 return (
                                                     <TableRow key={item.id || idx}>
@@ -2835,9 +2929,14 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                                                         </TableCell>
                                                         <TableCell>
                                                             <Chip label={statusLabel} size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 600, ...statusSx }} />
-                                                            {item.error && (
+                                                            {item.channel === 'sms' && (item.sms_to || item.sms_status) && (
+                                                                <Typography variant="caption" sx={{ display: 'block', fontSize: '0.62rem', mt: 0.25, color: ['undelivered', 'failed'].includes(item.sms_status) ? '#c62828' : 'text.secondary' }}>
+                                                                    SMS {item.sms_to ? `to ${item.sms_to}` : ''}{item.sms_status ? `: ${item.sms_status}` : ''}
+                                                                </Typography>
+                                                            )}
+                                                            {(item.error || item.sms_error) && (
                                                                 <Typography variant="caption" color="error" sx={{ display: 'block', fontSize: '0.62rem', mt: 0.25 }}>
-                                                                    {item.error}
+                                                                    {item.error || item.sms_error}
                                                                 </Typography>
                                                             )}
                                                         </TableCell>
@@ -2869,7 +2968,7 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                                                                 </Box>
                                                             ) : (
                                                                 <Typography variant="caption" sx={{ color: 'text.secondary', fontStyle: 'italic', fontSize: '0.7rem' }}>
-                                                                    {failed ? 'Not delivered' : awaiting ? 'Awaiting response...' : 'No reply within 2 min'}
+                                                                    {failed ? 'Not delivered' : awaiting ? 'Awaiting response...' : item.channel === 'sms' ? 'No reply yet' : 'No reply within 2 min'}
                                                                 </Typography>
                                                             )}
                                                         </TableCell>

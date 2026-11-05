@@ -29,6 +29,18 @@ const checkGpsPackets = (id) => {
   return http.post('/api/device-tagging/step4/', { id });
 };
 
+// ─── Step 4 — SMS checks (health SMS on profile 1 / 2, activation reply) ─────
+/** action: 'set_profile' | 'health' | 'activation'; profile: 1 | 2 (not for activation) */
+const sendStep4Sms = (id, action, profile) => {
+  const http = getAxiosInstance();
+  return http.post('/api/device-tagging/step4/sms/send/', { id, action, ...(profile ? { profile } : {}) });
+};
+
+const getStep4SmsStatus = (id) => {
+  const http = getAxiosInstance();
+  return http.post('/api/device-tagging/step4/sms/status/', { id });
+};
+
 // ─── Step 5 — Owner OTP + Final Commit ───────────────────────────────────────
 const sendOwnerOtp = (id) => {
   const http = getAxiosInstance();
@@ -67,6 +79,8 @@ const NewTaggingService = {
   resendDealerOtp,
   verifyDealerOtp,
   checkGpsPackets,
+  sendStep4Sms,
+  getStep4SmsStatus,
   sendOwnerOtp,
   resendOwnerOtp,
   verifyOwnerOtp,

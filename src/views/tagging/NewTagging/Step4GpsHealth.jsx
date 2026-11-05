@@ -9,6 +9,7 @@ import {
   GpsFixed, SatelliteAlt, Sos, AccessTime,
 } from '@mui/icons-material';
 import NewTaggingService from '../../../services/NewTaggingService';
+import Step4SmsChecks from './Step4SmsChecks';
 
 // ─── packet definitions ───────────────────────────────────────────────────────
 const PACKETS = [
@@ -142,6 +143,8 @@ export default function Step4GpsHealth({ entryId, onSuccess, setAlert }) {
   const [loading, setLoading] = useState(false);
   const [packets, setPackets] = useState(null); // { login: {...}, health: {...}, ... }
   const [checked, setChecked] = useState(false);
+  const [stepDone, setStepDone] = useState(false);
+  const [smsState, setSmsState] = useState(null);
 
   const runCheck = async () => {
   if (!entryId) {
@@ -168,6 +171,8 @@ export default function Step4GpsHealth({ entryId, onSuccess, setAlert }) {
     setChecked(true);
 
     const allReceived = data?.all_received === true;
+    setStepDone(responseData?.status === 'success');
+    if (data?.sms_checks) setSmsState(data.sms_checks);
 
     if (allReceived && responseData?.status === 'success') {
       setAlert({
@@ -267,7 +272,20 @@ export default function Step4GpsHealth({ entryId, onSuccess, setAlert }) {
         </Box>
       )}
 
+      {/* SMS checks: health SMS on both profiles, then activation */}
+      <Box sx={{ mt: 3 }}>
+        <Divider sx={{ mb: 2 }} />
+        <Step4SmsChecks entryId={entryId} setAlert={setAlert} onStateChange={setSmsState} />
+      </Box>
+
       {/* Proceed */}
+      {checked && smsState?.required && !stepDone && (
+        <Typography variant="body2" sx={{ mt: 2, color: '#c2410c', fontWeight: 600 }}>
+          {smsState.all_passed
+            ? 'SMS checks passed. Press "Re-check Live" to complete step 4.'
+            : 'Step 4 completes when all packets are received and the SMS checks above have passed.'}
+        </Typography>
+      )}
       {checked && (
         <Box sx={{ mt: 3 }}>
           <Divider sx={{ mb: 2 }} />
