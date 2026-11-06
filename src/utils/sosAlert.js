@@ -36,6 +36,17 @@ const markTeamleadAlerted = (id) => {
   }
 };
 
+// Whether help has already been broadcast for a call, from the
+// DEx/getloc/ response: a broadcast still pending/accepted, or a police/
+// ambulance unit already assigned. Once a desk executive has broadcast, the
+// team lead (or anyone else opening the call) must not be offered the
+// broadcast actions again. A timed-out or cancelled broadcast can be redone.
+const LIVE_BROADCAST_STATUSES = ['pending', 'accepted'];
+const FIELD_ASSIGNMENT_TYPES = ['police_ex', 'ambulance_ex', 'pcr', 'acr'];
+export const isCallAlreadyBroadcast = (locData) =>
+  (locData?.broadcasts || []).some((b) => LIVE_BROADCAST_STATUSES.includes(b?.status)) ||
+  (locData?.assignments || []).some((a) => FIELD_ASSIGNMENT_TYPES.includes(a?.type));
+
 // Pick the row that should pop up now, given the rows of the previous poll.
 // Desk executive rows ring when they appear (or become pending again); team
 // lead rows ring once, when they escalate. Returns null if nothing to ring.

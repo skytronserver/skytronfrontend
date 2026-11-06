@@ -18,7 +18,7 @@ import useSOSIdleChallenge from "../../hooks/useSOSIdleChallenge";
 import SOSCaptchaChallenge from "../../ui-component/SOSCaptchaChallenge";
 import { logout } from "../../actions/loginActions";
 import SOSManagement from "../../services/SOSManagement";
-import { isSosAlertable, findSosRowToAlert } from "../../utils/sosAlert";
+import { isSosAlertable, findSosRowToAlert, isCallAlreadyBroadcast } from "../../utils/sosAlert";
 
 const audio = new Audio(`${process.env.REACT_APP_BASE_URL}static/bell.wav`);
 
@@ -286,6 +286,12 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
       });
       const locations = response.data.target || [];
 
+      // Someone (e.g. the desk executive) already broadcast for this call:
+      // don't offer the broadcast actions again (e.g. to the team lead).
+      if (isCallAlreadyBroadcast(response.data)) {
+        setBroadcastDisabled(true);
+      }
+
       // Map locations to format expected by BhuvanMapComponent
       // We force 'EA' packet type for Red color and ensure vehicle type is set
       const mappedLocations = locations.map(loc => ({
@@ -410,6 +416,8 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
   };
 
   const handleShow = (callObj) => {
+    // Broadcast state belongs to one call; the next fetch re-checks it.
+    if (callObj?.id !== call?.id) setBroadcastDisabled(false);
     setCall(callObj)
   };
 

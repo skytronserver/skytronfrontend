@@ -49,7 +49,7 @@ import { fetchSecureIncidentMedia, createMediaUrl, isVideoFile } from "../../uti
 import { getRole } from "../../helper";
 
 import { createStyleElement } from "../../utils/cspNonce";
-import { isSosAlertable, findSosRowToAlert } from "../../utils/sosAlert";
+import { isSosAlertable, findSosRowToAlert, isCallAlreadyBroadcast } from "../../utils/sosAlert";
 const emCallAudio = new Audio(`${process.env.REACT_APP_BASE_URL}static/bell.wav`);
 
 const DriverCard = ({ driver }) => {
@@ -1029,6 +1029,12 @@ const EMCall = () => {
         assignmentsRef.current = newAssignments;
       }
 
+      // Someone (e.g. the desk executive) already broadcast for this call:
+      // don't offer the broadcast actions again (e.g. to the team lead).
+      if (isCallAlreadyBroadcast(response.data)) {
+        setBroadcastDisabled(true);
+      }
+
       // Filter and plot location data
       const locations = response.data.target || [];
       const mappedLocations = locations.map(loc => ({
@@ -1323,6 +1329,12 @@ const processableCalls = apiCalls;
       alert(`${broadcastType} broadcast successful!`);
     } catch (error) {
       console.error("Broadcast Error:", error);
+      const msg = error?.response?.data?.error;
+      if (msg) {
+        // e.g. the desk executive already broadcast for this call
+        alert(msg);
+        setBroadcastDisabled(true);
+      }
     }
   };
 
