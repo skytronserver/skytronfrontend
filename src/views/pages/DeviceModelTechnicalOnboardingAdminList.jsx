@@ -1731,10 +1731,37 @@ const CHANNEL_NAME = { mqtt: "MQTT", sms: "SMS" };
 const tick = (v) => (v === true ? "✓" : v === false ? "✗" : "·");
 const tickColor = (v) => (v === true ? "#2e7d32" : v === false ? "#c62828" : "#90a4ae");
 
+// Combined tests (several checks in one test, e.g. SOS start + stop):
+// one line per check, each passing on its own.
+const CheckPartsPanel = ({ snapshot }) => {
+    const parts = snapshot?.parts;
+    if (!Array.isArray(parts) || parts.length === 0) return null;
+    return (
+        <Box sx={{ width: "100%", textAlign: "left", mb: 0.5, p: 0.5, bgcolor: "#fafafa", border: "1px solid #e0e0e0", borderRadius: 1 }}>
+            <Typography variant="caption" sx={{ fontSize: "0.6rem", fontWeight: 700, color: "#37474f", display: "block" }}>
+                Checks ({parts.filter((p) => p.pass).length}/{parts.length} passed)
+            </Typography>
+            {parts.map((p) => (
+                <Box key={p.key || p.label} sx={{ mt: 0.25 }}>
+                    <Typography variant="caption" sx={{ fontSize: "0.58rem", display: "block", color: p.pass ? "#2e7d32" : "#455a64" }}>
+                        <b style={{ color: tickColor(p.pass) }}>{tick(p.pass)}</b> {p.label}
+                    </Typography>
+                    {!p.pass && p.reason && (
+                        <Typography variant="caption" sx={{ fontSize: "0.55rem", display: "block", color: "#8d6e63", pl: 1.2, lineHeight: 1.3 }}>
+                            {p.reason}
+                        </Typography>
+                    )}
+                </Box>
+            ))}
+        </Box>
+    );
+};
+
 // Command reply tests (OT parameters): each required command must pass on
 // MQTT and on SMS -- OT,12 reply on that channel, plus the reply SMS on SMS.
+// Combined tests with a command check show the same panel.
 const CommandRepliesPanel = ({ snapshot }) => {
-    if (snapshot?.mode !== "command_reply") return null;
+    if (snapshot?.mode !== "command_reply" && !Array.isArray(snapshot?.legs)) return null;
     const replies = (snapshot?.command_replies || []).filter((r) => r.command_key);
     const legs = snapshot?.legs || [];
     return (
@@ -1751,7 +1778,9 @@ const CommandRepliesPanel = ({ snapshot }) => {
                             {leg.channel === "sms" && leg.sms_reply !== null && (
                                 <> · SMS reply <b style={{ color: tickColor(leg.sms_reply) }}>{tick(leg.sms_reply)}</b></>
                             )}
-                            {leg.after_packet !== null && leg.after_packet !== undefined && (
+                            {Array.isArray(leg.after_steps) && leg.after_steps.length > 0 ? leg.after_steps.map((st) => (
+                                <React.Fragment key={st.label}> · {st.label} <b style={{ color: tickColor(st.found) }}>{tick(st.found)}</b></React.Fragment>
+                            )) : leg.after_packet !== null && leg.after_packet !== undefined && (
                                 <> · follow-up packet <b style={{ color: tickColor(leg.after_packet) }}>{tick(leg.after_packet)}</b></>
                             )}
                         </Typography>
@@ -1796,12 +1825,14 @@ const CommandRepliesPanel = ({ snapshot }) => {
     );
 };
 
-// SMS tests (activation reply, health check on both profiles, SMS fallback):
-// SMS from the device that came in through the SMS receive mechanism.
+// SMS tests (activation reply, SMS fallback) and the eSIM switch tests'
+// health check on each profile: SMS from the device that came in through
+// the SMS receive mechanism.
+const isEsimHealth = (snapshot) => /^esim_/.test(snapshot?.mode || "") && Array.isArray(snapshot?.profiles);
 const SmsReceivedPanel = ({ snapshot }) => {
-    if (!["activation_sms", "sms_fallback", "health_sms"].includes(snapshot?.mode)) return null;
+    if (!["activation_sms", "sms_fallback"].includes(snapshot?.mode) && !isEsimHealth(snapshot)) return null;
     const messages = snapshot?.sms_received || [];
-    const profiles = snapshot?.mode === "health_sms" ? snapshot?.profiles || [] : [];
+    const profiles = isEsimHealth(snapshot) ? snapshot.profiles : [];
     return (
         <Box sx={{ width: "100%", textAlign: "left", mb: 0.5, p: 0.5, bgcolor: "#fafafa", border: "1px solid #e0e0e0", borderRadius: 1 }}>
             {profiles.length > 0 && (
@@ -2673,20 +2704,27 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                         Test is currently <b>{execution?.status || 'inactive'}</b>. Commands can only be sent while the test is actively running.
                     </Alert>
                 )}
-                {['activation_sms', 'sms_fallback', 'health_sms'].includes(step?.source_table) && (
+                {(['activation_sms', 'sms_fallback'].includes(step?.source_table) || step?.check_config?.health_sms) && (
                     <Alert severity="info" sx={{ mb: 2, py: 0.5, fontSize: '0.78rem' }}>
                         The device's SMS reply comes in through the SMS gateway and shows up under Device Replies. SMS can take a few minutes.
                     </Alert>
                 )}
-                {step?.source_table === 'health_sms' && (
+                {step?.check_config?.health_sms && (
                     <Alert severity="info" sx={{ mb: 2, py: 0.5, fontSize: '0.78rem' }}>
-                        Switch to profile 1, wait 2-5 minutes, send the health check by SMS and wait for HCHKR. Then switch to profile 2, wait 2-5 minutes and send it again.
+                        Send the health check by SMS on the current profile and wait for HCHKR. Then send the profile switch, wait 2-5 minutes and send the health check again on the new profile.
                         "SIM of current profile" sends the SMS to the primary number on profile 1 and the secondary number on profile 2.
                     </Alert>
                 )}
                 {step?.source_table === 'sms_fallback' && (
                     <Alert severity="info" sx={{ mb: 2, py: 0.5, fontSize: '0.78rem' }}>
                         Read the emergency IP first. Then set a wrong emergency IP and trigger SOS: the device must send the fallback SMS from its primary or secondary number. Restore the emergency IP when done.
+                    </Alert>
+                )}
+                {step?.source_table === 'composite' && (
+                    <Alert severity="info" sx={{ mb: 2, py: 0.5, fontSize: '0.78rem' }}>
+                        This test combines several checks and passes when all of them pass:
+                        {(step?.check_config?.parts || []).map((p) => <span key={p.key} style={{ display: 'block' }}>• {p.label}</span>)}
+                        Send each command on the channel already selected next to it.
                     </Alert>
                 )}
                 {step?.source_table === 'command_reply' && (
@@ -4653,6 +4691,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                             </Box>
                                                                         );
                                                                     })()}
+                                                                    <CheckPartsPanel snapshot={parseSnapshot(execution)} />
                                                                     <CommandRepliesPanel snapshot={parseSnapshot(execution)} />
                                                                     <SmsReceivedPanel snapshot={parseSnapshot(execution)} />
                                                                     {isLocationTest(step.serial_no, step.name, step) && (() => {
@@ -5022,6 +5061,7 @@ const FinalizeDialog = ({ open, row, onClose, onSuccess }) => {
                                                                                         {lastSnap.reason}
                                                                                     </Typography>
                                                                                 )}
+                                                                                <CheckPartsPanel snapshot={lastSnap} />
                                                                                 <CommandRepliesPanel snapshot={lastSnap} />
                                                                                 <SmsReceivedPanel snapshot={lastSnap} />
                                                                                 <TestTimes started={lastSnap?.test_started_at || execution?.started_at} ended={lastSnap?.scan_ended_at || execution?.completed_at} />
