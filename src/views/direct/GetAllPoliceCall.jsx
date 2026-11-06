@@ -8,6 +8,7 @@ import HomePageService from '../../services/HomePage';
 import { getAllSOSCall } from '../../actions/commonDataActions';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import { useNavigate } from 'react-router-dom';
+import { isSosAlertable, findSosRowToAlert } from '../../utils/sosAlert';
 
 const audio = new Audio(`${process.env.REACT_APP_BASE_URL}static/bell.wav`);
 const GetAllCall = () => {
@@ -17,6 +18,7 @@ const GetAllCall = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const previousCallsRef = useRef([]); // Keep track of previous calls for comparison
+  const popupCallRef = useRef(null); // Call shown in the popup (state is stale inside the poll closure)
 
   useEffect(() => {
     const fetchCallList = async () => {
@@ -42,13 +44,23 @@ const GetAllCall = () => {
   const callList = useSelector((state) => state.userData?.callList || []);
 
   const checkForNewPendingCall = (calls) => {
-    const newPendingCall = calls.find(
-      (call) =>
-        call.call?.status === 'pending' &&
-        call?.status === 'pending' &&
-        !previousCallsRef.current.some((prevCall) => prevCall.id === call.id)
-    );
+    // Close the popup once its call is gone or no longer needs attention
+    // (e.g. a desk executive accepted it while the team lead was alerted).
+    if (popupCallRef.current) {
+      const current = calls.find((c) => c.id === popupCallRef.current.id);
+      if (!current || !isSosAlertable(current)) {
+        popupCallRef.current = null;
+        setNewPendingCall(null);
+        audio.pause();
+        audio.currentTime = 0;
+      }
+    }
+
+    // Desk executive: new rows ring at once. Team lead: only escalated rows
+    // (not accepted by a desk executive within 1 minute), once each.
+    const newPendingCall = findSosRowToAlert(calls, previousCallsRef.current);
     if (newPendingCall) {
+      popupCallRef.current = newPendingCall;
       setNewPendingCall(newPendingCall);
       playBuzzer(); // Play the buzzer sound
     }

@@ -49,6 +49,7 @@ import { fetchSecureIncidentMedia, createMediaUrl, isVideoFile } from "../../uti
 import { getRole } from "../../helper";
 
 import { createStyleElement } from "../../utils/cspNonce";
+import { isSosAlertable, findSosRowToAlert } from "../../utils/sosAlert";
 const emCallAudio = new Audio(`${process.env.REACT_APP_BASE_URL}static/bell.wav`);
 
 const DriverCard = ({ driver }) => {
@@ -1212,19 +1213,24 @@ const EMCall = () => {
         //   );
         // }
 const processableCalls = apiCalls;
-        if (emCallNewIncomingCallRef.current && !processableCalls.some(c => c.id === emCallNewIncomingCallRef.current.id)) {
-          setNewIncomingCall(null);
-          emCallAudio.pause();
-          emCallAudio.currentTime = 0;
-          clearTimeout(emBuzzerTimeout.current);
+        // Close the popup once its call is gone or no longer needs attention
+        // (e.g. a desk executive accepted it while the team lead was alerted).
+        if (emCallNewIncomingCallRef.current) {
+          const current = processableCalls.find(c => c.id === emCallNewIncomingCallRef.current.id);
+          if (!current || !isSosAlertable(current)) {
+            setNewIncomingCall(null);
+            emCallAudio.pause();
+            emCallAudio.currentTime = 0;
+            clearTimeout(emBuzzerTimeout.current);
+          }
         }
 
-        const found = processableCalls.find(
-          (c) =>
-            c.call?.status === 'pending' &&
-            c?.status === 'pending' &&
-            c.id !== call?.id && // exclude the current active call
-            !emCallPreviousCallsRef.current.some((prev) => prev.id === c.id)
+        // Desk executive: new rows ring at once. Team lead: only escalated
+        // rows (not accepted by a desk executive within 1 minute), once each.
+        const found = findSosRowToAlert(
+          processableCalls,
+          emCallPreviousCallsRef.current,
+          (c) => c.id !== call?.id // exclude the current active call
         );
         if (found) {
           setNewIncomingCall(found);

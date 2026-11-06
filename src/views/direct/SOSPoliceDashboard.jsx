@@ -18,6 +18,7 @@ import useSOSIdleChallenge from "../../hooks/useSOSIdleChallenge";
 import SOSCaptchaChallenge from "../../ui-component/SOSCaptchaChallenge";
 import { logout } from "../../actions/loginActions";
 import SOSManagement from "../../services/SOSManagement";
+import { isSosAlertable, findSosRowToAlert } from "../../utils/sosAlert";
 
 const audio = new Audio(`${process.env.REACT_APP_BASE_URL}static/bell.wav`);
 
@@ -138,13 +139,11 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
 
         sessionStorage.setItem('dashboard_seen_calls', JSON.stringify(persistentSeenTable));
 
-        // Delay parsing for teamlead: only show if missed by desk_ex for 3 polls
+        // Team lead sees every call in the list; its popup waits for the
+        // backend's escalated flag (desk_ex did not accept within 1 minute),
+        // see utils/sosAlert.js.
         let processableCalls = apiCalls;
-        if (role === 'teamlead') {
-          processableCalls = apiCalls.filter(
-            (c) => persistentSeenTable[c.id] > 3 // wait until it's seen in more than 3 polling cycles
-          );
-        } else if (role === 'desk_ex') {
+        if (role === 'desk_ex') {
           processableCalls = apiCalls.filter(
             (c) => persistentSeenTable[c.id] <= 3
           );
@@ -343,19 +342,21 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
   };
 
   const checkForNewPendingCall = (calls) => {
-    if (newPendingCallRef.current && !calls.some(c => c.id === newPendingCallRef.current.id)) {
-      setNewPendingCall(null);
-      audio.pause();
-      audio.currentTime = 0;
-      clearTimeout(buzzerTimeout);
+    // Close the popup once its call is gone or no longer needs attention
+    // (e.g. a desk executive accepted it while the team lead was alerted).
+    if (newPendingCallRef.current) {
+      const current = calls.find(c => c.id === newPendingCallRef.current.id);
+      if (!current || !isSosAlertable(current)) {
+        setNewPendingCall(null);
+        audio.pause();
+        audio.currentTime = 0;
+        clearTimeout(buzzerTimeout);
+      }
     }
 
-    const newCall = calls.find(
-      (call) =>
-        call.call?.status === 'pending' &&
-        call?.status === 'pending' &&
-        !previousCallsRef.current.some((prevCall) => prevCall.id === call.id)
-    );
+    // Desk executive: new rows ring at once. Team lead: only escalated rows
+    // (not accepted by a desk executive within 1 minute), once each.
+    const newCall = findSosRowToAlert(calls, previousCallsRef.current);
     if (newCall) {
       setNewPendingCall(newCall);
       playBuzzer(); // Play the buzzer sound
