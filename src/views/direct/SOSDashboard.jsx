@@ -14,6 +14,7 @@ import { getAllSOSCall } from '../../actions/commonDataActions';
 import { useNavigate } from "react-router";
 import { useTranslation } from 'react-i18next';
 import BhuvanMapComponent from "../../components/Map/BhuvanMapComponent";
+import { isSosAlertable, findSosRowToAlert } from "../../utils/sosAlert";
 
 const audio = new Audio(`${process.env.REACT_APP_BASE_URL}static/bell.wav`);
 
@@ -296,19 +297,12 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
     }
   };
 
-  // A row rings while it is pending; for the team lead only once escalated
-  // (desk_ex has not accepted it in time), so escalated=false never rings.
-  const isAlertable = (call) =>
-    call?.call?.status === 'pending' &&
-    call?.status === 'pending' &&
-    call?.escalated !== false;
-
   const checkForNewPendingCall = (calls) => {
     // Close the popup once its call is gone or no longer needs attention
     // (e.g. a desk executive accepted it while the team lead was alerted).
     if (newPendingCallRef.current) {
       const current = calls.find(c => c.id === newPendingCallRef.current.id);
-      if (!current || !isAlertable(current)) {
+      if (!current || !isSosAlertable(current)) {
         setNewPendingCall(null);
         audio.pause();
         audio.currentTime = 0;
@@ -316,13 +310,9 @@ const SOSDashboard = ({ role, calls, deskCalls }) => {
       }
     }
 
-    // Ring for rows that just became alertable: new rows, and team lead rows
-    // that were listed quietly and have now escalated.
-    const newCall = calls.find(
-      (call) =>
-        isAlertable(call) &&
-        !previousCallsRef.current.some((prevCall) => prevCall.id === call.id && isAlertable(prevCall))
-    );
+    // Desk executive: new rows ring at once. Team lead: only escalated rows
+    // (not accepted by a desk executive within 1 minute), once each.
+    const newCall = findSosRowToAlert(calls, previousCallsRef.current);
     if (newCall) {
       setNewPendingCall(newCall);
       playBuzzer(); // Play the buzzer sound

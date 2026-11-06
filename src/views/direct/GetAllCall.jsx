@@ -8,6 +8,7 @@ import HomePageService from '../../services/HomePage';
 import { getAllSOSCall } from '../../actions/commonDataActions';
 import DynamicDatatables from '../../datatables/DynamicDatatables';
 import { useNavigate } from 'react-router-dom';
+import { isSosAlertable, findSosRowToAlert } from '../../utils/sosAlert';
 
 const audio = new Audio(`${process.env.REACT_APP_BASE_URL}static/bell.wav`);
 const GetAllCall = () => {
@@ -42,19 +43,12 @@ const GetAllCall = () => {
 
   const callList = useSelector((state) => state.userData?.callList || []);
 
-  // A row rings while it is pending; for the team lead only once escalated
-  // (desk_ex has not accepted it in time), so escalated=false never rings.
-  const isAlertable = (call) =>
-    call?.call?.status === 'pending' &&
-    call?.status === 'pending' &&
-    call?.escalated !== false;
-
   const checkForNewPendingCall = (calls) => {
     // Close the popup once its call is gone or no longer needs attention
     // (e.g. a desk executive accepted it while the team lead was alerted).
     if (popupCallRef.current) {
       const current = calls.find((c) => c.id === popupCallRef.current.id);
-      if (!current || !isAlertable(current)) {
+      if (!current || !isSosAlertable(current)) {
         popupCallRef.current = null;
         setNewPendingCall(null);
         audio.pause();
@@ -62,13 +56,9 @@ const GetAllCall = () => {
       }
     }
 
-    // Ring for rows that just became alertable: new rows, and team lead rows
-    // that were listed quietly and have now escalated.
-    const newPendingCall = calls.find(
-      (call) =>
-        isAlertable(call) &&
-        !previousCallsRef.current.some((prevCall) => prevCall.id === call.id && isAlertable(prevCall))
-    );
+    // Desk executive: new rows ring at once. Team lead: only escalated rows
+    // (not accepted by a desk executive within 1 minute), once each.
+    const newPendingCall = findSosRowToAlert(calls, previousCallsRef.current);
     if (newPendingCall) {
       popupCallRef.current = newPendingCall;
       setNewPendingCall(newPendingCall);
