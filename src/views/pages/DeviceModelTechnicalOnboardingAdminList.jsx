@@ -2633,8 +2633,8 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
             });
             const resData = res?.data?.data || res?.data || {};
             setFeedback({
-                type: 'success',
-                text: `Sent ${resData.command_sent || label} ${channelText(resData.channel || channel, resData.sms_to)}. Waiting for the device reply…`
+                type: resData.warning ? 'warning' : 'success',
+                text: `Sent ${resData.command_sent || label} ${channelText(resData.channel || channel, resData.sms_to)}. ${resData.warning || 'Waiting for the device reply…'}`
             });
             setParamValues(prev => ({ ...prev, [key]: '' }));
             fetchCommands(false);
@@ -2665,8 +2665,8 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
             });
             const resData = res?.data?.data || res?.data || {};
             setFeedback({
-                type: 'success',
-                text: `Sent ${resData.command_sent || customCmd.trim()} ${channelText(resData.channel || customChannel, resData.sms_to)}. Waiting for the device reply…`
+                type: resData.warning ? 'warning' : 'success',
+                text: `Sent ${resData.command_sent || customCmd.trim()} ${channelText(resData.channel || customChannel, resData.sms_to)}. ${resData.warning || 'Waiting for the device reply…'}`
             });
             setCustomCmd("");
             fetchCommands(false);
@@ -2724,7 +2724,9 @@ const DeviceCommandModal = ({ open, onClose, execution, step, imei, onCommandSen
                     <Alert severity="info" sx={{ mb: 2, py: 0.5, fontSize: '0.78rem' }}>
                         This test combines several checks and passes when all of them pass:
                         {(step?.check_config?.parts || []).map((p) => <span key={p.key} style={{ display: 'block' }}>• {p.label}</span>)}
-                        Send each command on the channel already selected next to it.
+                        {(step?.check_config?.parts || []).some((p) => (p.check_config?.channels || []).length > 1)
+                            ? 'Commands checked on both channels must be sent twice: once via MQTT and once via SMS (pick the channel next to the command).'
+                            : 'Send each command on the channel already selected next to it.'}
                     </Alert>
                 )}
                 {step?.source_table === 'command_reply' && (
